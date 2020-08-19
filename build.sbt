@@ -25,3 +25,22 @@ lazy val microservice = Project(appName, file("."))
   .configs(IntegrationTest)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
+  .settings(
+    scoverageSettings,
+    scalafmtOnCompile in Compile := true,
+    scalafmtOnCompile in Test := true
+  )
+
+scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
+
+lazy val scoverageSettings: Seq[Setting[_]] = Seq(
+  coverageExcludedPackages := List(
+    "<empty>",
+    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.views\\..*",
+    ".*(Reverse|AuthService|BuildInfo|Routes).*"
+  ).mkString(";"),
+  coverageMinimum := 96,
+  coverageFailOnMinimum := true,
+  coverageHighlighting := true,
+  parallelExecution in Test := false
+)

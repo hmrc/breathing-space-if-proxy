@@ -1,3 +1,7 @@
 # microservice specific routes
 
-GET        /hello-world             uk.gov.hmrc.breathingspaceifproxy.controllers.MicroserviceHelloWorldController.hello
+GET        /debtor/:nino/debt-details             uk.gov.hmrc.breathingspaceifproxy.controllers.BreathingSpaceController.getDebtDetails(nino)
+
+POST       /breathing-space-period                uk.gov.hmrc.breathingspaceifproxy.controllers.BreathingSpaceController.createBreathingSpacePeriod
+
+
