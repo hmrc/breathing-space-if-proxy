@@ -18,8 +18,9 @@ package uk.gov.hmrc.breathingspaceifproxy.controllers
 
 import javax.inject.{Inject, Singleton}
 
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import scala.concurrent.Future
+
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 

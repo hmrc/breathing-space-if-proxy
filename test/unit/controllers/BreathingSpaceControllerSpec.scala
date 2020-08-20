@@ -19,10 +19,10 @@ package unit.controllers
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.http.Status
-import play.api.test.Helpers._
-import play.api.test.{FakeRequest, Helpers}
 import play.api.{Configuration, Environment}
+import play.api.http.Status
+import play.api.test.{FakeRequest, Helpers}
+import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.controllers.BreathingSpaceController
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
