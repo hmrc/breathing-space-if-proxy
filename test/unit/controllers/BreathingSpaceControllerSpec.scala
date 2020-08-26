@@ -24,7 +24,7 @@ import play.api.http.Status
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.controllers.BreathingSpaceController
+import uk.gov.hmrc.breathingspaceifproxy.controller.BreathingSpaceController
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class BreathingSpaceControllerSpec extends AnyWordSpec with Matchers with GuiceOneAppPerSuite {
@@ -41,7 +41,7 @@ class BreathingSpaceControllerSpec extends AnyWordSpec with Matchers with GuiceO
 
   "GET /debtor/:nino/debt-details" should {
     "return 200" in {
-      val result = controller.getDebtDetails("fakeNino")(fakeRequest)
+      val result = controller.retrieveIdentityDetails("fakeNino")(fakeRequest)
       status(result) shouldBe Status.OK
     }
   }

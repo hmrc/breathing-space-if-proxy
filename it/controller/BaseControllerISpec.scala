@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package controllers
+package controller
 
 import akka.stream.Materializer
 import org.scalatest.matchers.should.Matchers
