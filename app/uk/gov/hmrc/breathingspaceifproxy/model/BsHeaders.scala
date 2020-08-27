@@ -15,8 +15,20 @@
  */
 
 package uk.gov.hmrc.breathingspaceifproxy.model
+import uk.gov.hmrc.http.HeaderCarrier
 
 case class BsHeaders(correlationId: String, context: Attended, clientId: Option[String] = None)
+
+object BsHeaders {
+  def constructHeaderCarrier(bsHeaders: BsHeaders): HeaderCarrier = {
+    val hc = HeaderCarrier().withExtraHeaders(
+      "X-Correlation-Id" -> bsHeaders.correlationId,
+      "X-Context" -> bsHeaders.context.toString
+    )
+
+    bsHeaders.clientId.fold(hc)(clientId => hc.withExtraHeaders("X-Client-Id" -> clientId))
+  }
+}
 
 trait Attended
 

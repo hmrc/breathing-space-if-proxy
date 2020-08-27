@@ -32,7 +32,7 @@ class BreathingSpaceConnector @Inject()(http: HttpClient, appConfig: AppConfig)(
   def requestIdentityDetails(nino: Nino, bsHeaders: BsHeaders): Future[HttpResponse] = {
     val url = s"${appConfig.integrationFrameworkUrl}/debtor/${nino.value}"
 
-    implicit val hc: HeaderCarrier = constructHeaders(bsHeaders)
+    implicit val hc: HeaderCarrier = BsHeaders.constructHeaderCarrier(bsHeaders)
 
     http
       .GET[HttpResponse](url)
@@ -59,14 +59,5 @@ class BreathingSpaceConnector @Inject()(http: HttpClient, appConfig: AppConfig)(
           logger.error(s"Call to Integration Framework failed. url=$url", e)
           Future.failed(e)
       }
-  }
-
-  private def constructHeaders(bsHeaders: BsHeaders): HeaderCarrier = {
-    val hc = HeaderCarrier().withExtraHeaders(
-      "X-Correlation-Id" -> bsHeaders.correlationId,
-      "X-Context" -> bsHeaders.context.toString
-    )
-
-    bsHeaders.clientId.fold(hc)(clientId => hc.withExtraHeaders("X-Client-Id" -> clientId))
   }
 }
