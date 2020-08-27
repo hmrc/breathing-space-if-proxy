@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.controllers
+package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
 
@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 @Singleton()
 class BreathingSpaceController @Inject()(appConfig: AppConfig, cc: ControllerComponents) extends BackendController(cc) {
 
-  def getDebtDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
+  def retrieveIdentityDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
     Future.successful(Ok(s"Hello world ${request.body}"))
   }
 

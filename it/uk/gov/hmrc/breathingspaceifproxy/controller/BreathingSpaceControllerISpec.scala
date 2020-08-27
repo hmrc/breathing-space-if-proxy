@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package controllers
+package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import play.api.http.Status
 import play.api.test.Helpers._
 import play.api.test.WsTestClient
+import uk.gov.hmrc.breathingspaceifproxy.utils.BaseControllerISpec
 
 class BreathingSpaceControllerISpec extends BaseControllerISpec {
 
@@ -27,7 +28,7 @@ class BreathingSpaceControllerISpec extends BaseControllerISpec {
   WsTestClient.withClient { client =>
     "GET /debtor/:nino/debt-details" in {
       val result = await(
-        client.url(s"http://localhost:$port/breathing-space/debtor/${anino}/debt-details")
+        client.url(s"http://localhost:$port/breathing-space/debtor/${anino}/identity-details")
           .addHttpHeaders("Content-Type" -> "application/json")
           .get()
       )
@@ -36,12 +37,4 @@ class BreathingSpaceControllerISpec extends BaseControllerISpec {
 
     }
   }
-
-  /*
-  "POST /breathing-space-period" should {
-    "return 200" in {
-      val result = controller.createBreathingSpacePeriod()(fakeRequest)
-      status(result) shouldBe Status.OK
-    }
-  }*/
 }
