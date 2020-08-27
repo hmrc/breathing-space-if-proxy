@@ -16,19 +16,36 @@
 
 package controller
 
+import java.io.File
+
 import akka.stream.Materializer
+import com.typesafe.config.ConfigFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.{Application, Configuration}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc.StandaloneAhcWSClient
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.inject.bind
 
 abstract class BaseControllerISpec(config: (String, Any)*) extends AnyWordSpec with Matchers with GuiceOneServerPerSuite {
 
-  override lazy val app: Application = new GuiceApplicationBuilder()
-    .configure(config: _*)
+  val confFile = new File("conf/application.conf")
+  val parsedConfig = ConfigFactory.parseFile(confFile)
+  implicit val configFromFile = Configuration(ConfigFactory.load(parsedConfig))
+
+  private val serviceConfig = new ServicesConfig(configFromFile)
+
+  override implicit lazy val app: Application = GuiceApplicationBuilder(configuration = configFromFile)
+    .overrides(bind[ServicesConfig].to(serviceConfig))
     .build()
+  /*new GuiceApplicationBuilder()
+    .configure(configFromFile)
+//    .configure(("microservice.integration-framework.host" -> "localhost"))
+    .build()*/
+
+  override def fakeApplication(): Application = app
 
   implicit val configuration: Configuration = app.configuration
 

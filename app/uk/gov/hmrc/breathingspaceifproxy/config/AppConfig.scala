@@ -30,7 +30,7 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
-  val integrationFrameworkContext: String = config.get[String]("microservice.services.integration-framework.path")
+  val integrationFrameworkContext: String = config.get[String]("microservice.services.integration-framework.context")
 
   val integrationFrameworkUrl: String = s"$integrationFrameworkBaseUrl/$integrationFrameworkContext"
 }

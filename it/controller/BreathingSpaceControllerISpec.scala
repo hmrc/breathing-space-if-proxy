@@ -36,12 +36,4 @@ class BreathingSpaceControllerISpec extends BaseControllerISpec {
 
     }
   }
-
-  /*
-  "POST /breathing-space-period" should {
-    "return 200" in {
-      val result = controller.createBreathingSpacePeriod()(fakeRequest)
-      status(result) shouldBe Status.OK
-    }
-  }*/
 }

@@ -86,17 +86,15 @@ trait FakeConfig {
   val wiremockPort = 11111
   val wiremockHost = "localhost"
 
-  def fakeConfig(additionalConfig: Map[String, String] = Map.empty): Map[String, String] = Map(
-    "microservice.services.iht.host" -> wiremockHost,
-    "microservice.services.iht.port" -> wiremockPort.toString,
+  def fakeConfig(defaultConfig: Seq[(String, Any)] = Seq()): Seq[(String, Any)] = defaultConfig ++ Map(
+    "microservice.services.integration-framework.host" -> wiremockHost,
+    "microservice.services.integration-framework.port" -> wiremockPort.toString,
     "microservice.services.auth.host" -> wiremockHost,
     "microservice.services.auth.port" -> wiremockPort.toString,
     "auditing.enabled" -> "false",
     "auditing.traceRequests" -> "false",
     "auditing.consumer.baseUri.host" -> wiremockHost,
     "auditing.consumer.baseUri.port" -> wiremockPort.toString,
-    "microservice.services.iht.des.authorization-key" -> "DESKEY",
-    "microservice.services.iht.des.environment" -> "DES"
-  ) ++ additionalConfig
+  )
 }
 
