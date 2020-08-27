@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package unit.controllers
+package uk.gov.hmrc.breathingspaceifstub.controllers
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

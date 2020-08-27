@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package controller
+package uk.gov.hmrc.breathingspaceifproxy.utils
 
-import play.api.http.Status
-import play.api.test.Helpers._
-import play.api.test.WsTestClient
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.{Application, Configuration}
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class BreathingSpaceControllerISpec extends BaseControllerISpec {
+abstract class BaseControllerISpec(config: (String, Any)*) extends AnyWordSpec with Matchers with GuiceOneServerPerSuite {
 
-  private val anino = "ABCDE"
+  override lazy val app: Application = new GuiceApplicationBuilder()
+    .configure(config: _*)
+    .build()
 
-  WsTestClient.withClient { client =>
-    "GET /debtor/:nino/debt-details" in {
-      val result = await(
-        client.url(s"http://localhost:$port/breathing-space/debtor/${anino}/identity-details")
-          .addHttpHeaders("Content-Type" -> "application/json")
-          .get()
-      )
-
-      result.status shouldBe Status.OK
-
-    }
-  }
+  implicit val configuration: Configuration = app.configuration
 }

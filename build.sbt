@@ -33,6 +33,8 @@ lazy val microservice = Project(appName, file("."))
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
+unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "test" / "resources"
+
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>",
