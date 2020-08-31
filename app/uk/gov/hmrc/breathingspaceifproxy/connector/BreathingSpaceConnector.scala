@@ -15,49 +15,71 @@
  */
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
+
 import javax.inject.Inject
 
 import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.Logging
+import play.api.http.HeaderNames.CONTENT_TYPE
+import play.api.mvc.Result
+import play.api.mvc.Results.Status
+import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.{BsHeaders, Nino}
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, Nino}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
-class BreathingSpaceConnector @Inject()(http: HttpClient, appConfig: AppConfig)(implicit ec: ExecutionContext)
+class BreathingSpaceConnector @Inject()(appConfig: AppConfig, http: HttpClient)
     extends HttpErrorFunctions
     with Logging {
 
-  def requestIdentityDetails(nino: Nino, bsHeaders: BsHeaders): Future[HttpResponse] = {
-    val url = s"${appConfig.integrationFrameworkUrl}/debtor/${nino.value}"
-
-    implicit val hc: HeaderCarrier = BsHeaders.constructHeaderCarrier(bsHeaders)
+  def retrieveIdentityDetails(nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
+    implicit val url = BreathingSpaceConnector.retrieveIdentityDetailsUrl(appConfig, nino)
 
     http
       .GET[HttpResponse](url)
-      .map { response =>
-        response.status match {
-          case status if is2xx(status) =>
-            logger.debug(s"Received back expected status of $status calling $url")
-            response
-
-          case status => // 1xx, 3xx, 4xx, 5xx
-            logger.error(s"Received back unexpected status of $status calling $url ")
-            logger.debug(s"Received back body '${response.body}'")
-            response
-        }
-      }
-      .recoverWith {
-        case httpError: HttpException =>
-          logger.error(
-            s"Call to Integration Framework failed. url=$url HttpStatus=${httpError.responseCode} error=${httpError.getMessage}"
-          )
-          Future.failed(httpError)
-
-        case e: Throwable =>
-          logger.error(s"Call to Integration Framework failed. url=$url", e)
-          Future.failed(e)
-      }
+      .map(proxyHttpResponse)
+      .recoverWith(logException)
   }
+
+  private def logException(implicit url: String, hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
+    case exc: HttpException =>
+      val correlationId = retrieveCorrelationId
+      logger.error(s"ERROR(${exc.responseCode}) for call($HeaderCorrelationId: $correlationId). ${exc.message}")
+      ErrorResponse(exc.responseCode, exc.message, correlationId).value
+
+    case throwable: Throwable =>
+      logger.error(s"EXCEPTION for call($HeaderCorrelationId: $retrieveCorrelationId) to $url.", throwable)
+      Future.failed(throwable)
+  }
+
+  private def logResponse(response: HttpResponse)(implicit url: String, hc: HeaderCarrier): Unit =
+    response.status match {
+      case status if is2xx(status) =>
+        logger.debug(s"Status($status) for call($HeaderCorrelationId: $retrieveCorrelationId) to $url")
+
+      case status => // 1xx, 3xx, 4xx, 5xx
+        logger.error(s"ERROR($status) for call($HeaderCorrelationId: $retrieveCorrelationId) to $url")
+        logger.debug(s"... with Body: ${response.body}")
+    }
+
+  private def proxyHttpResponse(response: HttpResponse)(implicit url: String, hc: HeaderCarrier): Result = {
+    logResponse(response)
+    val result = Status(response.status)(response.body)
+      .withHeaders(response.headers.toList.map(header => (header._1, header._2.mkString(""))): _*)
+
+    response.header(CONTENT_TYPE).fold(result)(result.as(_))
+  }
+}
+
+object BreathingSpaceConnector {
+
+  private val retrieveIdentityDetailsPartial = "/debtor/"
+
+  def retrieveIdentityDetailsPath(appConfig: AppConfig, nino: Nino): String =
+    s"/${appConfig.integrationFrameworkContext}$retrieveIdentityDetailsPartial${nino.value}"
+
+  def retrieveIdentityDetailsUrl(appConfig: AppConfig, nino: Nino): String =
+    s"${appConfig.integrationFrameworkUrl}$retrieveIdentityDetailsPartial${nino.value}"
 }

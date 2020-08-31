@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.utils
+package uk.gov.hmrc.breathingspaceifproxy.model
 
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.{Application, Configuration}
-import play.api.inject.guice.GuiceApplicationBuilder
+import enumeratum._
 
-abstract class BaseControllerISpec(config: (String, Any)*) extends AnyWordSpec with Matchers with GuiceOneServerPerSuite {
+sealed trait Attended extends EnumEntry
 
-  override lazy val app: Application = new GuiceApplicationBuilder()
-    .configure(config: _*)
-    .build()
+object Attended extends Enum[Attended] {
 
-  implicit val configuration: Configuration = app.configuration
+  case object PEGA_ATTENDED extends Attended
+  case object PEGA_UNATTENDED extends Attended
+
+  override val values = findValues
 }

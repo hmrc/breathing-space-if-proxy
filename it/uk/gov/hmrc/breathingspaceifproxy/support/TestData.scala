@@ -14,6 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
+package uk.gov.hmrc.breathingspaceifproxy.support
 
-case class Nino(value: String) extends AnyVal
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino
+
+trait TestData {
+
+  val maybeNino = "MZ006526C"
+  val nino = Nino(maybeNino)
+  val unknownNino = Nino("MZ006526C")
+
+  def debtorDetails(nino: Nino): String =
+    s"""
+       |{"nino" : "${nino.value}",
+       | "firstName" : "John",
+       | "lastName" : "Smith",
+       | "dateOfBirth" : "1990-01-01",
+       |}
+     """.stripMargin
+}
