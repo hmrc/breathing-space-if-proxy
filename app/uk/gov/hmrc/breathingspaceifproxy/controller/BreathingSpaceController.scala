@@ -18,20 +18,31 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.breathingspaceifproxy.connector.BreathingSpaceConnector
+import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton()
-class BreathingSpaceController @Inject()(appConfig: AppConfig, cc: ControllerComponents) extends BackendController(cc) {
+class BreathingSpaceController @Inject()(breathingSpaceConnector: BreathingSpaceConnector, cc: ControllerComponents)(
+  implicit val ec: ExecutionContext
+) extends BackendController(cc)
+    with BaseController
+    with HttpErrorFunctions {
 
-  def retrieveIdentityDetails(nino: String): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(s"Hello world ${request.body}"))
+  def retrieveIdentityDetails(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
+    vouchRequiredHeaders.fold(retrieveIdentityDetailsWithHC(maybeNino))(_.value)
   }
 
   def createBreathingSpacePeriod(): Action[AnyContent] = Action.async { implicit request =>
     Future.successful(Ok(s"Hello world ${request.body}"))
   }
+
+  private def retrieveIdentityDetailsWithHC(maybeNino: String)(implicit hc: HeaderCarrier): Future[Result] =
+    vouchValidNino(maybeNino).fold(_.value, nino => {
+      logger.debug(s"Retrieving Debtor Details for Nino(${nino.value})")
+      breathingSpaceConnector.retrieveIdentityDetails(nino)
+    })
 }

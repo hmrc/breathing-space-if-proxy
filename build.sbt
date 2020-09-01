@@ -9,9 +9,10 @@ val silencerVersion = "1.7.0"
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
-    majorVersion                     := 0,
-    scalaVersion                     := "2.12.11",
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+    majorVersion := 0,
+    scalaVersion := "2.12.11",
+    PlayKeys.playDefaultPort := 9501,
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions += "-P:silencer:pathFilters=routes",
@@ -21,8 +22,8 @@ lazy val microservice = Project(appName, file("."))
     )
     // ***************
   )
-  .settings(publishingSettings: _*)
   .configs(IntegrationTest)
+  .settings(publishingSettings: _*)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
@@ -33,12 +34,11 @@ lazy val microservice = Project(appName, file("."))
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
-unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "test" / "resources"
+unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "it" / "resources"
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>",
-    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.views\\..*",
     "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.model\\..*",
     ".*(Reverse|AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
