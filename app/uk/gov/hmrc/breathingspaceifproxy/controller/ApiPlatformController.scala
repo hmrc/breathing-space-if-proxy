@@ -26,9 +26,8 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents)(implicit val ec: ExecutionContext)
     extends BackendController(cc) {
 
-  def getDefinition(): Action[AnyContent] = {
+  def getDefinition(): Action[AnyContent] =
     assets.at(s"/public/api/conf", "definitions.json")
-  }
 
   def conf(version: String, file: String): Action[AnyContent] =
     assets.at(s"/public/api/conf/$version", file)
