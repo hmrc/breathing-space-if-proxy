@@ -13,7 +13,7 @@
         "access": {
           "type": "PRIVATE",
           "whitelistedApplicationIds": [
-            "0"
+            "13cafdc7-e27e-4dd9-839e-0d994b3a77f8"
           ]
         }
       }
