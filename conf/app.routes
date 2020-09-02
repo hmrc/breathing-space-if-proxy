@@ -1,5 +1,8 @@
 # microservice specific routes
 
+GET        /api/definition                        uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.getDefinition()
+GET        /api/conf/:version/*file               uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.conf(version, file)
+
 GET        /debtor/:nino/identity-details         uk.gov.hmrc.breathingspaceifproxy.controller.BreathingSpaceController.retrieveIdentityDetails(nino)
 
 POST       /breathing-space-period                uk.gov.hmrc.breathingspaceifproxy.controller.BreathingSpaceController.createBreathingSpacePeriod
