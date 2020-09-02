@@ -1,0 +1,91 @@
+#%RAML 1.0
+---
+
+title: Breathing Space
+version: 1.0
+protocols: [ HTTPS ]
+baseUri: https://api.service.hmrc.gov.uk/
+mediaType: application/xml
+
+uses:
+  sec: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/securitySchemes.raml
+  annotations: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/annotations.raml
+  types: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/types.raml
+
+documentation:
+  - title: Overview
+    content: !include docs/overview.md
+
+/individuals/breathing-space:
+  /debtor-details:
+    /{nino}:
+      uriParameters:
+        nino:
+          description: |
+            National Insurace Number
+
+            Must be a valid NINO string.
+          type: string
+          example: "QQ123456C"
+      get:
+        displayName: Get the details of an individual by NINO
+        description: Get the details of an individual by the given NINO.
+        headers:
+          Accept:
+            description: Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning).
+            type: string
+            required: true
+            example: application/vnd.hmrc.1.0+xml
+          X-Correlation-ID:
+            description: A unique UUID for this request
+            type: string
+            required: true
+            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          X-Context:
+            description: |
+              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+              The two possible values are ‘PEGA_ATTENDED’ or ‘PEGA_UNATTENDED’.
+            type: string
+            required: true
+            example: PEGA_ATTENDED
+          X-Client-ID:
+            description: |
+              The PID associated with the human attending the operation that generated this request.
+
+              This header is required only if the 'X-Context' header has the value of ‘PEGA_ATTENDED’
+            type: string
+            required: false
+            example: ?????
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                    {}
+          400:
+            body:
+              application/json:
+                description: Invalid Request
+                example: |
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <errorResponse>
+                        <code>BAD_REQUEST</code>
+                        <message>Payload is not valid according to schema</message>
+                        <errors>
+                            <error>
+                                <code>xml_validation_error</code>
+                                <message>Error at line 13, column 13: no declaration found for element 'unknown'</message>
+                            </error>
+                        </errors>
+                    </errorResponse>
+          500:
+            body:
+              application/json:
+                description: Internal server error
+                example: |
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <errorResponse>
+                        <code>INTERNAL_SERVER_ERROR</code>
+                        <message>Internal server error</message>
+                    </errorResponse>
