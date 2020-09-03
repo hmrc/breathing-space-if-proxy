@@ -20,9 +20,9 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 import controllers.Assets
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import play.api.{Configuration, Logging}
 import play.api.http.MimeTypes
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents, configuration: Configuration)(

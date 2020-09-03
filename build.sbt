@@ -40,10 +40,11 @@ unmanagedResourceDirectories in IntegrationTest += baseDirectory.value / "it" / 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>",
-    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.model\\..*",
+    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.metrics\\..*",
+    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.views\\..*",
     ".*(Reverse|AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
-  coverageMinimum := 93,
+  coverageMinimum := 96,
   coverageFailOnMinimum := false,
   coverageHighlighting := true,
   parallelExecution in Test := false
