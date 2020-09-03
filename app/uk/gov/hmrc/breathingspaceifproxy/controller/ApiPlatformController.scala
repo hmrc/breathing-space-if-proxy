@@ -21,13 +21,22 @@ import scala.concurrent.ExecutionContext
 
 import controllers.Assets
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.{Configuration, Logging}
+import play.api.http.MimeTypes
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents)(implicit val ec: ExecutionContext)
-    extends BackendController(cc) {
+class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents, configuration: Configuration)(
+  implicit val ec: ExecutionContext
+) extends BackendController(cc)
+    with Logging {
 
-  def getDefinition(): Action[AnyContent] =
-    assets.at(s"/public/api/conf", "definitions.json")
+  private lazy val v1WhitelistedApplicationIds =
+    configuration.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
+
+  def getDefinition(): Action[AnyContent] = Action {
+    logger.debug(s"ApiPlatformController definition endpoint has been called")
+    Ok(uk.gov.hmrc.breathingspaceifproxy.views.txt.definition(v1WhitelistedApplicationIds)).as(MimeTypes.JSON)
+  }
 
   def conf(version: String, file: String): Action[AnyContent] =
     assets.at(s"/public/api/conf/$version", file)
