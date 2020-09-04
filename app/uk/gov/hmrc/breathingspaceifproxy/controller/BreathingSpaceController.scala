@@ -33,15 +33,11 @@ class BreathingSpaceController @Inject()(breathingSpaceConnector: BreathingSpace
     with HttpErrorFunctions {
 
   def retrieveIdentityDetails(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
-    vouchRequiredHeaders.fold(retrieveIdentityDetailsWithHC(maybeNino))(_.value)
-  }
-
-  def createBreathingSpacePeriod(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok(s"Hello world ${request.body}"))
+    vouchRequiredHeaders.fold(retrieveIdentityDetailsWithHC(maybeNino))(error => error.value)
   }
 
   private def retrieveIdentityDetailsWithHC(maybeNino: String)(implicit hc: HeaderCarrier): Future[Result] =
-    vouchValidNino(maybeNino).fold(_.value, nino => {
+    vouchValidNino(maybeNino).fold(error => error.value, nino => {
       logger.debug(s"Retrieving Debtor Details for Nino(${nino.value})")
       breathingSpaceConnector.retrieveIdentityDetails(nino)
     })

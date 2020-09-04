@@ -19,21 +19,48 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 import scala.concurrent.Future
 
 import play.api.Logging
+import play.api.http.HeaderNames.CONTENT_TYPE
+import play.api.http.MimeTypes
 import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
+import uk.gov.hmrc.breathingspaceifproxy.HeaderCorrelationId
 
 case class ErrorResponse(value: Future[Result])
 
 object ErrorResponse extends Logging {
-  implicit val format: OFormat[ErrorValues] = Json.format[ErrorValues]
+  implicit val format: OFormat[Content] = Json.format[Content]
 
-  case class ErrorValues(`correlation-id`: Option[String], reason: String)
+  case class Content(`correlation-id`: Option[String], reason: String)
 
   def apply(errorCode: Int, reason: String, correlationId: Option[String]): ErrorResponse = {
     logger.error(correlationId.fold(reason)(corrId => s"(Correlation-id: $corrId) $reason"))
+    errorResponse(errorCode, reason, correlationId)
+  }
+
+  def apply(
+    errorCode: Int,
+    reasonToLog: String,
+    throwable: Throwable,
+    correlationId: Option[String]
+  ): ErrorResponse = {
+    logger.error(correlationId.fold(reasonToLog)(corrId => s"(Correlation-id: $corrId) $reasonToLog"), throwable)
+    errorResponse(errorCode, throwable.getMessage, correlationId)
+  }
+
+  private def errorResponse(errorCode: Int, reason: String, correlationId: Option[String]): ErrorResponse = {
+    val headers = List(CONTENT_TYPE -> MimeTypes.JSON)
     new ErrorResponse(Future.successful {
-      Status(errorCode)(Json.toJson(ErrorValues(correlationId, reason)))
+      Status(errorCode)(Json.toJson(Content(correlationId, reason)))
+        .withHeaders(correlationId.fold(headers)(corrId => headers :+ (HeaderCorrelationId -> corrId)): _*)
     })
   }
+
+  // Test Helper
+  lazy val correlationIdName =
+    classOf[Content].getDeclaredFields
+      .map(_.getName)
+      .find(_.startsWith("correlation"))
+      .get
+      .replace("$minus", "-")
 }

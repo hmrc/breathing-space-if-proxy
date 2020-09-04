@@ -22,20 +22,20 @@ import play.api.http.{HeaderNames, MimeTypes, Status}
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.connector.BreathingSpaceConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.BreathingSpaceConnectorHelper
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
-class BreathingSpaceControllerISpec extends BaseISpec {
+class BreathingSpaceControllerISpec extends BaseISpec with BreathingSpaceConnectorHelper {
 
   val identityDetailsPath = s"/$localContext/debtor/${nino.value}/identity-details"
 
   s"GET /$localContext/debtor/:nino/identity-details" should {
 
-    "return Ok(200) and debtor details when the Nino is valid" in {
+    "return 200(OK) and debtor details when the Nino is valid" in {
       val expectedBody = debtorDetails(nino)
 
-      val connectorUrl = BreathingSpaceConnector.retrieveIdentityDetailsPath(appConfig, nino)
+      val connectorUrl = retrieveIdentityDetailsPath(appConfig, nino)
       stubCall(HttpMethod.Get, connectorUrl, Status.OK, expectedBody)
 
       val result = route(fakeApplication, fakeRequest(Helpers.GET, identityDetailsPath)).get
@@ -43,13 +43,13 @@ class BreathingSpaceControllerISpec extends BaseISpec {
       contentAsString(result) shouldBe expectedBody
     }
 
-    "return BadRequest(400) when the required headers are missing" in {
+    "return 400(BadRequest) when the required headers are missing" in {
       val result = route(fakeApplication, FakeRequest(Helpers.GET, identityDetailsPath)).get
       status(result) shouldBe Status.BAD_REQUEST
       reason(result) shouldBe MissingRequiredHeaders
     }
 
-    s"return BadRequest(400) when the $HeaderCorrelationId header is missing" in {
+    s"return 400(BadRequest when the $HeaderCorrelationId header is missing" in {
       val request = FakeRequest(Helpers.GET, identityDetailsPath).withHeaders(
         HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
         HeaderContext -> Attended.PEGA_UNATTENDED.toString
@@ -60,7 +60,7 @@ class BreathingSpaceControllerISpec extends BaseISpec {
       reason(result) shouldBe MissingRequiredHeaders
     }
 
-    s"return BadRequest(400) when the $HeaderContext header is missing" in {
+    s"return 400(BadRequest when the $HeaderContext header is missing" in {
       val request = FakeRequest(Helpers.GET, identityDetailsPath).withHeaders(
         HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
         HeaderCorrelationId -> UUID.randomUUID.toString
@@ -71,7 +71,7 @@ class BreathingSpaceControllerISpec extends BaseISpec {
       reason(result) shouldBe MissingRequiredHeaders
     }
 
-    s"return BadRequest(400) when the $HeaderContext header's value is unknown" in {
+    s"return 400(BadRequest when the $HeaderContext header's value is unknown" in {
       val invalidContext = "INVALID_CONTEXT"
       val request = FakeRequest(Helpers.GET, identityDetailsPath).withHeaders(
         HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
@@ -84,8 +84,8 @@ class BreathingSpaceControllerISpec extends BaseISpec {
       reason(result) shouldBe invalidContextHeader(invalidContext)
     }
 
-    "return NotFound(404) when the Nino is unknown" in {
-      val connectorUrl = BreathingSpaceConnector.retrieveIdentityDetailsPath(appConfig, unknownNino)
+    "return 404(NotFound) when the Nino is unknown" in {
+      val connectorUrl = retrieveIdentityDetailsPath(appConfig, unknownNino)
       stubCall(HttpMethod.Get, connectorUrl, Status.NOT_FOUND, s"Nino(${unknownNino.value}) is unknown")
 
       val path = s"/$localContext/debtor/${unknownNino.value}/identity-details"
@@ -93,13 +93,13 @@ class BreathingSpaceControllerISpec extends BaseISpec {
       status(result) shouldBe Status.NOT_FOUND
     }
 
-    "return UnprocessableEntity(422) when the Nino is invalid" in {
+    "return 422(UnprocessableEntity) when the Nino is invalid" in {
       val request = fakeRequest(Helpers.GET, s"/$localContext/debtor/12345/identity-details")
       val result = route(fakeApplication, request).get
       status(result) shouldBe Status.UNPROCESSABLE_ENTITY
     }
 
-    "return BadGateway(502) when the connection with I-F fails" in {
+    "return 502(BadGateway) when the connection with I-F fails" in {
       wireMockServer.stop()
       val result = route(fakeApplication, fakeRequest(Helpers.GET, identityDetailsPath)).get
       val httpCode = status(result)

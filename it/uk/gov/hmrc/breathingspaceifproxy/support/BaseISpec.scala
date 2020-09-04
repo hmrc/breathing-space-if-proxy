@@ -18,11 +18,9 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 
 import java.util.UUID
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
 import akka.stream.Materializer
-import akka.util.Timeout
 import org.scalatest.OptionValues
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -31,27 +29,22 @@ import play.api.Application
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{AnyContentAsEmpty, Result}
-import play.api.test.{FakeRequest, Helpers}
-import play.api.test.Helpers.contentAsJson
+import play.api.test.{DefaultAwaitTimeout, FakeRequest}
+import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.{HeaderContext, HeaderCorrelationId}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
 abstract class BaseISpec
   extends AnyWordSpec
-    with Matchers
+    with DefaultAwaitTimeout
     with GuiceOneServerPerSuite
+    with Matchers
     with OptionValues
     with TestData
     with WireMockSupport {
 
-  implicit lazy val defaultAwaitTimeout: Timeout = 5 seconds
-  implicit lazy val ec: ExecutionContext = Helpers.stubControllerComponents().executionContext
-
   val configProperties: Map[String, Any] = Map(
-    "auditing.enabled" -> "false",
-    "auditing.traceRequests" -> "false",
-    "metrics.enabled" -> "false",
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort,
   )

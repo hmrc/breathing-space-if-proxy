@@ -16,64 +16,80 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import javax.inject.Inject
-
 import scala.concurrent.{ExecutionContext, Future}
 
+import com.codahale.metrics.MetricRegistry
+import com.kenshoo.play.metrics.Metrics
+import javax.inject.{Inject, Singleton}
 import play.api.Logging
+import play.api.http.{Status => HttpStatus}
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, Nino}
+import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, Nino, Url}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
-class BreathingSpaceConnector @Inject()(appConfig: AppConfig, http: HttpClient)
-    extends HttpErrorFunctions
-    with Logging {
+@Singleton
+class BreathingSpaceConnector @Inject()(appConfig: AppConfig, http: HttpClient, metrics: Metrics)
+    extends BreathingSpaceConnectorHelper
+    with HttpAPIMonitor {
+
+  override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
   def retrieveIdentityDetails(nino: Nino)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Result] = {
-    implicit val url = BreathingSpaceConnector.retrieveIdentityDetailsUrl(appConfig, nino)
+    implicit val url = Url(retrieveIdentityDetailsUrl(appConfig, nino))
 
-    http
-      .GET[HttpResponse](url)
-      .map(proxyHttpResponse)
-      .recoverWith(logException)
-  }
-
-  private def logException(implicit url: String, hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
-    case exc: HttpException =>
-      val correlationId = retrieveCorrelationId
-      logger.error(s"ERROR(${exc.responseCode}) for call($HeaderCorrelationId: $correlationId). ${exc.message}")
-      ErrorResponse(exc.responseCode, exc.message, correlationId).value
-
-    case throwable: Throwable =>
-      logger.error(s"EXCEPTION for call($HeaderCorrelationId: $retrieveCorrelationId) to $url.", throwable)
-      Future.failed(throwable)
-  }
-
-  private def logResponse(response: HttpResponse)(implicit url: String, hc: HeaderCarrier): Unit =
-    response.status match {
-      case status if is2xx(status) =>
-        logger.debug(s"Status($status) for call($HeaderCorrelationId: $retrieveCorrelationId) to $url")
-
-      case status => // 1xx, 3xx, 4xx, 5xx
-        logger.error(s"ERROR($status) for call($HeaderCorrelationId: $retrieveCorrelationId) to $url")
-        logger.debug(s"... with Body: ${response.body}")
+    monitor("ConsumedAPI-Debtor-Personal-Details-GET") {
+      http
+        .GET[HttpResponse](url.value)
+        .map(composeResponseFromIF)
+        .recoverWith(logException)
     }
+  }
+}
 
-  private def proxyHttpResponse(response: HttpResponse)(implicit url: String, hc: HeaderCarrier): Result = {
+trait BreathingSpaceConnectorHelper extends HttpErrorFunctions with Logging {
+
+  def composeResponseFromIF(response: HttpResponse)(implicit url: Url, hc: HeaderCarrier): Result = {
     logResponse(response)
     val result = Status(response.status)(response.body)
       .withHeaders(response.headers.toList.map(header => (header._1, header._2.mkString(""))): _*)
 
-    response.header(CONTENT_TYPE).fold(result)(result.as(_))
+    response
+      .header(CONTENT_TYPE)
+      .fold {
+        result.body.contentType.fold(result)(contentType => result.withHeaders(CONTENT_TYPE -> contentType))
+      } {
+        result.as(_)
+      }
   }
-}
 
-object BreathingSpaceConnector {
+  def logException(implicit url: Url, hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
+    case httpException: HttpException =>
+      val reasonToLog = s"HTTP error(${httpException.responseCode}) while calling ${url.value}."
+      ErrorResponse(httpException.responseCode, reasonToLog, httpException, retrieveCorrelationId).value
+
+    case throwable: Throwable =>
+      val reasonToLog = s"Exception caught while calling ${url.value}."
+      ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, reasonToLog, throwable, retrieveCorrelationId).value
+  }
+
+  def logResponse(response: HttpResponse)(implicit url: Url, hc: HeaderCarrier): Unit =
+    response.status match {
+      case status if is2xx(status) =>
+        logger.debug(s"Status($status) ${calling(retrieveCorrelationId)} ${url.value}")
+
+      case status => // 1xx, 3xx, 4xx, 5xx
+        logger.error(s"ERROR($status) ${calling(retrieveCorrelationId)} ${url.value}")
+        logger.debug(s"... with Body: ${response.body}")
+    }
+
+  private def calling(correlationId: Option[String]): String =
+    correlationId.fold("while calling")(value => s"for call($HeaderCorrelationId: $value) to")
 
   private val retrieveIdentityDetailsPartial = "/debtor/"
 
