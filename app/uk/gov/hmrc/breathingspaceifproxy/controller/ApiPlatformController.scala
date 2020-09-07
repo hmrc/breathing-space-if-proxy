@@ -17,17 +17,14 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 import javax.inject.Inject
 
-import scala.concurrent.ExecutionContext
-
 import controllers.Assets
 import play.api.{Configuration, Logging}
 import play.api.http.MimeTypes
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents, configuration: Configuration)(
-  implicit val ec: ExecutionContext
-) extends BackendController(cc)
+class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents, configuration: Configuration)
+    extends BackendController(cc)
     with Logging {
 
   private lazy val v1WhitelistedApplicationIds =
@@ -39,5 +36,5 @@ class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents, 
   }
 
   def conf(version: String, file: String): Action[AnyContent] =
-    assets.at(s"/public/api/conf/$version", file)
+    assets.at(s"/api/conf/$version", file)
 }

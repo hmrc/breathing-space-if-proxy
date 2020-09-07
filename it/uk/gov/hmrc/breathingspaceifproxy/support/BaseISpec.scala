@@ -44,9 +44,9 @@ abstract class BaseISpec
     with TestData
     with WireMockSupport {
 
-  val configProperties: Map[String, Any] = Map(
+  def configProperties: Map[String, Any] = Map(
     "microservice.services.integration-framework.host" -> wireMockHost,
-    "microservice.services.integration-framework.port" -> wireMockPort,
+    "microservice.services.integration-framework.port" -> wireMockPort
   )
 
   override lazy val fakeApplication: Application =
