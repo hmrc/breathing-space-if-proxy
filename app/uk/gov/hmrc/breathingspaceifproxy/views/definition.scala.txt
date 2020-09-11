@@ -3,7 +3,23 @@
 @(v1WhitelistedApplicationIds:  Seq[String])
 
 {
-  "scopes":[],
+  "scopes": [
+    {
+      "key": "read:breathing-space-debtor",
+      "name": "Breathing Space - Read Debtor",
+      "description": "Return information about a debtor who has sought help on the breathing space program"
+    },
+    {
+      "key": "read:breathing-space-periods",
+      "name": "Breathing Space - Read Periods",
+      "description": "Return details of existing breathing space periods"
+    },
+    {
+      "key": "write:breathing-space-periods",
+      "name": "Breathing Space - Modify Periods",
+      "description": "Create new or modify existing breathing space periods"
+    }
+  ],
   "api": {
     "name": "Breathing Space",
     "description": "Allows for the administration of breathing space periods for an individual and related activities",

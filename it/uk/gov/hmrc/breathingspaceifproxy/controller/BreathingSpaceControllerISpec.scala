@@ -28,9 +28,9 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class BreathingSpaceControllerISpec extends BaseISpec with BreathingSpaceConnectorHelper {
 
-  val identityDetailsPath = s"/$localContext/debtor/${nino.value}/identity-details"
+  val identityDetailsPath = s"/$localContext/debtor/${nino.value}/details"
 
-  s"GET /$localContext/debtor/:nino/identity-details" should {
+  s"GET /$localContext/debtor/:nino/details" should {
 
     "return 200(OK) and debtor details when the Nino is valid" in {
       val expectedBody = debtorDetails(nino)
@@ -88,13 +88,13 @@ class BreathingSpaceControllerISpec extends BaseISpec with BreathingSpaceConnect
       val connectorUrl = retrieveIdentityDetailsPath(appConfig, unknownNino)
       stubCall(HttpMethod.Get, connectorUrl, Status.NOT_FOUND, s"Nino(${unknownNino.value}) is unknown")
 
-      val path = s"/$localContext/debtor/${unknownNino.value}/identity-details"
+      val path = s"/$localContext/debtor/${unknownNino.value}/details"
       val result = route(fakeApplication, fakeRequest(Helpers.GET, path)).get
       status(result) shouldBe Status.NOT_FOUND
     }
 
     "return 422(UnprocessableEntity) when the Nino is invalid" in {
-      val request = fakeRequest(Helpers.GET, s"/$localContext/debtor/12345/identity-details")
+      val request = fakeRequest(Helpers.GET, s"/$localContext/debtor/12345/details")
       val result = route(fakeApplication, request).get
       status(result) shouldBe Status.UNPROCESSABLE_ENTITY
     }
