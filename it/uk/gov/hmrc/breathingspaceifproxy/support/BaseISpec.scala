@@ -58,8 +58,6 @@ abstract class BaseISpec
 
   lazy val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
-  lazy val localContext: String = "breathing-space"
-
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(
       HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
