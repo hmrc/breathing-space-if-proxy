@@ -21,7 +21,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 
-class ApiPlatfomrControllerISpec extends BaseISpec {
+class ApiPlatformControllerISpec extends BaseISpec {
 
   private val sampleApplicationId = "123456789"
   override def configProperties: Map[String, Any] = super.configProperties ++ Map(

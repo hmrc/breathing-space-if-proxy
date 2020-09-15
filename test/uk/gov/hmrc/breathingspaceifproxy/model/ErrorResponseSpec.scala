@@ -16,137 +16,102 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.util.UUID
-
-import akka.stream.Materializer
-import org.scalatest.GivenWhenThen
+import cats.data.{NonEmptyChain => Nec}
+import cats.syntax.option._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
-import play.api.test.{DefaultAwaitTimeout, Injecting}
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.model.ErrorResponse.correlationIdName
-import uk.gov.hmrc.http.{HttpErrorFunctions, HttpException}
+import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorT}
+import uk.gov.hmrc.http.HttpException
 
-class ErrorResponseSpec
-    extends AnyFunSuite
-    with DefaultAwaitTimeout
-    with GivenWhenThen
-    with GuiceOneAppPerSuite
-    with HttpErrorFunctions
-    with Injecting
-    with Matchers {
+class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
 
-  implicit lazy val materializer: Materializer = inject[Materializer]
+  test("ErrorResponse for Http errors (with 1 detail error)") {
+    Given("an Http Status >= 400")
+    val httpErrorCode = Status.BAD_REQUEST
 
-  lazy val url = Url("http://aHost/aPath")
-
-  test("ErrorResponse for Http errors (with 2 parameters)") {
-    Given("an Http Status >= 300 as 1st parameter")
-    val errorCode = Status.BAD_REQUEST
-
-    And("an error message as 2nd parameter")
-    val expectedReason = "Some required header are missing"
+    And("one detail error")
+    val errors = Nec(Error(INVALID_NINO))
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
-    val response = ErrorResponse(errorCode, expectedReason, None).value.futureValue
+    val response = ErrorResponse(correlationId.some, httpErrorCode, errors).value.futureValue
 
     And("the Http response should have the Http Status provided")
-    response.header.status shouldBe Status.BAD_REQUEST
+    response.header.status shouldBe httpErrorCode
 
-    And("a content in Json format")
+    And("a \"Correlation-Id\" header")
+    response.header.headers.get(Header.CorrelationId) shouldBe Some(correlationId)
+
+    And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
     response.body.contentType shouldBe Some(MimeTypes.JSON)
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
-    And("the content should include the error message provided")
-    (bodyAsJson \ "reason").as[String] shouldBe expectedReason
-
-    And("not include a correlation-id property")
-    (bodyAsJson \ correlationIdName).asOpt[String] shouldBe None
+    And("\"errors\" should be a list with 1 detail error")
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    errorList.size shouldBe 1
+    errorList.head.code shouldBe INVALID_NINO.entryName
+    errorList.head.message shouldBe INVALID_NINO.message
   }
 
-  test("ErrorResponse for Http errors (with 3 parameters)") {
-    Given("an Http Status >= 300 as 1st parameter")
-    val errorCode = Status.BAD_REQUEST
+  test("ErrorResponse for Http errors (with 2 detail errors)") {
+    Given("an Http Status >= 400")
+    val httpErrorCode = Status.BAD_REQUEST
 
-    And("an error message as 2nd parameter")
-    val expectedReason = "Some required header are missing"
-
-    And("a correlationId as 3rd parameter")
-    val correlationId = UUID.randomUUID.toString
+    And("two detail errors")
+    val detail = ". The date not in the expected format"
+    val errors = Nec(Error(INVALID_NINO), Error(INVALID_DATE, detail.some))
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
-    val response = ErrorResponse(errorCode, expectedReason, Some(correlationId)).value.futureValue
+    val response = ErrorResponse(None, httpErrorCode, errors).value.futureValue
 
     And("the Http response should have the Http Status provided")
-    response.header.status shouldBe Status.BAD_REQUEST
+    response.header.status shouldBe httpErrorCode
 
-    And("a content in Json format")
+    And("not a \"Correlation-Id\" header")
+    response.header.headers.get(Header.CorrelationId) shouldBe None
+
+    And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
     response.body.contentType shouldBe Some(MimeTypes.JSON)
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
-    And("the content should include the error message provided")
-    (bodyAsJson \ "reason").as[String] shouldBe expectedReason
-
-    And("the correlationId provided")
-    (bodyAsJson \ correlationIdName).as[String] shouldBe correlationId
+    And("\"errors\" should be a list with 2 detail errors")
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    errorList.size shouldBe 2
+    errorList.head.code shouldBe INVALID_NINO.entryName
+    errorList.head.message shouldBe INVALID_NINO.message
+    errorList.last.code shouldBe INVALID_DATE.entryName
+    errorList.last.message shouldBe s"${INVALID_DATE.message}$detail"
   }
 
-  test("ErrorResponse for caught exceptions (with 3 parameters)") {
+  test("ErrorResponse for caught exceptions") {
     Given("a caught HttpException")
     val expectedStatus = Status.NOT_FOUND
-    val expectedReason = "Unknown Nino"
-    val httpException = new HttpException(expectedReason, expectedStatus)
+    val expectedMessage = RESOURCE_NOT_FOUND.message
+    val httpException = new HttpException(expectedMessage, expectedStatus)
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
-    val reasonToLog = s"HTTP error(${expectedStatus}) while calling ${url.value}."
-    val response = ErrorResponse(expectedStatus, reasonToLog, httpException, None).value.futureValue
+    val reasonToLog = s"HTTP error(${expectedStatus}) while calling ${Url("http://aHost/aPath").value}."
+    val response = ErrorResponse(None, expectedStatus, reasonToLog, httpException).value.futureValue
 
     And("the Http response should have the Http Status provided")
     response.header.status shouldBe expectedStatus
 
-    And("a content in Json format")
+    And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
     response.body.contentType shouldBe Some(MimeTypes.JSON)
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
-    And("the content should include the error message provided")
-    (bodyAsJson \ "reason").as[String] shouldBe expectedReason
-
-    And("not include a correlation-id property")
-    (bodyAsJson \ correlationIdName).asOpt[String] shouldBe None
-  }
-
-  test("ErrorResponse for caught exceptions (with 4 parameters)") {
-    Given("a caught throwable")
-    val expectedReason = "Some illegal argument"
-    val throwable = new IllegalArgumentException(expectedReason)
-
-    And("a correlationId as 4thd parameter")
-    val correlationId = UUID.randomUUID.toString
-
-    Then("the resulting ErrorResponse instance should wrap an Http response")
-    val expectedStatus = Status.INTERNAL_SERVER_ERROR
-    val reasonToLog = "Some exception was caught.."
-    val response = ErrorResponse(expectedStatus, reasonToLog, throwable, Some(correlationId)).value.futureValue
-
-    And("the Http response should have the Http Status provided")
-    response.header.status shouldBe expectedStatus
-
-    And("a content in Json format")
-    response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
-    response.body.contentType shouldBe Some(MimeTypes.JSON)
-    val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
-
-    And("the content should include the error message provided")
-    (bodyAsJson \ "reason").as[String] shouldBe expectedReason
-
-    And("the correlationId provided")
-    (bodyAsJson \ correlationIdName).as[String] shouldBe correlationId
+    And("\"errors\" should be a list with 1 detail error")
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    errorList.size shouldBe 1
+    errorList.head.code shouldBe httpErrorIds.get(Status.NOT_FOUND).head
+    errorList.head.message shouldBe expectedMessage
   }
 }

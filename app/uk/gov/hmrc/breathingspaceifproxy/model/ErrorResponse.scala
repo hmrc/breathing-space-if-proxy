@@ -18,49 +18,43 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import scala.concurrent.Future
 
+import cats.data.NonEmptyChain
 import play.api.Logging
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
-import uk.gov.hmrc.breathingspaceifproxy.HeaderCorrelationId
+import uk.gov.hmrc.breathingspaceifproxy.Header
 
 case class ErrorResponse(value: Future[Result])
 
 object ErrorResponse extends Logging {
-  implicit val format: OFormat[Content] = Json.format[Content]
 
-  case class Content(`correlation-id`: Option[String], reason: String)
+  type Errors = NonEmptyChain[Error]
 
-  def apply(errorCode: Int, reason: String, correlationId: Option[String]): ErrorResponse = {
-    logger.error(correlationId.fold(reason)(corrId => s"(Correlation-id: $corrId) $reason"))
-    errorResponse(errorCode, reason, correlationId)
+  def apply(correlationId: => Option[String], httpErrorCode: Int, errors: Errors): ErrorResponse = {
+    val payload = Json.obj("errors" -> errors.toChain.toList)
+    logger.error(correlationId.fold(payload.toString)(corrId => s"(Correlation-id: $corrId) ${payload.toString}"))
+    errorResponse(correlationId, httpErrorCode, payload)
   }
 
   def apply(
-    errorCode: Int,
-    reasonToLog: String,
-    throwable: Throwable,
-    correlationId: Option[String]
+    correlationId: => Option[String],
+    httpErrorCode: Int,
+    reasonToLog: => String,
+    throwable: Throwable
   ): ErrorResponse = {
     logger.error(correlationId.fold(reasonToLog)(corrId => s"(Correlation-id: $corrId) $reasonToLog"), throwable)
-    errorResponse(errorCode, throwable.getMessage, correlationId)
+    val payload = Json.obj("errors" -> Error.fromThrowable(httpErrorCode, throwable))
+    errorResponse(correlationId, httpErrorCode, payload)
   }
 
-  private def errorResponse(errorCode: Int, reason: String, correlationId: Option[String]): ErrorResponse = {
+  private def errorResponse(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): ErrorResponse = {
     val headers = List(CONTENT_TYPE -> MimeTypes.JSON)
     new ErrorResponse(Future.successful {
-      Status(errorCode)(Json.toJson(Content(correlationId, reason)))
-        .withHeaders(correlationId.fold(headers)(corrId => headers :+ (HeaderCorrelationId -> corrId)): _*)
+      Status(httpErrorCode)(payload)
+        .withHeaders(correlationId.fold(headers)(corrId => headers :+ (Header.CorrelationId -> corrId)): _*)
     })
   }
-
-  // Test Helper
-  lazy val correlationIdName =
-    classOf[Content].getDeclaredFields
-      .map(_.getName)
-      .find(_.startsWith("correlation"))
-      .get
-      .replace("$minus", "-")
 }

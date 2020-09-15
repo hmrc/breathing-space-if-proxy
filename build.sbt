@@ -10,7 +10,7 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
     majorVersion := 0,
-    scalaVersion := "2.12.11",
+    scalaVersion := "2.12.12",
     PlayKeys.playDefaultPort := 9501,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     // ***************

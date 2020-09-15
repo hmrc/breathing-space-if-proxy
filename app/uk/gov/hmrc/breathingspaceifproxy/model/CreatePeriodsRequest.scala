@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import enumeratum._
+import play.api.libs.json.Json
+import uk.gov.hmrc.breathingspaceifproxy.Periods
 
-sealed trait Attended extends EnumEntry
+final case class CreatePeriodsRequest(nino: String, periods: Periods)
 
-object Attended extends Enum[Attended] {
+final case class ValidatedCreatePeriodsRequest(nino: Nino, periods: Periods)
 
-  case object DS2_BS_ATTENDED extends Attended
-  case object DS2_BS_UNATTENDED extends Attended
-
-  override val values = findValues
+object CreatePeriodsRequest {
+  implicit val format = Json.format[CreatePeriodsRequest]
 }

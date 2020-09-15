@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
+package uk.gov.hmrc.breathingspaceifproxy.support
 
-import enumeratum._
+import play.api.libs.json.Json
 
-sealed trait Attended extends EnumEntry
+final case class ErrorT(code: String, message: String)
 
-object Attended extends Enum[Attended] {
-
-  case object DS2_BS_ATTENDED extends Attended
-  case object DS2_BS_UNATTENDED extends Attended
-
-  override val values = findValues
-}
+object ErrorT { implicit val reads = Json.reads[ErrorT] }

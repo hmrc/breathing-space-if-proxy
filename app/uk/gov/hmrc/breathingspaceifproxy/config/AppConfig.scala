@@ -20,6 +20,7 @@ import java.net.URL
 import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
+import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
@@ -32,4 +33,10 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
   val integrationFrameworkContext: String = config.get[String]("microservice.services.integration-framework.context")
   val integrationFrameworkUrl = new URL(s"$integrationFrameworkBaseUrl/$integrationFrameworkContext").toString
+
+  lazy val mappingForNPS = Map[String, String](
+    Header.CorrelationId -> servicesConfig.getString("mapping.nps.correlation-id"),
+    Header.RequestType -> servicesConfig.getString("mapping.nps.request-type"),
+    Header.StaffId -> servicesConfig.getString("mapping.nps.staff-id")
+  )
 }
