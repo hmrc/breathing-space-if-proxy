@@ -21,23 +21,27 @@ import java.util.UUID
 import scala.concurrent.Future
 
 import akka.stream.Materializer
-import org.scalatest.OptionValues
+import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest}
-import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.{HeaderContext, HeaderCorrelationId}
+import play.api.test.Helpers.CONTENT_TYPE
+import uk.gov.hmrc.breathingspaceifproxy.Header._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
+import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 
 abstract class BaseISpec
   extends AnyWordSpec
     with DefaultAwaitTimeout
+    with GivenWhenThen
     with GuiceOneServerPerSuite
     with Matchers
     with OptionValues
@@ -56,14 +60,46 @@ abstract class BaseISpec
 
   implicit lazy val materializer: Materializer = fakeApplication.materializer
 
-  lazy val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  implicit lazy val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(
       HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-      HeaderCorrelationId -> UUID.randomUUID.toString,
-      HeaderContext -> Attended.PEGA_UNATTENDED.toString
+      CorrelationId -> UUID.randomUUID.toString,
+      RequestType -> Attended.DS2_BS_UNATTENDED.toString,
+      StaffId -> "1234567"
     )
 
-  def reason(result: Future[Result]): String = (contentAsJson(result) \ "reason").as[String]
+  def verifyErrorResult(
+    future: Future[Result],
+    expectedStatus: Int,
+    expectedMessage: String,
+    withCorrelationId: Boolean
+  ): Assertion = {
+
+    val result = future.futureValue
+    Then(s"the resulting Response should have as Http Status $expectedStatus")
+    val responseHeader = result.header
+    responseHeader.status shouldBe expectedStatus
+
+    And("a body in Json format")
+    val headers = responseHeader.headers
+    headers.size shouldBe 2
+    headers.get(CONTENT_TYPE) shouldBe Some(MimeTypes.JSON)
+
+    if (withCorrelationId) {
+      And("a \"Correlation-Id\" header")
+      headers.get(CorrelationId) shouldBe Some(CorrelationId)
+    }
+
+    And("the expected Body")
+    result.body.contentType shouldBe Some(MimeTypes.JSON)
+    val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
+
+    And("the body should contain an \"errors\" list with 1 detail error")
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    errorList.size shouldBe 1
+    errorList.head.code shouldBe httpErrorIds.get(expectedStatus).head
+    errorList.head.message shouldBe expectedMessage
+  }
 }

@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-case class Nino(value: String) extends AnyVal
+final case class Nino(value: String) extends AnyVal

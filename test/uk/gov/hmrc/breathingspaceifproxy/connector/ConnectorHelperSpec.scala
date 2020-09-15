@@ -17,18 +17,19 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
 import play.api.libs.json.JsValue
 import play.api.mvc.Result
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.HeaderCorrelationId
-import uk.gov.hmrc.breathingspaceifproxy.model.ErrorResponse.correlationIdName
+import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
+import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 import uk.gov.hmrc.breathingspaceifproxy.model.Url
-import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorT}
 import uk.gov.hmrc.http.{HttpException, HttpResponse}
 
-class BreathingSpaceConnectorSpec extends BaseSpec with BreathingSpaceConnectorHelper {
+class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
 
   implicit lazy val url = Url("http://aHost/aPath")
 
@@ -40,10 +41,10 @@ class BreathingSpaceConnectorSpec extends BaseSpec with BreathingSpaceConnectorH
       Given("a HttpResponse parameter")
       val httpResponse = HttpResponse(
         expectedStatus,
-        s"""{"content" : "$expectedContent"}""",
+        s"""{ "content" : "$expectedContent" }""",
         Map(
           CONTENT_TYPE -> List(MimeTypes.JSON),
-          HeaderCorrelationId -> List(correlationId)
+          CorrelationId -> List(correlationId)
         )
       )
 
@@ -57,28 +58,36 @@ class BreathingSpaceConnectorSpec extends BaseSpec with BreathingSpaceConnectorH
 
     "return an Http Response reporting the HttpException caught while calling IF" in {
       val expectedStatus = Status.NOT_FOUND
-      val expectedReason = "Unknown Nino"
+      val expectedMessage = "Unknown Nino"
 
       Given("a caught HttpException")
-      val httpException = new HttpException(expectedReason, Status.NOT_FOUND)
+      val httpException = new HttpException(expectedMessage, Status.NOT_FOUND)
 
       val result = logException.apply(httpException).futureValue
       val bodyAsJson = verifyResult(result, expectedStatus)
-      (bodyAsJson \ correlationIdName).as[String] shouldBe correlationId
-      (bodyAsJson \ "reason").as[String] shouldBe expectedReason
+
+      And("the body should contain an \"errors\" list with 1 detail error")
+      val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+      errorList.size shouldBe 1
+      errorList.head.code shouldBe httpErrorIds.get(Status.NOT_FOUND).head
+      errorList.head.message shouldBe expectedMessage
     }
 
     "return an Http Response reporting any other Throwable caught while calling IF" in {
       val expectedStatus = Status.INTERNAL_SERVER_ERROR
-      val expectedReason = "Some illegal argument"
+      val expectedMessage = "Some illegal argument"
 
       Given("a caught Throwable")
-      val throwable = new IllegalArgumentException(expectedReason)
+      val throwable = new IllegalArgumentException(expectedMessage)
 
       val result = logException.apply(throwable).futureValue
       val bodyAsJson = verifyResult(result, expectedStatus)
-      (bodyAsJson \ correlationIdName).as[String] shouldBe correlationId
-      (bodyAsJson \ "reason").as[String] shouldBe expectedReason
+
+      And("the body should contain an \"errors\" list with 1 detail error")
+      val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+      errorList.size shouldBe 1
+      errorList.head.code shouldBe httpErrorIds.get(Status.INTERNAL_SERVER_ERROR).head
+      errorList.head.message shouldBe expectedMessage
     }
   }
 
@@ -87,13 +96,15 @@ class BreathingSpaceConnectorSpec extends BaseSpec with BreathingSpaceConnectorH
     val responseHeader = result.header
     responseHeader.status shouldBe expectedStatus
 
-    And("same Headers")
+    And("a body in Json format")
     val headers = responseHeader.headers
     headers.size shouldBe 2
     headers.get(CONTENT_TYPE) shouldBe Some(MimeTypes.JSON)
-    headers.get(HeaderCorrelationId) shouldBe Some(correlationId)
 
-    And("same Body")
+    And("a \"Correlation-Id\" header")
+    headers.get(CorrelationId) shouldBe Some(correlationId)
+
+    And("the expected Body")
     result.body.contentType shouldBe Some(MimeTypes.JSON)
     val value = result.body.consumeData.futureValue.utf8String
     Json.parse(value)

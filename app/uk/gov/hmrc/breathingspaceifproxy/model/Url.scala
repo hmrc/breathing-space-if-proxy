@@ -16,4 +16,4 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-case class Url(value: String) extends AnyVal
+final case class Url(value: String) extends AnyVal

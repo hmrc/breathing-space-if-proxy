@@ -20,21 +20,15 @@ import scala.concurrent.Future
 
 import controllers.{Assets, Execution}
 import org.mockito.scalatest.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.MimeTypes
-import play.api.libs.json.Json
 import play.api.mvc.{ActionBuilder, AnyContent, Request}
 import play.api.mvc.Results.Status
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.connector.BreathingSpaceConnectorHelper
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class ApiPlatformControllerSpec
-    extends BaseSpec
-    with BreathingSpaceConnectorHelper
-    with MockitoSugar
-    with GuiceOneAppPerSuite {
+class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
   private val whitelistedAppIdsConfigs = Map(
     "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",

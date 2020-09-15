@@ -16,22 +16,21 @@
 
 package uk.gov.hmrc
 
-import uk.gov.hmrc.breathingspaceifproxy.model.Attended
+import uk.gov.hmrc.breathingspaceifproxy.model.Period
 import uk.gov.hmrc.http.HeaderCarrier
 
 package object breathingspaceifproxy {
 
-  lazy val HeaderClientId = "X-Client-Id"
-  lazy val HeaderContext = "X-Context"
-  lazy val HeaderCorrelationId = "X-Correlation-Id"
+  val unit: Unit = ()
 
-  lazy val MissingRequiredHeaders = s"Missing required headers($HeaderCorrelationId and/or $HeaderContext)"
+  type Periods = List[Period]
 
-  def invalidContextHeader(context: String): String =
-    s"Invalid $HeaderContext Header($context). Valid values are: ${Attended.values.mkString(", ")}"
-
-  def invalidNino(nino: String): String = s"Invalid Nino($nino)"
+  object Header {
+    lazy val CorrelationId = "Correlation-Id"
+    lazy val RequestType = "Request-Type"
+    lazy val StaffId = "Staff-Id"
+  }
 
   def retrieveCorrelationId(implicit hc: HeaderCarrier): Option[String] =
-    hc.extraHeaders.find(t => t._1.equals(HeaderCorrelationId)).map(_._2)
+    hc.extraHeaders.find(t => t._1.equals(Header.CorrelationId)).map(_._2)
 }

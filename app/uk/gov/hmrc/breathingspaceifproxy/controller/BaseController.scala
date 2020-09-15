@@ -16,39 +16,25 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import play.api.Logging
-import play.api.mvc.Request
-import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, ErrorResponse, Nino}
-import uk.gov.hmrc.domain.{Nino => DomainNino}
+import play.api.mvc._
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-trait BaseController extends BackendController with Logging {
+abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
+    extends BackendController(cc)
+    with RequestValidation {
 
-  type MissingHeaders = Option[ErrorResponse]
-  type ValidNino = Either[ErrorResponse, Nino]
-
-  def vouchRequiredHeaders(implicit request: Request[_]): MissingHeaders = {
-    val headers = request.headers
-    val context = headers.get(HeaderContext)
-    val correlationId = headers.get(HeaderCorrelationId)
-
-    if (correlationId.isEmpty || context.isEmpty) {
-      Some(ErrorResponse(BAD_REQUEST, MissingRequiredHeaders, correlationId))
-    } else {
-      Attended
-        .withNameOption(context.get)
-        .fold[MissingHeaders] {
-          val errorResponse = ErrorResponse(BAD_REQUEST, invalidContextHeader(context.get), correlationId)
-          Some(errorResponse)
-        } { _ =>
-          None
-        }
-    }
+  override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
+    val headers = requestFromClient.headers.headers.map(mapHeadersToNPS)
+    val request = requestFromClient.withHeaders(Headers(headers: _*))
+    HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
   }
 
-  def vouchValidNino(nino: String)(implicit hc: HeaderCarrier): ValidNino =
-    if (DomainNino.isValid(nino)) Right(Nino(nino))
-    else Left(ErrorResponse(UNPROCESSABLE_ENTITY, invalidNino(nino), retrieveCorrelationId))
+  private def mapHeadersToNPS(header: (String, String)): (String, String) =
+    (
+      appConfig.mappingForNPS.get(header._1).getOrElse(header._1),
+      appConfig.mappingForNPS.get(header._2).getOrElse(header._2)
+    )
 }
