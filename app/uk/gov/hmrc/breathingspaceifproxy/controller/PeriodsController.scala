@@ -18,8 +18,6 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, LocalTime, ZonedDateTime}
 
-import scala.concurrent.ExecutionContext
-
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.JsValue
@@ -31,11 +29,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 
 @Singleton()
-class PeriodsController @Inject()(
-  appConfig: AppConfig,
-  cc: ControllerComponents,
-  periodsConnector: PeriodsConnector
-)(implicit val ec: ExecutionContext)
+class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
     extends BaseController(appConfig, cc) {
 
   val post: Action[JsValue] = Action.async(parse.tolerantJson) { implicit request =>

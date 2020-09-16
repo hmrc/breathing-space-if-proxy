@@ -59,8 +59,6 @@ trait RequestValidation extends PlayController with Logging {
         }
       )
 
-  private val expectedContentType = "application/json;charset=utf-8"
-
   private def validateContentType(request: Request[_]): Validation[Unit] =
     request.headers
       .get(CONTENT_TYPE)
@@ -72,7 +70,7 @@ trait RequestValidation extends PlayController with Logging {
       } { contentType =>
         // In case the "Content-type" header is specified, a body, if any,
         // is always expected to be in Json format with charset=UTF-8.
-        if (contentType.toLowerCase.replace(" ", "") == expectedContentType) unit.validNec
+        if (contentType.toLowerCase.replace(" ", "") == JsonContentType) unit.validNec
         else Error(INVALID_HEADER, s"(${CONTENT_TYPE}). Invalid value: ${contentType}".some).invalidNec
       }
 
@@ -132,6 +130,6 @@ trait RequestValidation extends PlayController with Logging {
     Error(INVALID_PAYLOAD).invalidNec
   }
 
-  private def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
+  def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
     request.headers.get(Header.CorrelationId)
 }

@@ -26,7 +26,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
 import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 import uk.gov.hmrc.breathingspaceifproxy.model.Url
-import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorT}
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
 import uk.gov.hmrc.http.{HttpException, HttpResponse}
 
 class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
@@ -67,7 +67,7 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
       val bodyAsJson = verifyResult(result, expectedStatus)
 
       And("the body should contain an \"errors\" list with 1 detail error")
-      val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+      val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
       errorList.size shouldBe 1
       errorList.head.code shouldBe httpErrorIds.get(Status.NOT_FOUND).head
       errorList.head.message shouldBe expectedMessage
@@ -84,7 +84,7 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
       val bodyAsJson = verifyResult(result, expectedStatus)
 
       And("the body should contain an \"errors\" list with 1 detail error")
-      val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+      val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
       errorList.size shouldBe 1
       errorList.head.code shouldBe httpErrorIds.get(Status.INTERNAL_SERVER_ERROR).head
       errorList.head.message shouldBe expectedMessage

@@ -26,7 +26,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
-import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorT}
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
 import uk.gov.hmrc.http.HttpException
 
 class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
@@ -53,7 +53,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
     And("\"errors\" should be a list with 1 detail error")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
     errorList.size shouldBe 1
     errorList.head.code shouldBe INVALID_NINO.entryName
     errorList.head.message shouldBe INVALID_NINO.message
@@ -82,7 +82,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
     And("\"errors\" should be a list with 2 detail errors")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
     errorList.size shouldBe 2
     errorList.head.code shouldBe INVALID_NINO.entryName
     errorList.head.message shouldBe INVALID_NINO.message
@@ -109,7 +109,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
     And("\"errors\" should be a list with 1 detail error")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
+    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
     errorList.size shouldBe 1
     errorList.head.code shouldBe httpErrorIds.get(Status.NOT_FOUND).head
     errorList.head.message shouldBe expectedMessage

@@ -18,6 +18,6 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 
 import play.api.libs.json.Json
 
-final case class ErrorT(code: String, message: String)
+final case class ErrorItem(code: String, message: String)
 
-object ErrorT { implicit val reads = Json.reads[ErrorT] }
+object ErrorItem { implicit val reads = Json.reads[ErrorItem] }

@@ -24,6 +24,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.mvc.Result
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector.url
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http._
@@ -47,7 +48,10 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
         .recoverWith(logException)
     }
   }
+}
 
-  private def url(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"${appConfig.integrationFrameworkUrl}/breathing-space-periods/api/v1/${nino.value}periods"
+object PeriodsConnector {
+
+  def url(nino: Nino)(implicit appConfig: AppConfig): String =
+    s"${appConfig.integrationFrameworkUrl}/breathing-space-periods/api/v1/${nino.value}/periods"
 }
