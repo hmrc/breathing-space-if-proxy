@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.MimeTypes
 import play.api.mvc.{ActionBuilder, AnyContent, Request}
 import play.api.mvc.Results.Status
-import play.api.test.{FakeRequest, Helpers}
+import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
@@ -37,7 +37,6 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
   private val expectedStatus = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
-  private val fakeRequest = FakeRequest("GET", "/")
   private val mockAssets = mock[Assets]
   private val controller = new ApiPlatformController(
     mockAssets,

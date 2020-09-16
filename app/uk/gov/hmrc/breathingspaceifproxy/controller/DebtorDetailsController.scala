@@ -16,12 +16,9 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import scala.concurrent.ExecutionContext
-
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
@@ -31,8 +28,7 @@ class DebtorDetailsController @Inject()(
   appConfig: AppConfig,
   cc: ControllerComponents,
   debtorDetailsConnector: DebtorDetailsConnector
-)(implicit val ec: ExecutionContext)
-    extends BaseController(appConfig, cc) {
+) extends BaseController(appConfig, cc) {
 
   def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
     (

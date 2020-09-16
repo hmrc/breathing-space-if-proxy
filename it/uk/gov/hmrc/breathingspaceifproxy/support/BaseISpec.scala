@@ -18,25 +18,19 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 
 import java.util.UUID
 
-import scala.concurrent.Future
-
 import akka.stream.Materializer
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json._
-import play.api.mvc.{AnyContentAsEmpty, Result}
+import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{DefaultAwaitTimeout, FakeRequest}
-import play.api.test.Helpers.CONTENT_TYPE
 import uk.gov.hmrc.breathingspaceifproxy.Header._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
-import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 
 abstract class BaseISpec
   extends AnyWordSpec
@@ -69,37 +63,4 @@ abstract class BaseISpec
       RequestType -> Attended.DS2_BS_UNATTENDED.toString,
       StaffId -> "1234567"
     )
-
-  def verifyErrorResult(
-    future: Future[Result],
-    expectedStatus: Int,
-    expectedMessage: String,
-    withCorrelationId: Boolean
-  ): Assertion = {
-
-    val result = future.futureValue
-    Then(s"the resulting Response should have as Http Status $expectedStatus")
-    val responseHeader = result.header
-    responseHeader.status shouldBe expectedStatus
-
-    And("a body in Json format")
-    val headers = responseHeader.headers
-    headers.size shouldBe 2
-    headers.get(CONTENT_TYPE) shouldBe Some(MimeTypes.JSON)
-
-    if (withCorrelationId) {
-      And("a \"Correlation-Id\" header")
-      headers.get(CorrelationId) shouldBe Some(CorrelationId)
-    }
-
-    And("the expected Body")
-    result.body.contentType shouldBe Some(MimeTypes.JSON)
-    val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
-
-    And("the body should contain an \"errors\" list with 1 detail error")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorT]]
-    errorList.size shouldBe 1
-    errorList.head.code shouldBe httpErrorIds.get(expectedStatus).head
-    errorList.head.message shouldBe expectedMessage
-  }
 }

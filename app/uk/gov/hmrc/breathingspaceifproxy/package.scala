@@ -31,6 +31,8 @@ package object breathingspaceifproxy {
     lazy val StaffId = "Staff-Id"
   }
 
+  val JsonContentType = "application/json;charset=utf-8"
+
   def retrieveCorrelationId(implicit hc: HeaderCarrier): Option[String] =
     hc.extraHeaders.find(t => t._1.equals(Header.CorrelationId)).map(_._2)
 }
