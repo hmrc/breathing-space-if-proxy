@@ -56,12 +56,14 @@ trait BaseSpec
 
   lazy val correlationId = UUID.randomUUID().toString
 
-  lazy val fakeRequest = FakeRequest().withHeaders(
+  lazy val validHeaders = Seq(
     CONTENT_TYPE -> JsonContentType,
-    Header.CorrelationId -> UUID.randomUUID().toString,
+    Header.CorrelationId -> correlationId,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
     Header.StaffId -> "1234567"
   )
+
+  lazy val fakeRequest = FakeRequest().withHeaders(validHeaders: _*)
 
   def verifyErrorResult(
     future: Future[Result],

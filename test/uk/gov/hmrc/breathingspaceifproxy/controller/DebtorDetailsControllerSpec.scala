@@ -21,21 +21,76 @@ import java.util.UUID
 import scala.concurrent.Future
 
 import cats.syntax.option._
+import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.Result
+import play.api.mvc.{Result, Results}
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.Header._
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
-class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec {
+class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val connector: DebtorDetailsConnector = inject[DebtorDetailsConnector]
-  val controller = new DebtorDetailsController(appConfig, Helpers.stubControllerComponents(), connector)
+  val mockConnector: DebtorDetailsConnector = mock[DebtorDetailsConnector]
+  val controller = new DebtorDetailsController(appConfig, Helpers.stubControllerComponents(), mockConnector)
 
   "get" should {
+
+    "return 200(OK) when all required headers are present and a valid NINO" in {
+      Given("a request with all required headers and valid NINO")
+      when(mockConnector.get(any[Nino])(any[HeaderCarrier])).thenReturn(Future.successful(Results.Status(OK)))
+
+      val response: Future[Result] = controller.get("HT423277B")(fakeRequest)
+
+      status(response) shouldBe OK
+    }
+
+    s"return 400(BAD_REQUEST) when the $CorrelationId header is missing" in {
+      Given(s"a request without the $CorrelationId request header")
+      val invalidRequest = FakeRequest().withHeaders(validHeaders.filter(_._1 != Header.CorrelationId): _*)
+
+      val response: Future[Result] = controller.get("HT423277B")(invalidRequest)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, None, 1)
+
+      And("the error code should be MISSING_HEADER")
+      errorList.size shouldBe 1
+      errorList.head.code shouldBe MISSING_HEADER.entryName
+      assert(errorList.head.message.contains(Header.CorrelationId))
+    }
+
+    s"return 400(BAD_REQUEST) when the $RequestType header is missing" in {
+      Given(s"a request without the $RequestType request header")
+      val invalidRequest = FakeRequest().withHeaders(validHeaders.filter(_._1 != Header.RequestType): _*)
+
+      val response: Future[Result] = controller.get("HT423277B")(invalidRequest)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.some, 1)
+
+      And("the error code should be MISSING_HEADER")
+      errorList.size shouldBe 1
+      errorList.head.code shouldBe MISSING_HEADER.entryName
+      assert(errorList.head.message.contains(Header.RequestType))
+    }
+
+    s"return 400(BAD_REQUEST) when the $StaffId header is missing" in {
+      Given(s"a request without the $StaffId request header")
+      val invalidRequest = FakeRequest().withHeaders(validHeaders.filter(_._1 != Header.StaffId): _*)
+
+      val response: Future[Result] = controller.get("HT423277B")(invalidRequest)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.some, 1)
+
+      And("the error code should be MISSING_HEADER")
+      errorList.size shouldBe 1
+      errorList.head.code shouldBe MISSING_HEADER.entryName
+      assert(errorList.head.message.contains(Header.StaffId))
+    }
 
     "return 400(BAD_REQUEST) when all required headers are missing" in {
       Given("a request without any of the requested headers")
