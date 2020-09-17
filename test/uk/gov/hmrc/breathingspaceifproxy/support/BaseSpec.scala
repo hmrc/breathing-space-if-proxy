@@ -22,14 +22,14 @@ import scala.concurrent.Future
 
 import akka.stream.Materializer
 import cats.syntax.option._
-import org.scalatest.{Assertion, GivenWhenThen, Informing, OptionValues, TestSuite}
+import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.{Header, JsonContentType}
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
@@ -44,7 +44,8 @@ trait BaseSpec
     with Informing
     with Injecting
     with Matchers
-    with OptionValues { this: TestSuite =>
+    with OptionValues
+    with TestData { this: TestSuite =>
 
   implicit lazy val materializer: Materializer = inject[Materializer]
 
@@ -56,12 +57,25 @@ trait BaseSpec
 
   lazy val correlationId = UUID.randomUUID().toString
 
-  lazy val fakeRequest = FakeRequest().withHeaders(
+  lazy val validHeaders = List(
     CONTENT_TYPE -> JsonContentType,
-    Header.CorrelationId -> UUID.randomUUID().toString,
+    Header.CorrelationId -> correlationId,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
     Header.StaffId -> "1234567"
   )
+
+  lazy val fakeRequest = FakeRequest().withHeaders(validHeaders: _*)
+
+  def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
+    if (withCorrelationId) correlationId.some else None
+
+  def requestWithHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+    requestWithoutOneHeader("", method)
+
+  def requestWithoutOneHeader(headerToFilterOut: String, method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(method, "/").withHeaders(
+      validHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
+    )
 
   def verifyErrorResult(
     future: Future[Result],

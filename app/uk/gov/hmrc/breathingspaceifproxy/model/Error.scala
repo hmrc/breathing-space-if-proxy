@@ -23,15 +23,16 @@ sealed abstract class BaseError(val message: String) extends EnumEntry
 
 object BaseError extends Enum[BaseError] {
 
+  case object MISSING_BODY extends BaseError(s"The request must have a body")
   case object MISSING_HEADER extends BaseError(s"Missing required header")
-  case object INVALID_HEADER extends BaseError(s"Invalid value for header")
-  case object INVALID_PAYLOAD extends BaseError("Payload not in the expected Json format")
-  case object INVALID_NINO extends BaseError("Invalid Nino")
+  case object INTERNAL_SERVER_ERROR extends BaseError("Internal server error")
+  case object INVALID_HEADER extends BaseError(s"Invalid value for the header")
   case object INVALID_DATE extends BaseError("Invalid date")
   case object INVALID_DATE_RANGE extends BaseError("End-date after start-date")
+  case object INVALID_JSON extends BaseError("Payload not in the expected Json format")
+  case object INVALID_NINO extends BaseError("Invalid Nino")
   case object RESOURCE_NOT_FOUND extends BaseError("Resource not found")
   case object UNSUPPORTED_MEDIA_TYPE extends BaseError("Content-type should be \"application/json\"")
-  case object INTERNAL_SERVER_ERROR extends BaseError("Internal server error")
 
   override val values = findValues
 }

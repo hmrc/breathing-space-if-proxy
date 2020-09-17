@@ -20,8 +20,7 @@ import java.time.{LocalDate, LocalTime, ZonedDateTime}
 
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.JsValue
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
@@ -32,12 +31,12 @@ import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
     extends BaseController(appConfig, cc) {
 
-  val post: Action[JsValue] = Action.async(parse.tolerantJson) { implicit request =>
+  val post: Action[AnyContent] = Action.async { implicit request =>
     (
       validateHeaders,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
     ).mapN((_, vcpr) => vcpr)
-      .fold[scala.concurrent.Future[play.api.mvc.Result]](
+      .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         vcpr => {
           logger.debug(s"Creating Periods for $vcpr")
@@ -78,8 +77,8 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
   private val seconds = 60
 
   private def validateDateTime(requestDateTime: ZonedDateTime): Validation[Unit] =
-    if (LocalTime.now.minusSeconds(seconds).isAfter(requestDateTime.toLocalTime)) unit.validNec
-    else Error(INVALID_DATE, s". Request's date-time is too old (more than $seconds seconds)".some).invalidNec
+    if (LocalTime.now.minusSeconds(seconds).isBefore(requestDateTime.toLocalTime)) unit.validNec
+    else Error(INVALID_DATE, s". Request timestamp is too old (more than $seconds seconds)".some).invalidNec
 
   private def validateDateRange(startDate: LocalDate, endDate: LocalDate): Validation[Unit] =
     if (startDate.isBefore(endDate)) unit.validNec

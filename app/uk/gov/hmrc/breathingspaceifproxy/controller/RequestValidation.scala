@@ -22,7 +22,7 @@ import cats.data.ValidatedNec
 import cats.implicits._
 import play.api.Logging
 import play.api.http.HttpVerbs
-import play.api.libs.json.{JsError, JsSuccess, JsValue, Reads}
+import play.api.libs.json._
 import play.api.mvc.{BaseController => PlayController, _}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, Error, Nino}
@@ -47,17 +47,13 @@ trait RequestValidation extends PlayController with Logging {
     ).mapN((_, _, _, _) => unit)
   }
 
-  def validateBody[A, B](f: A => Validation[B])(implicit request: Request[JsValue], reads: Reads[A]): Validation[B] =
-    Either
-      .catchNonFatal(request.body.validate[A])
-      .fold(
-        createErrorFromInvalidPayload,
-        _ match {
-          case JsSuccess(payload, _) => f(payload)
-          // TODO - review the structure of errors
-          case JsError(errors) => Error(INVALID_PAYLOAD).invalidNec
-        }
-      )
+  def validateBody[A, B](f: A => Validation[B])(implicit request: Request[AnyContent], reads: Reads[A]): Validation[B] =
+    if (!request.hasBody) Error(MISSING_BODY).invalidNec
+    else {
+      request.body.asJson.fold[Validation[B]](Error(INVALID_JSON).invalidNec) { json =>
+        Either.catchNonFatal(json.as[A]).fold(createErrorFromInvalidPayload[B], f(_))
+      }
+    }
 
   private def validateContentType(request: Request[_]): Validation[Unit] =
     request.headers
@@ -123,11 +119,11 @@ trait RequestValidation extends PlayController with Logging {
           }
       }
 
-  private def createErrorFromInvalidPayload[T](throwable: Throwable)(implicit request: Request[_]): Validation[T] = {
+  private def createErrorFromInvalidPayload[B](throwable: Throwable)(implicit request: Request[_]): Validation[B] = {
     val correlationId = retrieveCorrelationId
     val reason = s"Exception raised while validating the request's body: ${request.body}"
     logger.error(s"(Correlation-id: ${correlationId.fold("")(_)}) $reason", throwable)
-    Error(INVALID_PAYLOAD).invalidNec
+    Error(INVALID_JSON).invalidNec
   }
 
   def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
