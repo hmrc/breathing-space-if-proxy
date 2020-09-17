@@ -29,37 +29,37 @@ documentation:
             type: string
             example: "QQ123456C"
         get:
-          displayName: Get the details of an individual by NINO
-          description: Get the details of an individual by the given NINO.
+          displayName: Get the details of an individual by their NINO
+          description: Get the details of an individual by their given NINO.
           (annotations.scope): "read:breathing-space-debtor"
           securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-debtor" ] } ]
           headers:
-            Accept:
-              description: Specifies the version of the API that you want to call. See [versioning](/api-documentation/docs/reference-guide#versioning).
+            Content-Type:
+              description: Specifies the content type of the request payload. Must be same as the example given.
               type: string
               required: true
-              example: application/vnd.hmrc.1.0+xml
-            X-Correlation-ID:
+              example: application/json;charset=utf-8
+            Correlation-Id:
               description: A unique UUID for this request
               type: string
               required: true
               example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-            X-Context:
+            Request-Type:
               description: |
                 Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
 
-                The two possible values are ‘PEGA_ATTENDED’ or ‘PEGA_UNATTENDED’.
+                The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
               type: string
               required: true
-              example: PEGA_ATTENDED
-            X-Client-ID:
+              example: DA2_BS_ATTENDED
+            Staff-Id:
               description: |
-                The PID associated with the human attending the operation that generated this request.
+                The Staff identifier associated with the human attending the operation that generated this request.
 
-                This header is required only if the 'X-Context' header has the value of ‘PEGA_ATTENDED’
+                Must be a 7 digit numeric value
               type: string
-              required: false
-              example: ?????
+              required: true
+              example: "1234567"
           responses:
             200:
               body:
@@ -92,3 +92,187 @@ documentation:
                           <code>INTERNAL_SERVER_ERROR</code>
                           <message>Internal server error</message>
                       </errorResponse>
+
+  /{nino}:
+    get:
+      displayName: Retrieve all Breathing Space periods for a NINO
+      description: Retrieve all Breathing Space periods for the given NINO.
+      (annotations.scope): "read:breathing-space-periods"
+      securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-periods" ] } ]
+      headers:
+        Correlation-Id:
+          description: A unique UUID for this request
+          type: string
+          required: true
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+        Request-Type:
+          description: |
+            Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+            The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+          type: string
+          required: true
+          example: DA2_BS_ATTENDED
+        Staff-Id:
+          description: |
+            The Staff identifier associated with the human attending the operation that generated this request.
+
+            Must be a 7 digit numeric value
+          type: string
+          required: true
+          example: "1234567"
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                {
+                  "periods": [
+                    {
+                      "periodId": "75e4cdc2-eecb-11ea-913a-0a9f09f70a70",
+                      “startDate” : “2020-01-01”,
+                      “endDate” : “2020-02-29”
+                    },
+                    {
+                      "periodId": "75e4cdc2-eecb-11ea-913a-0a9f09f70a71",
+                      “startDate” : “2020-04-01”,
+                      “endDate” : “2020-05-31”
+                    }
+                  ]
+                }
+
+        400:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                missingHeader:
+                  description: Missing Header
+                  value:
+                    code: MISSING_HEADER
+                invalidHeader:
+                  description: Invalid Header
+                  value:
+                    code: INVALID_HEADER
+                invalidNino:
+                  description: Missing Nino
+                  value:
+                    code: INVALID_NINO
+
+        404:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                resourceNotFound:
+                  description: Resource specified by the supplied NINO was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+
+  /periods:
+    post:
+      displayName: Create new Breathing Space periods
+      description: Create new Breathing Space periods for a given NINO.
+      (annotations.scope): "write:breathing-space-periods"
+      securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
+      headers:
+        Content-Type:
+          description: Specifies the content type of the request payload. Must be same as the example given.
+          type: string
+          required: true
+          example: application/json;charset=utf-8
+        Correlation-Id:
+          description: A unique UUID for this request
+          type: string
+          required: true
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+        Request-Type:
+          description: |
+            Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+            The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+          type: string
+          required: true
+          example: DA2_BS_ATTENDED
+        Staff-Id:
+          description: |
+            The Staff identifier associated with the human attending the operation that generated this request.
+
+            Must be a 7 digit numeric value
+          type: string
+          required: true
+          example: "1234567"
+      responses:
+        201:
+          body:
+            application/json:
+              example: |
+                {
+                  "nino" : "MZ123456C",
+                  "periods" : [
+                    {
+                      "startDate" : "2020-01-01",
+                      "endDate" : "2020-02-29",
+                      "pegaRequestTimestamp" : "2020-09-11T09:00:00+00:00"
+                    },
+                    {
+                      "startDate" : "2020-04-01",
+                      "pegaRequestTimestamp" : "2020-09-11T09:01:00+00:00"
+                    }
+                  ]
+                }
+
+        400:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                missingHeader:
+                  description: Missing Header
+                  value:
+                    code: MISSING_HEADER
+                invalidHeader:
+                  description: Invalid Header
+                  value:
+                    code: INVALID_HEADER
+                missingBody:
+                  description: Missing Body
+                  value:
+                    code: MISSING_BODY
+                invalidJson:
+                  description: Invalid Json
+                  value:
+                    code: INVALID_JSON
+                invalidNino:
+                  description: Missing Nino
+                  value:
+                    code: INVALID_NINO
+                invalidDate:
+                  description: Invalid Date
+                  value:
+                    code: INVALID_DATE
+                invalidDateRange:
+                  description: Invalid Date Range
+                  value:
+                    code: INVALID_DATE_RANGE
+
+        404:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                resourceNotFound:
+                  description: Resource specified by the supplied NINO was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+
+        415:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                unupportedMediaType:
+                  description: Content-type header was not equal to 'application/json;charset=utf-8'
+                  value:
+                    code: UNSUPPORT_MEDIA_TYPE
+

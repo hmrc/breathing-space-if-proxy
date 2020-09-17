@@ -16,7 +16,13 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import uk.gov.hmrc.breathingspaceifproxy.model.Nino
+import java.time.{LocalDate, ZonedDateTime}
+
+import cats.syntax.option._
+import play.api.libs.json._
+import play.api.mvc.AnyContent
+import uk.gov.hmrc.breathingspaceifproxy.Periods
+import uk.gov.hmrc.breathingspaceifproxy.model.{CreatePeriodsRequest, Nino, Period}
 
 trait TestData {
 
@@ -24,7 +30,18 @@ trait TestData {
   val nino = Nino(maybeNino)
   val unknownNino = Nino("MZ006526C")
 
-  def debtorDetails(nino: Nino): String =
+  lazy val period = Period(
+    LocalDate.now.minusMonths(3),
+    LocalDate.now.minusMonths(1).some,
+    ZonedDateTime.now
+  )
+
+  lazy val periods: List[Period] = List(period, period)
+
+  def createPeriodsRequest(nino: String, periods: Periods): AnyContent =
+    AnyContent(Json.toJson(CreatePeriodsRequest(nino, periods)))
+
+  def debtorDetailsResponse(nino: Nino): String =
     s"""
        |{"nino" : "${nino.value}",
        | "firstName" : "John",
