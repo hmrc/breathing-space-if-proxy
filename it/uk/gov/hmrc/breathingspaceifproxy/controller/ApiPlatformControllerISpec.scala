@@ -23,6 +23,11 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 
 class ApiPlatformControllerISpec extends BaseISpec {
 
+  override def configProperties: Map[String, Any] = super.configProperties ++ Map(
+    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
+    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321"
+  )
+
   s"GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {
       val connectorUrl = "/api/definition"

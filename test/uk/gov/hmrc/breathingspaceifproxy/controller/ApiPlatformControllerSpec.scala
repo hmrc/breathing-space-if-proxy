@@ -30,6 +30,11 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
+  override def configProperties: Map[String, Any] = Map(
+    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
+    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321"
+  )
+
   private val expectedStatus = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
   private val mockAssets = mock[Assets]
