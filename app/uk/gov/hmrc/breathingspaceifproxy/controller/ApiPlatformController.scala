@@ -18,21 +18,20 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 import javax.inject.Inject
 
 import controllers.Assets
-import play.api.{Configuration, Logging}
+import play.api.Logging
 import play.api.http.MimeTypes
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.views
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-class ApiPlatformController @Inject()(assets: Assets, cc: ControllerComponents, configuration: Configuration)
+class ApiPlatformController @Inject()(appConfig: AppConfig, cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 
-  private lazy val v1WhitelistedApplicationIds =
-    configuration.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
-
   def getDefinition(): Action[AnyContent] = Action {
     logger.debug(s"ApiPlatformController definition endpoint has been called")
-    Ok(uk.gov.hmrc.breathingspaceifproxy.views.txt.definition(v1WhitelistedApplicationIds)).as(MimeTypes.JSON)
+    Ok(views.txt.definition(appConfig.v1WhitelistedApplicationIds)).as(MimeTypes.JSON)
   }
 
   def conf(version: String, file: String): Action[AnyContent] =

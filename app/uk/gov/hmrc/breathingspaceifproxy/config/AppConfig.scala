@@ -34,6 +34,9 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   val integrationFrameworkContext: String = config.get[String]("microservice.services.integration-framework.context")
   val integrationFrameworkUrl = new URL(s"$integrationFrameworkBaseUrl/$integrationFrameworkContext").toString
 
+  lazy val v1WhitelistedApplicationIds =
+    config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
+
   lazy val mappingForNPS = Map[String, String](
     Header.CorrelationId -> servicesConfig.getString("mapping.nps.correlation-id"),
     Header.RequestType -> servicesConfig.getString("mapping.nps.request-type"),

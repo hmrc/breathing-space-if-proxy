@@ -28,9 +28,11 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
+import play.api.Application
 import uk.gov.hmrc.breathingspaceifproxy.{Header, JsonContentType}
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -52,6 +54,13 @@ trait BaseSpec
   implicit lazy val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(
     Header.CorrelationId -> correlationId
   )
+
+  def configProperties: Map[String, Any] = Map.empty
+
+  override lazy val fakeApplication: Application =
+    GuiceApplicationBuilder()
+      .configure(configProperties)
+      .build()
 
   lazy val appConfig: AppConfig = inject[AppConfig]
 

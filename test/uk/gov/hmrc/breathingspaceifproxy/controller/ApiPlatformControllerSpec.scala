@@ -30,7 +30,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  private val whitelistedAppIdsConfigs = Map(
+  override def configProperties: Map[String, Any] = Map(
     "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
     "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321"
   )
@@ -38,11 +38,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
   private val expectedStatus = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
   private val mockAssets = mock[Assets]
-  private val controller = new ApiPlatformController(
-    mockAssets,
-    Helpers.stubControllerComponents(),
-    play.api.Configuration.from(whitelistedAppIdsConfigs)
-  )
+  private val controller = new ApiPlatformController(appConfig, Helpers.stubControllerComponents(), mockAssets)
 
   "getDefinition" should {
     "return a definitions.json object with the whitelisted applicationIds included" in {
@@ -58,7 +54,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
       And(s"the response body should contain the correct 'whitelistedApplicationIds' values")
       val versions = (contentAsJson(result) \ "api" \ "versions")
       (versions.head \ "access" \ "whitelistedApplicationIds").as[Seq[String]] shouldBe
-        whitelistedAppIdsConfigs.values.toSeq
+        appConfig.v1WhitelistedApplicationIds
     }
   }
 
