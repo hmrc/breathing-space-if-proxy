@@ -31,6 +31,20 @@ import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
     extends BaseController(appConfig, cc) {
 
+  def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
+    (
+      validateHeaders,
+      validateNino(maybeNino)
+    ).mapN((_, nino) => nino)
+      .fold(
+        ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+        nino => {
+          logger.debug(s"Retrieving Breathing Space periods for Nino(${nino.value})")
+          periodsConnector.get(nino)
+        }
+      )
+  }
+
   val post: Action[AnyContent] = Action.async { implicit request =>
     (
       validateHeaders,

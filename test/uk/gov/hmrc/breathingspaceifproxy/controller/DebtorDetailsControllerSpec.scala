@@ -18,12 +18,15 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import scala.concurrent.Future
 
+import cats.syntax.option._
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.{Result, Results}
+import play.api.mvc.Results.Status
 import play.api.test.Helpers
 import play.api.test.Helpers._
+import uk.gov.hmrc.breathingspaceifproxy.Header.StaffId
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.http.HeaderCarrier
@@ -35,22 +38,46 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
   "get" should {
 
-    "return 200(OK) when all required headers are present and the Nino is valid" in {
-      Given(s"a request with all required headers and valid NINO")
-      when(mockConnector.get(any[Nino])(any[HeaderCarrier])).thenReturn(Future.successful(Results.Status(OK)))
+    "return 200(OK) when the Nino is valid and all required headers are present" in {
+      Given(s"a GET request with a valid Nino and all required headers")
+      when(mockConnector.get(any[Nino])(any[HeaderCarrier])).thenReturn(Future.successful(Status(OK)))
 
-      val response: Future[Result] = controller.get("HT423277B")(fakeRequest)
-
+      val response = controller.get(maybeNino)(fakeGetRequest)
       status(response) shouldBe OK
     }
 
-    "return 200(OK) when all required headers for a GET are present and the Nino is valid" in {
-      Given(s"a request with all required headers for a GET ($CONTENT_TYPE is not required) and valid NINO")
-      when(mockConnector.get(any[Nino])(any[HeaderCarrier])).thenReturn(Future.successful(Results.Status(OK)))
+    s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
+      Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
+      when(mockConnector.get(any[Nino])(any[HeaderCarrier])).thenReturn(Future.successful(Status(OK)))
 
-      val response: Future[Result] = controller.get("HT423277B")(requestWithoutOneHeader(CONTENT_TYPE))
-
+      val response = controller.get(maybeNino)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
+    }
+
+    "return 400(BAD_REQUEST) when the Nino is invalid" in {
+      Given(s"a GET request with an invalid Nino")
+      val response = controller.get("HT1234B")(fakeGetRequest)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.some, 1)
+
+      And(s"the error code should be $INVALID_NINO")
+      errorList.head.code shouldBe INVALID_NINO.entryName
+      assert(errorList.head.message.startsWith(INVALID_NINO.message))
+    }
+
+    "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
+      Given(s"a GET request with an invalid Nino and without the $StaffId request header")
+      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(StaffId))
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.some, 2)
+
+      And(s"the 1st error code should be $MISSING_HEADER")
+      errorList.head.code shouldBe MISSING_HEADER.entryName
+      assert(errorList.head.message.startsWith(MISSING_HEADER.message))
+
+      And(s"the 2nd error code should be $INVALID_NINO")
+      errorList.last.code shouldBe INVALID_NINO.entryName
+      assert(errorList.last.message.startsWith(INVALID_NINO.message))
     }
   }
 }

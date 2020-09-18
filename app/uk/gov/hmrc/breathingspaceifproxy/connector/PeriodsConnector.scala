@@ -39,6 +39,16 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
+  def get(nino: Nino)(implicit hc: HeaderCarrier): Future[Result] = {
+    implicit val urlWrapper = Url(url(nino))
+    monitor("ConsumedAPI-Breathing-Space-Periods-GET") {
+      http
+        .GET[HttpResponse](urlWrapper.value)
+        .map(composeResponseFromIF)
+        .recoverWith(logException)
+    }
+  }
+
   def post(vcpr: ValidatedCreatePeriodsRequest)(implicit hc: HeaderCarrier): Future[Result] = {
     implicit val urlWrapper = Url(url(vcpr.nino))
     monitor("ConsumedAPI-Breathing-Space-Periods-POST") {
