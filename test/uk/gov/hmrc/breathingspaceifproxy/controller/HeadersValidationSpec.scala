@@ -25,30 +25,30 @@ import play.api.mvc.Result
 import play.api.test.{FakeRequest, Helpers}
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header._
-import uk.gov.hmrc.breathingspaceifproxy.connector.{DebtorDetailsConnector, PeriodsConnector}
+import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
 
   val controller =
-    new DebtorDetailsController(appConfig, Helpers.stubControllerComponents(), inject[DebtorDetailsConnector])
+    new PeriodsController(appConfig, Helpers.stubControllerComponents(), inject[PeriodsConnector])
 
   test(s"Response should be 400(BAD_REQUEST) when the $CorrelationId header is missing") {
-    verifyHeaderIsMissing(controller.get("HT423277B")(requestWithoutOneHeader(CorrelationId)), CorrelationId)
+    verifyHeaderIsMissing(controller.get(maybeNino)(requestFilteredOutOneHeader(CorrelationId)), CorrelationId)
   }
 
   test(s"return 400(BAD_REQUEST) when the $RequestType header is missing") {
-    verifyHeaderIsMissing(controller.get("HT423277B")(requestWithoutOneHeader(RequestType)), RequestType)
+    verifyHeaderIsMissing(controller.get(maybeNino)(requestFilteredOutOneHeader(RequestType)), RequestType)
   }
 
   test(s"return 400(BAD_REQUEST) when the $StaffId header is missing") {
-    verifyHeaderIsMissing(controller.get("HT423277B")(requestWithoutOneHeader(StaffId)), StaffId)
+    verifyHeaderIsMissing(controller.get(maybeNino)(requestFilteredOutOneHeader(StaffId)), StaffId)
   }
 
   test("return 400(BAD_REQUEST) for a GET when all required headers are missing") {
     Given("a GET request without any of the requested headers")
-    val response = controller.get("HT423277B")(FakeRequest())
+    val response = controller.get(maybeNino)(FakeRequest())
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, None, 3)
 
@@ -56,15 +56,12 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar 
     assert(errorList.forall(_.code == MISSING_HEADER.entryName))
   }
 
-  test("return 400(BAD_REQUEST) for a POST when the CONTENT-TYPE header is missing") {
-    val controller = new PeriodsController(appConfig, Helpers.stubControllerComponents(), inject[PeriodsConnector])
-    val request = requestWithoutOneHeader(CONTENT_TYPE, POST).withBody(createPeriodsRequest(maybeNino, periods))
+  test(s"return 400(BAD_REQUEST) for a POST when the $CONTENT_TYPE header is missing") {
+    val request = requestFilteredOutOneHeader(CONTENT_TYPE, POST).withBody(createPeriodsRequest(maybeNino, periods))
     verifyHeaderIsMissing(controller.post()(request), CONTENT_TYPE)
   }
 
   test("return 400(BAD_REQUEST) for a POST when all required headers are missing") {
-    val controller = new PeriodsController(appConfig, Helpers.stubControllerComponents(), inject[PeriodsConnector])
-
     Given("a POST request without any of the requested headers")
     val request = FakeRequest(POST, "/").withBody(createPeriodsRequest(maybeNino, periods))
     val response = controller.post()(request)
@@ -86,7 +83,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar 
       1
     )
 
-    And("the error code should be MISSING_HEADER")
+    And(s"the error code should be ${MISSING_HEADER.entryName}")
     errorList.head.code shouldBe MISSING_HEADER.entryName
     assert(errorList.head.message.contains(headerFilteredOut))
   }

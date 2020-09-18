@@ -47,7 +47,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
   "getDefinition" should {
     "return a definitions.json object with the whitelisted applicationIds included" in {
       Given("a request from the API Platform is received")
-      val result = controller.getDefinition()(fakeRequest)
+      val result = controller.getDefinition()(fakeGetRequest)
 
       Then(s"the resulting Response should have as Http Status $expectedStatus")
       status(result) shouldBe expectedStatus
@@ -69,7 +69,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
       when(mockAssets.at(s"/api/conf/$version", file)).thenReturn(Action.async(Future.successful(Status(200))))
 
       Given("a request from the API Platform is received")
-      val result = controller.conf("1.0", "application.conf")(fakeRequest)
+      val result = controller.conf("1.0", "application.conf")(fakeGetRequest)
 
       Then(s"the resulting Response should have as Http Status $expectedStatus")
       status(result) shouldBe expectedStatus

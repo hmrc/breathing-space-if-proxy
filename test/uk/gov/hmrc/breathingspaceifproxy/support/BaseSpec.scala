@@ -64,15 +64,18 @@ trait BaseSpec
     Header.StaffId -> "1234567"
   )
 
-  lazy val fakeRequest = FakeRequest().withHeaders(validHeaders: _*)
+  lazy val fakeGetRequest = FakeRequest().withHeaders(validHeaders: _*)
 
   def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
     if (withCorrelationId) correlationId.some else None
 
-  def requestWithHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
-    requestWithoutOneHeader("", method)
+  def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+    requestFilteredOutOneHeader("", method)
 
-  def requestWithoutOneHeader(headerToFilterOut: String, method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+  def requestFilteredOutOneHeader(
+    headerToFilterOut: String,
+    method: String = "GET"
+  ): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, "/").withHeaders(
       validHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
