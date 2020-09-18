@@ -26,14 +26,14 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
-import play.api.Application
-import uk.gov.hmrc.breathingspaceifproxy.{Header, JsonContentType}
+import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
@@ -67,7 +67,7 @@ trait BaseSpec
   lazy val correlationId = UUID.randomUUID().toString
 
   lazy val validHeaders = List(
-    CONTENT_TYPE -> JsonContentType,
+    CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationId,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
     Header.StaffId -> "1234567"
@@ -110,8 +110,8 @@ trait BaseSpec
     }
 
     And("the body should be in Json format")
-    headers.get(CONTENT_TYPE) shouldBe Some(MimeTypes.JSON)
-    result.body.contentType shouldBe Some(MimeTypes.JSON)
+    headers.get(CONTENT_TYPE).get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 
     And(s"""contain an "errors" list with $numberOfErrors detail errors""")

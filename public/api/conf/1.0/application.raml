@@ -38,7 +38,7 @@ documentation:
               description: Specifies the content type of the request payload. Must be same as the example given.
               type: string
               required: true
-              example: application/json;charset=utf-8
+              example: application/json
             Correlation-Id:
               description: A unique UUID for this request
               type: string
@@ -180,7 +180,7 @@ documentation:
           description: Specifies the content type of the request payload. Must be same as the example given.
           type: string
           required: true
-          example: application/json;charset=utf-8
+          example: application/json
         Correlation-Id:
           description: A unique UUID for this request
           type: string
@@ -272,7 +272,7 @@ documentation:
               type: types.errorResponse
               examples:
                 unupportedMediaType:
-                  description: Content-type header was not equal to 'application/json;charset=utf-8'
+                  description: Content-type header was not equal to 'application/json'
                   value:
                     code: UNSUPPORT_MEDIA_TYPE
 
