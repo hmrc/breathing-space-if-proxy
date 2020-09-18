@@ -21,7 +21,7 @@ import java.util.UUID
 import cats.data.ValidatedNec
 import cats.implicits._
 import play.api.Logging
-import play.api.http.HttpVerbs
+import play.api.http.{HttpVerbs, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.{BaseController => PlayController, _}
 import uk.gov.hmrc.breathingspaceifproxy._
@@ -64,9 +64,9 @@ trait RequestValidation extends PlayController with Logging {
         // (they are the only HTTP methods accepted, with GET of course).
         else Error(MISSING_HEADER, s"(${CONTENT_TYPE})".some).invalidNec
       } { contentType =>
-        // In case the "Content-type" header is specified, a body, if any,
-        // is always expected to be in Json format with charset=UTF-8.
-        if (contentType.toLowerCase.replace(" ", "") == JsonContentType) unit.validNec
+        // In case the "Content-type" header is specified, a body,
+        // if any, is always expected to be in Json format.
+        if (contentType.toLowerCase == MimeTypes.JSON.toLowerCase) unit.validNec
         else Error(INVALID_HEADER, s"(${CONTENT_TYPE}). Invalid value: ${contentType}".some).invalidNec
       }
 
