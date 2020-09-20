@@ -24,7 +24,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.Results.Status
 import play.api.test.Helpers
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.Header._
+import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
@@ -66,8 +66,8 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
-      Given(s"a GET request with an invalid Nino and without the $StaffId request header")
-      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(StaffId))
+      Given(s"a GET request with an invalid Nino and without the ${Header.StaffId} request header")
+      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(Header.StaffId))
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.some, 2)
 
@@ -85,7 +85,7 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
 
     "return 200(OK) when all required headers are present and the body is valid Json" in {
       Given("a request with all required headers and a valid Json body")
-      when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[HeaderCarrier]))
+      when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[RequiredHeaderSet]))
         .thenReturn(Future.successful(Status(OK)))
 
       val request = requestWithAllHeaders(POST).withBody(createPeriodsRequest(maybeNino, periods))

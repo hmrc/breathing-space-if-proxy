@@ -17,9 +17,9 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, LocalTime, ZonedDateTime}
+import javax.inject.{Inject, Singleton}
 
 import cats.implicits._
-import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -54,6 +54,14 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         vcpr => {
           logger.debug(s"Creating Periods for $vcpr")
+
+          // TODO: output RequiredHeaderSet from validateHeaders method
+          implicit val headerSet = RequiredHeaderSet(
+            CorrelationId(""),
+            Attended.DS2_BS_UNATTENDED,
+            StaffId.UnattendedRobotValue
+          )
+
           periodsConnector.post(vcpr)
         }
       )
@@ -65,10 +73,10 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       validatePeriods(cpr.periods)
     ).mapN((nino, _) => ValidatedCreatePeriodsRequest(nino, cpr.periods))
 
-  private def validatePeriods(periods: Periods): Validation[Unit] =
+  private def validatePeriods(periods: RequestedPeriods): Validation[Unit] =
     periods.map(validatePeriod).combineAll
 
-  private def validatePeriod(period: Period): Validation[Unit] =
+  private def validatePeriod(period: RequestedPeriod): Validation[Unit] =
     period.endDate.fold {
       (
         validateDate(period.startDate),

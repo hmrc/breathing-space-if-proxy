@@ -37,9 +37,9 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   lazy val v1WhitelistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
 
-  lazy val mappingForNPS = Map[String, String](
-    Header.CorrelationId -> servicesConfig.getString("mapping.nps.correlation-id"),
-    Header.RequestType -> servicesConfig.getString("mapping.nps.request-type"),
-    Header.StaffId -> servicesConfig.getString("mapping.nps.staff-id")
+  lazy val mappingForIF = Map[String, String](
+    Header.CorrelationId -> servicesConfig.getString("mapping.if.correlation-id"),
+    Header.RequestType -> servicesConfig.getString("mapping.if.request-type"),
+    Header.StaffId -> servicesConfig.getString("mapping.if.staff-id")
   )
 }

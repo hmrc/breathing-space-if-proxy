@@ -16,14 +16,19 @@
 
 package uk.gov.hmrc
 
-import uk.gov.hmrc.breathingspaceifproxy.model.Period
+import cats.data.ValidatedNec
+import uk.gov.hmrc.breathingspaceifproxy.model.{Error, Period, RequestedPeriod}
 import uk.gov.hmrc.http.HeaderCarrier
 
 package object breathingspaceifproxy {
 
   val unit: Unit = ()
 
+  type RequestedPeriods = List[RequestedPeriod]
+
   type Periods = List[Period]
+
+  type Validation[A] = ValidatedNec[Error, A]
 
   object Header {
     lazy val CorrelationId = "Correlation-Id"

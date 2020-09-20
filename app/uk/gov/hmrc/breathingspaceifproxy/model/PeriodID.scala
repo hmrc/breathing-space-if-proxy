@@ -15,12 +15,11 @@
  */
 
 package uk.gov.hmrc.breathingspaceifproxy.model
-import java.time.LocalDate
 
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax._
 
-final case class Period(periodId: PeriodID, startDate: LocalDate, endDate: Option[LocalDate])
+case class PeriodID(value: String) extends AnyVal
 
-object Period {
-  implicit val format = Json.format[Period]
+object PeriodID {
+  implicit val format = formatAnyValAsSingleField(PeriodID.apply, unlift(PeriodID.unapply))
 }

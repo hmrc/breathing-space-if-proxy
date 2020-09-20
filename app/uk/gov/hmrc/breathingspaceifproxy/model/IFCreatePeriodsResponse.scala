@@ -15,12 +15,12 @@
  */
 
 package uk.gov.hmrc.breathingspaceifproxy.model
-import java.time.LocalDate
 
 import play.api.libs.json.Json
+import uk.gov.hmrc.breathingspaceifproxy.Periods
 
-final case class Period(periodId: PeriodID, startDate: LocalDate, endDate: Option[LocalDate])
+case class IFCreatePeriodsResponse(periods: Periods)
 
-object Period {
-  implicit val format = Json.format[Period]
+object IFCreatePeriodsResponse {
+  implicit val format = Json.format[IFCreatePeriodsResponse]
 }

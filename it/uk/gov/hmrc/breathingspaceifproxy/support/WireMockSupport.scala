@@ -56,7 +56,11 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
     val call = httpMethod.call(urlPathMatching(url))
     removeStub(call)
     stubFor {
-      val response = aResponse().withStatus(status).withBody(body)
+      val response = aResponse()
+        .withStatus(status)
+        .withBody(body)
+        .withHeader("Content-Type", "application/json")
+
       call.willReturn(response)
     }
   }

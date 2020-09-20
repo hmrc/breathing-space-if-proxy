@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
-import java.time.LocalDate
+package uk.gov.hmrc.breathingspaceifproxy
 
-import play.api.libs.json.Json
+import play.api.libs.functional.syntax._
+import play.api.libs.json.Format
 
-final case class Period(periodId: PeriodID, startDate: LocalDate, endDate: Option[LocalDate])
-
-object Period {
-  implicit val format = Json.format[Period]
+package object model {
+  def formatAnyValAsSingleField[A, B](f: A => B, g: B => A)(implicit fa: Format[A]): Format[B] = fa.inmap(f, g)
 }

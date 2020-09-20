@@ -15,12 +15,5 @@
  */
 
 package uk.gov.hmrc.breathingspaceifproxy.model
-import java.time.LocalDate
 
-import play.api.libs.json.Json
-
-final case class Period(periodId: PeriodID, startDate: LocalDate, endDate: Option[LocalDate])
-
-object Period {
-  implicit val format = Json.format[Period]
-}
+case class CorrelationId(value: String) extends AnyVal

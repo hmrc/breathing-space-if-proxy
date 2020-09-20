@@ -27,14 +27,14 @@ abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
     with RequestValidation {
 
   override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
-    val headers = requestFromClient.headers.headers.map(mapHeadersToNPS)
+    val headers = requestFromClient.headers.headers.map(mapHeadersToIF)
     val request = requestFromClient.withHeaders(Headers(headers: _*))
     HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
   }
 
-  private def mapHeadersToNPS(header: (String, String)): (String, String) =
+  private def mapHeadersToIF(header: (String, String)): (String, String) =
     (
-      appConfig.mappingForNPS.get(header._1).getOrElse(header._1),
-      appConfig.mappingForNPS.get(header._2).getOrElse(header._2)
+      appConfig.mappingForIF.get(header._1).getOrElse(header._1),
+      appConfig.mappingForIF.get(header._2).getOrElse(header._2)
     )
 }

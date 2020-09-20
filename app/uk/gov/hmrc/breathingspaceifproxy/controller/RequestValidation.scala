@@ -18,7 +18,6 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.util.UUID
 
-import cats.data.ValidatedNec
 import cats.implicits._
 import play.api.Logging
 import play.api.http.{HttpVerbs, MimeTypes}
@@ -30,8 +29,6 @@ import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.domain.{Nino => DomainNino}
 
 trait RequestValidation extends PlayController with Logging {
-
-  type Validation[A] = ValidatedNec[Error, A]
 
   def validateNino(maybeNino: String): Validation[Nino] =
     if (DomainNino.isValid(maybeNino)) Nino(maybeNino).validNec
