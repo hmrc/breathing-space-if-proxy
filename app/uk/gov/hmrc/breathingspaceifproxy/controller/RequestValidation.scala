@@ -24,7 +24,7 @@ import play.api.http.{HttpVerbs, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.{BaseController => PlayController, _}
 import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, Error, Nino}
+import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.domain.{Nino => DomainNino}
 
@@ -34,14 +34,14 @@ trait RequestValidation extends PlayController with Logging {
     if (DomainNino.isValid(maybeNino)) Nino(maybeNino).validNec
     else Error(INVALID_NINO, s"($maybeNino)".some).invalidNec
 
-  def validateHeaders(implicit request: Request[_]): Validation[Unit] = {
+  def validateHeaders(implicit request: Request[_]): Validation[RequiredHeaderSet] = {
     val headers = request.headers
     (
       validateContentType(request),
       validateCorrelationId(headers),
       validateRequestType(headers),
       validateStaffId(headers)
-    ).mapN((_, _, _, _) => unit)
+    ).mapN((_, correlationId, attended, staffId) => RequiredHeaderSet(correlationId, attended, staffId))
   }
 
   def validateBody[A, B](f: A => Validation[B])(implicit request: Request[AnyContent], reads: Reads[A]): Validation[B] =
@@ -67,52 +67,52 @@ trait RequestValidation extends PlayController with Logging {
         else Error(INVALID_HEADER, s"(${CONTENT_TYPE}). Invalid value: ${contentType}".some).invalidNec
       }
 
-  private def validateCorrelationId(headers: Headers): Validation[Unit] =
+  private def validateCorrelationId(headers: Headers): Validation[CorrelationId] =
     headers
       .get(Header.CorrelationId)
-      .fold[Validation[Unit]] {
+      .fold[Validation[CorrelationId]] {
         Error(MISSING_HEADER, s"(${Header.CorrelationId})".some).invalidNec
       } { correlationId =>
         Either
           .catchNonFatal(UUID.fromString(correlationId))
-          .fold[Validation[Unit]](
+          .fold[Validation[CorrelationId]](
             _ => Error(INVALID_HEADER, s"(${Header.CorrelationId})".some).invalidNec,
-            _ => unit.validNec
+            _ => CorrelationId(correlationId).validNec
           )
       }
 
   private lazy val invalidRequestHeader =
     s"(${Header.RequestType}). Valid values are: ${Attended.values.mkString(", ")}".some
 
-  private def validateRequestType(headers: Headers): Validation[Unit] =
+  private def validateRequestType(headers: Headers): Validation[Attended] =
     headers
       .get(Header.RequestType)
-      .fold[Validation[Unit]] {
+      .fold[Validation[Attended]] {
         Error(MISSING_HEADER, s"(${Header.RequestType})".some).invalidNec
       } { requestType =>
         Attended
           .withNameOption(requestType.toUpperCase)
-          .fold[Validation[Unit]] {
+          .fold[Validation[Attended]] {
             Error(INVALID_HEADER, invalidRequestHeader).invalidNec
-          } { _ =>
-            unit.validNec
+          } { attended =>
+            attended.validNec
           }
       }
 
   private val staffIdRegex = "^[0-9]{7}$".r
 
-  private def validateStaffId(headers: Headers): Validation[Unit] =
+  private def validateStaffId(headers: Headers): Validation[StaffId] =
     headers
       .get(Header.StaffId)
-      .fold[Validation[Unit]] {
+      .fold[Validation[StaffId]] {
         Error(MISSING_HEADER, s"(${Header.StaffId})".some).invalidNec
       } { staffId =>
         staffIdRegex
           .findFirstIn(staffId)
-          .fold[Validation[Unit]] {
+          .fold[Validation[StaffId]] {
             Error(INVALID_HEADER, s"(${Header.StaffId}). Expected a 7-digit number but was $staffId".some).invalidNec
-          } { _ =>
-            unit.validNec
+          } { value =>
+            StaffId(value).validNec
           }
       }
 

@@ -16,10 +16,4 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import play.api.libs.functional.syntax._
-
-case class PeriodID(value: String) extends AnyVal
-
-object PeriodID {
-  implicit val format = formatAnyValAsSingleField(PeriodID.apply, unlift(PeriodID.unapply))
-}
+case class ValidPeriodsResponse(payload: String)

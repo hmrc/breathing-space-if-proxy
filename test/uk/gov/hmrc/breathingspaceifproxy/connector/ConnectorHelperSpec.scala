@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import cats.syntax.option._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.{MimeTypes, Status}
@@ -25,7 +26,7 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
 import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
-import uk.gov.hmrc.breathingspaceifproxy.model.Url
+import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, RequiredHeaderSet, Url}
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
 import uk.gov.hmrc.http.{HttpException, HttpResponse}
 
@@ -44,11 +45,12 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
         s"""{ "content" : "$expectedContent" }""",
         Map(
           CONTENT_TYPE -> List(MimeTypes.JSON),
-          CorrelationId -> List(correlationId)
+          CorrelationId -> List(correlationId.value)
         )
       )
 
-      val result = composeResponseFromIF(httpResponse)
+      val result = composeResponseFromIF(httpResponse).futureValue
+
       val bodyAsJson = verifyResult(result, expectedStatus)
       (bodyAsJson \ "content").as[String] shouldBe expectedContent
     }
@@ -57,11 +59,11 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
   "logException" should {
 
     "return an Http Response reporting the HttpException caught while calling IF" in {
-      val expectedStatus = Status.NOT_FOUND
+      val expectedStatus = Status.INTERNAL_SERVER_ERROR
       val expectedMessage = "Unknown Nino"
 
       Given("a caught HttpException")
-      val httpException = new HttpException(expectedMessage, Status.NOT_FOUND)
+      val httpException = new HttpException(expectedMessage, Status.NOT_ACCEPTABLE)
 
       val result = logException.apply(httpException).futureValue
       val bodyAsJson = verifyResult(result, expectedStatus)
@@ -69,7 +71,7 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
       And("the body should contain an \"errors\" list with 1 detail error")
       val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
       errorList.size shouldBe 1
-      errorList.head.code shouldBe httpErrorIds.get(Status.NOT_FOUND).head
+      errorList.head.code shouldBe httpErrorIds.get(Status.NOT_ACCEPTABLE).head
       errorList.head.message shouldBe expectedMessage
     }
 
@@ -91,6 +93,24 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
     }
   }
 
+  "PeriodsConnector.hc" should {
+    "correctly compose a HeaderCarrier from the supplied RequiredHeaderSet" in {
+      Given("a RequiredHeaderSet")
+      val validRequiredHeaderSet = RequiredHeaderSet(correlationId, Attended.DS2_BS_UNATTENDED, unattendedStaffId)
+
+      val extraHeaders = hc(validRequiredHeaderSet).extraHeaders.toMap
+
+      Then(s"then the composed HeaderCarrier should contain a 'Correlation-Id' header with the correct value")
+      extraHeaders.get(ifCorrelationIdHeaderName) shouldBe validRequiredHeaderSet.correlationId.value.some
+
+      And(s"then the composed HeaderCarrier should contain a 'Request-Type' header with the correct value")
+      extraHeaders.get(ifRequestTypeHeaderName) shouldBe validRequiredHeaderSet.attended.toString.some
+
+      And(s"then the composed HeaderCarrier should contain a 'Staff-Id' header with the correct value")
+      extraHeaders.get(ifStaffIdHeaderName) shouldBe validRequiredHeaderSet.staffId.value.some
+    }
+  }
+
   def verifyResult(result: Result, expectedStatus: Int): JsValue = {
     Then(s"the resulting Response should have as Http Status $expectedStatus")
     val responseHeader = result.header
@@ -101,8 +121,8 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
     headers.size shouldBe 2
     headers.get(CONTENT_TYPE) shouldBe Some(MimeTypes.JSON)
 
-    And("a \"Correlation-Id\" header")
-    headers.get(CorrelationId) shouldBe Some(correlationId)
+    And("a 'Correlation-Id' header")
+    headers.get(CorrelationId) shouldBe correlationId.value.some
 
     And("the expected Body")
     result.body.contentType shouldBe Some(MimeTypes.JSON)

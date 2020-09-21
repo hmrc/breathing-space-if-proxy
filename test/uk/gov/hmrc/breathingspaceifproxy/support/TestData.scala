@@ -17,28 +17,31 @@
 package uk.gov.hmrc.breathingspaceifproxy.support
 
 import java.time.{LocalDate, ZonedDateTime}
+import java.util.UUID
 
 import cats.syntax.option._
 import play.api.libs.json._
 import play.api.mvc.AnyContent
-import uk.gov.hmrc.breathingspaceifproxy.RequestedPeriods
-import uk.gov.hmrc.breathingspaceifproxy.model.{CreatePeriodsRequest, Nino, RequestedPeriod}
+import uk.gov.hmrc.breathingspaceifproxy.Periods
+import uk.gov.hmrc.breathingspaceifproxy.model._
 
 trait TestData {
 
   val maybeNino = "MZ006526C"
   val nino = Nino(maybeNino)
   val unknownNino = Nino("MZ006526C")
+  val correlationId = CorrelationId(UUID.randomUUID().toString)
+  val unattendedStaffId = StaffId("0000000")
 
-  lazy val period = RequestedPeriod(
+  lazy val period = Period(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
   )
 
-  lazy val periods: List[RequestedPeriod] = List(period, period)
+  lazy val periods: List[Period] = List(period, period)
 
-  def createPeriodsRequest(nino: String, periods: RequestedPeriods): AnyContent =
+  def createPeriodsRequest(nino: String, periods: Periods): AnyContent =
     AnyContent(Json.toJson(CreatePeriodsRequest(nino, periods)))
 
   def debtorDetailsResponse(nino: Nino): String =
@@ -49,38 +52,4 @@ trait TestData {
        | "dateOfBirth" : "1990-01-01",
        |}
      """.stripMargin
-
-  val validCreatePeriodsResponse =
-    """
-      |{
-      | "periods": [
-      |   {
-      |     "periodId": "76f31303-3336-440c-a2d8-7608be1c32d2",
-      |     "startDate": "2020-09-12",
-      |     "endDate": "2020-12-13"
-      |   },
-      |   {
-      |     "periodId": "c6743de1-28d4-43ab-9a26-978d2f5157b9",
-      |     "startDate": "2020-09-10",
-      |     "endDate": "2020-12-11"
-      |   }
-      | ]
-      |}
-    """.stripMargin
-
-  val validCreatePeriodsResponse2 = """
-    |{
-    | "periods":[
-    |   {
-    |     "periodId":"12334",
-    |     "startDate":"2020-09-19",
-    |     "endDate":"2020-09-19"
-    |   },
-    |   {
-    |     "periodId":"98765",
-    |     "startDate":"2020-09-19",
-    |     "endDate":"2020-09-19"
-    |   }
-    | ]
-    |}""".stripMargin
 }

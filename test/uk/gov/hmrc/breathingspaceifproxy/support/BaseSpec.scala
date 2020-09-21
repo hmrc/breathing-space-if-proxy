@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import java.util.UUID
-
 import scala.concurrent.Future
 
 import akka.stream.Materializer
@@ -36,7 +34,7 @@ import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.Attended
+import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, RequiredHeaderSet}
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait BaseSpec
@@ -52,7 +50,7 @@ trait BaseSpec
   implicit lazy val materializer: Materializer = inject[Materializer]
 
   implicit lazy val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(
-    Header.CorrelationId -> correlationId
+    Header.CorrelationId -> correlationId.value
   )
 
   def configProperties: Map[String, Any] = Map.empty
@@ -64,19 +62,20 @@ trait BaseSpec
 
   lazy val appConfig: AppConfig = inject[AppConfig]
 
-  lazy val correlationId = UUID.randomUUID().toString
-
   lazy val validHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    Header.CorrelationId -> correlationId,
+    Header.CorrelationId -> correlationId.value,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
     Header.StaffId -> "1234567"
   )
 
   lazy val fakeGetRequest = FakeRequest().withHeaders(validHeaders: _*)
 
+  implicit lazy val validRequiredHeaderSet =
+    RequiredHeaderSet(correlationId, Attended.DS2_BS_UNATTENDED, unattendedStaffId)
+
   def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
-    if (withCorrelationId) correlationId.some else None
+    if (withCorrelationId) correlationId.value.some else None
 
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)

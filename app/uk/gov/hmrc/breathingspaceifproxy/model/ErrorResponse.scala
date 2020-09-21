@@ -49,7 +49,7 @@ object ErrorResponse extends Logging {
   ): ErrorResponse = {
     logger.error(correlationId.fold(reasonToLog)(corrId => s"(Correlation-id: $corrId) $reasonToLog"), throwable)
     val payload = Json.obj("errors" -> Error.fromThrowable(httpErrorCode, throwable))
-    errorResponse(correlationId, httpErrorCode, payload)
+    errorResponse(correlationId, HttpStatus.INTERNAL_SERVER_ERROR, payload)
   }
 
   def apply(

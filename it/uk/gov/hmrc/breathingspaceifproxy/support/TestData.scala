@@ -32,4 +32,23 @@ trait TestData {
        | "dateOfBirth" : "1990-01-01",
        |}
      """.stripMargin
+
+  // TODO: shouldn't have to have this copy in unit and it test packages
+  val validCreatePeriodsResponse =
+    """
+      |{
+      | "periods": [
+      |   {
+      |     "periodId": "76f31303-3336-440c-a2d8-7608be1c32d2",
+      |     "startDate": "2020-09-12",
+      |     "endDate": "2020-12-13"
+      |   },
+      |   {
+      |     "periodId": "c6743de1-28d4-43ab-9a26-978d2f5157b9",
+      |     "startDate": "2020-09-10",
+      |     "endDate": "2020-12-11"
+      |   }
+      | ]
+      |}
+    """.stripMargin
 }

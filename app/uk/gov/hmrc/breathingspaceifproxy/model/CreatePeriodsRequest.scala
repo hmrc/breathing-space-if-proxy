@@ -17,11 +17,11 @@
 package uk.gov.hmrc.breathingspaceifproxy.model
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.breathingspaceifproxy.RequestedPeriods
+import uk.gov.hmrc.breathingspaceifproxy.Periods
 
-final case class CreatePeriodsRequest(nino: String, periods: RequestedPeriods)
+final case class CreatePeriodsRequest(nino: String, periods: Periods)
 
-final case class ValidatedCreatePeriodsRequest(nino: Nino, periods: RequestedPeriods)
+final case class ValidatedCreatePeriodsRequest(nino: Nino, periods: Periods)
 
 object CreatePeriodsRequest {
   implicit val format = Json.format[CreatePeriodsRequest]

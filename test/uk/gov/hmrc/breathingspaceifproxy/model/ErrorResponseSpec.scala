@@ -39,13 +39,13 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     val errors = Nec(Error(INVALID_NINO))
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
-    val response = ErrorResponse(correlationId.some, httpErrorCode, errors).value.futureValue
+    val response = ErrorResponse(correlationId.value.some, httpErrorCode, errors).value.futureValue
 
     And("the Http response should have the Http Status provided")
     response.header.status shouldBe httpErrorCode
 
     And("a \"Correlation-Id\" header")
-    response.header.headers.get(Header.CorrelationId) shouldBe Some(correlationId)
+    response.header.headers.get(Header.CorrelationId) shouldBe Some(correlationId.value)
 
     And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
@@ -92,7 +92,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
 
   test("ErrorResponse for caught exceptions") {
     Given("a caught HttpException")
-    val expectedStatus = Status.NOT_FOUND
+    val expectedStatus = Status.GATEWAY_TIMEOUT
     val expectedMessage = RESOURCE_NOT_FOUND.message
     val httpException = new HttpException(expectedMessage, expectedStatus)
 
@@ -101,7 +101,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     val response = ErrorResponse(None, expectedStatus, reasonToLog, httpException).value.futureValue
 
     And("the Http response should have the Http Status provided")
-    response.header.status shouldBe expectedStatus
+    response.header.status shouldBe Status.INTERNAL_SERVER_ERROR
 
     And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
@@ -111,7 +111,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     And("\"errors\" should be a list with 1 detail error")
     val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
     errorList.size shouldBe 1
-    errorList.head.code shouldBe httpErrorIds.get(Status.NOT_FOUND).head
+    errorList.head.code shouldBe httpErrorIds.get(Status.GATEWAY_TIMEOUT).head
     errorList.head.message shouldBe expectedMessage
   }
 }

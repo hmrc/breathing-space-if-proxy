@@ -34,10 +34,12 @@ class DebtorDetailsController @Inject()(
     (
       validateHeaders,
       validateNino(maybeNino)
-    ).mapN((_, nino) => nino)
+    ).mapN((headerSet, nino) => (headerSet, nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
-        nino => {
+        validationTuple => {
+          implicit val (headerSet, nino) = validationTuple
+
           logger.debug(s"Retrieving Debtor's details for Nino(${nino.value})")
           debtorDetailsConnector.get(nino)
         }

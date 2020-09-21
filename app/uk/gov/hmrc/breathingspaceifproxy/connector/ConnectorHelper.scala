@@ -18,44 +18,88 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import scala.concurrent.Future
 
+import cats.data._
+import cats.syntax.option._
 import play.api.Logging
-import play.api.http.{Status => HttpStatus}
+import play.api.http.{HeaderNames, Status => HttpStatus}
+import play.api.http.Status.{CREATED, NOT_FOUND, OK}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.RESOURCE_NOT_FOUND
 import uk.gov.hmrc.http._
 
+// TODO: should not be composing responses to PEGA here in the IF connector!
 trait ConnectorHelper extends HttpErrorFunctions with Logging {
 
-  def composeResponseFromIF(response: HttpResponse)(implicit url: Url, hc: HeaderCarrier): Result = {
+  val ifCorrelationIdHeaderName = "CorrelationId"
+  val ifRequestTypeHeaderName = "RequestType"
+  val ifStaffIdHeaderName = "StaffId"
+
+  // TODO: pass correlationId as implicit param rather than the request HeaderCarrier!
+  def composeResponseFromIF(response: HttpResponse)(implicit url: Url, headerSet: RequiredHeaderSet): Future[Result] = {
     logResponse(response)
-    Status(response.status)(response.body)
-      .withHeaders(response.headers.toList.map(header => (header._1, header._2.mkString(""))): _*)
-      .as(MimeTypes.JSON)
+
+    def composeHappyResponse(response: HttpResponse) = Future.successful {
+      Status(response.status)(response.body)
+        .withHeaders(
+          (Header.CorrelationId, headerSet.correlationId.value),
+          (HeaderNames.CONTENT_TYPE, MimeTypes.JSON)
+        )
+        .as(MimeTypes.JSON)
+    }
+
+    response.status match {
+      case OK => composeHappyResponse(response)
+
+      case CREATED => composeHappyResponse(response)
+
+      case NOT_FOUND =>
+        ErrorResponse(headerSet.correlationId.value.some, NOT_FOUND, NonEmptyChain(Error(RESOURCE_NOT_FOUND, "".some))).value
+
+      case _ =>
+        ErrorResponse(
+          headerSet.correlationId.value.some,
+          s"Unexpected response status '${response.status}' returned while calling ${url.value}."
+        ).value
+    }
   }
 
-  def logException(implicit url: Url, hc: HeaderCarrier): PartialFunction[Throwable, Future[Result]] = {
+  def logException(implicit url: Url, headerSet: RequiredHeaderSet): PartialFunction[Throwable, Future[Result]] = {
     case httpException: HttpException =>
       val reasonToLog = s"HTTP error(${httpException.responseCode}) while calling ${url.value}."
-      ErrorResponse(retrieveCorrelationId, httpException.responseCode, reasonToLog, httpException).value
+      ErrorResponse(headerSet.correlationId.value.some, httpException.responseCode, reasonToLog, httpException).value
 
     case throwable: Throwable =>
       val reasonToLog = s"Exception caught while calling ${url.value}."
-      ErrorResponse(retrieveCorrelationId, HttpStatus.INTERNAL_SERVER_ERROR, reasonToLog, throwable).value
+      ErrorResponse(headerSet.correlationId.value.some, HttpStatus.INTERNAL_SERVER_ERROR, reasonToLog, throwable).value
   }
 
-  def logResponse(response: HttpResponse)(implicit url: Url, hc: HeaderCarrier): Unit =
+  def logResponse(response: HttpResponse)(implicit url: Url, headerSet: RequiredHeaderSet): Unit =
     response.status match {
       case status if is2xx(status) =>
-        logger.debug(s"Status($status) for request ${request(retrieveCorrelationId)}to ${url.value}")
+        logger.debug(
+          s"Status($status) for request with ${Header.CorrelationId}(${headerSet.correlationId.value}) to ${url.value}"
+        )
 
       case status =>
-        logger.error(s"ERROR($status) for request ${request(retrieveCorrelationId)}to ${url.value}")
+        logger.error(
+          s"ERROR($status) for request ${Header.CorrelationId}(${headerSet.correlationId.value}) to ${url.value}"
+        )
         logger.debug(s"... with Body: ${response.body}")
     }
 
-  private def request(correlationId: Option[String]): String =
-    correlationId.fold("")(value => s"with ${Header.CorrelationId}($value) ")
+  implicit def hc(implicit headerSet: RequiredHeaderSet): HeaderCarrier = {
+
+    val ifRequestHeaders = Seq(
+      (ifCorrelationIdHeaderName, headerSet.correlationId.value),
+      (ifRequestTypeHeaderName, headerSet.attended.toString),
+      (ifStaffIdHeaderName, headerSet.staffId.value)
+    )
+
+    // TODO: need to add something like this also:-, authorization = Some(Authorization(bearerToken)))
+    HeaderCarrier(extraHeaders = ifRequestHeaders)
+  }
 }

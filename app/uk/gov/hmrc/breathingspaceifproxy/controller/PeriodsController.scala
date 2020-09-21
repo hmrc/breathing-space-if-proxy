@@ -35,10 +35,12 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateNino(maybeNino)
-    ).mapN((_, nino) => nino)
+    ).mapN((headerSet, nino) => (headerSet, nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
-        nino => {
+        validationTuple => {
+          implicit val (headerSet, nino) = validationTuple
+
           logger.debug(s"Retrieving Breathing Space periods for Nino(${nino.value})")
           periodsConnector.get(nino)
         }
@@ -49,18 +51,13 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
-    ).mapN((_, vcpr) => vcpr)
+    ).mapN((headerSet, vcpr) => (headerSet, vcpr))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
-        vcpr => {
-          logger.debug(s"Creating Periods for $vcpr")
+        validationTuple => {
+          implicit val (headerSet, vcpr) = validationTuple
 
-          // TODO: output RequiredHeaderSet from validateHeaders method
-          implicit val headerSet = RequiredHeaderSet(
-            CorrelationId(""),
-            Attended.DS2_BS_UNATTENDED,
-            StaffId.UnattendedRobotValue
-          )
+          logger.debug(s"Creating Periods for $vcpr")
 
           periodsConnector.post(vcpr)
         }
@@ -73,10 +70,10 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       validatePeriods(cpr.periods)
     ).mapN((nino, _) => ValidatedCreatePeriodsRequest(nino, cpr.periods))
 
-  private def validatePeriods(periods: RequestedPeriods): Validation[Unit] =
+  private def validatePeriods(periods: Periods): Validation[Unit] =
     periods.map(validatePeriod).combineAll
 
-  private def validatePeriod(period: RequestedPeriod): Validation[Unit] =
+  private def validatePeriod(period: Period): Validation[Unit] =
     period.endDate.fold {
       (
         validateDate(period.startDate),
