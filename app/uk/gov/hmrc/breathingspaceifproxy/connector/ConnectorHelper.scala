@@ -56,7 +56,7 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
       case CREATED => composeHappyResponse(response)
 
       case NOT_FOUND =>
-        ErrorResponse(headerSet.correlationId.value.some, NOT_FOUND, NonEmptyChain(Error(RESOURCE_NOT_FOUND, "".some))).value
+        ErrorResponse(headerSet.correlationId.value.some, NOT_FOUND, NonEmptyChain(Error(RESOURCE_NOT_FOUND))).value
 
       case _ =>
         ErrorResponse(

@@ -9,13 +9,14 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod, TestDat
 
 class PeriodsConnectorISpec extends BaseISpec {
 
-  val ExampleNino = Nino("MG34567")
+  val exampleNino = Nino("MG34567")
   lazy val connector = app.injector.instanceOf[PeriodsConnector]
 
+  val vcpr = ValidatedCreatePeriodsRequest(exampleNino, List(Period(LocalDate.now(), Some(LocalDate.now()), ZonedDateTime.now())))
 
   s"PeriodsConnector.parseIFPostBreathingSpaceResponse" should {
     "return a Right[IFCreatePeriodsResponse] when it receives a 201 response" ignore {
-      stubCall(HttpMethod.Post, PeriodsConnector.url(ExampleNino), Status.CREATED, validCreatePeriodsResponse)
+      stubCall(HttpMethod.Post, PeriodsConnector.url(exampleNino), Status.CREATED, validCreatePeriodsResponse)
 
       implicit val headerSet = RequiredHeaderSet(
         CorrelationId(""),
@@ -23,11 +24,9 @@ class PeriodsConnectorISpec extends BaseISpec {
         StaffId.UnattendedRobotValue
       )
 
-      await(connector.post(ValidatedCreatePeriodsRequest(ExampleNino, List(Period(LocalDate.now(), Some(LocalDate.now()), ZonedDateTime.now())))))
+      await(connector.post(vcpr))
     }
 
     "return a Left[ErrorResponse] when it receives any other status than 201" ignore {}
   }
-
-
 }
