@@ -87,7 +87,7 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
       when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[RequiredHeaderSet]))
         .thenReturn(Future.successful(Status(OK)))
 
-      val request = requestWithAllHeaders(POST).withBody(createPeriodsRequest(maybeNino, periods))
+      val request = requestWithAllHeaders(POST).withJsonBody(createPeriodsRequest(maybeNino, periods))
       val response = controller.post()(request)
       status(response) shouldBe OK
     }

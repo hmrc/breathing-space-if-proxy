@@ -96,8 +96,9 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
   private val seconds = 60
 
   private def validateDateTime(requestDateTime: ZonedDateTime): Validation[Unit] =
-    if (LocalTime.now.minusSeconds(seconds).isBefore(requestDateTime.toLocalTime)) unit.validNec
-    else Error(INVALID_DATE, s". Request timestamp is too old (more than $seconds seconds)".some).invalidNec
+    if (requestDateTime.toLocalTime.isBefore(LocalTime.now.minusSeconds(seconds))) {
+      Error(INVALID_DATE, s". Request timestamp is too old (more than $seconds seconds)".some).invalidNec
+    } else unit.validNec
 
   private def validateDateRange(startDate: LocalDate, endDate: LocalDate): Validation[Unit] =
     if (startDate.isBefore(endDate)) unit.validNec

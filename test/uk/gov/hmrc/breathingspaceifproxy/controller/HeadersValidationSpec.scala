@@ -57,13 +57,13 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar 
   }
 
   test(s"return 400(BAD_REQUEST) for a POST when the $CONTENT_TYPE header is missing") {
-    val request = requestFilteredOutOneHeader(CONTENT_TYPE, POST).withBody(createPeriodsRequest(maybeNino, periods))
+    val request = requestFilteredOutOneHeader(CONTENT_TYPE, POST).withJsonBody(createPeriodsRequest(maybeNino, periods))
     verifyHeaderIsMissing(controller.post()(request), CONTENT_TYPE)
   }
 
   test("return 400(BAD_REQUEST) for a POST when all required headers are missing") {
     Given("a POST request without any of the requested headers")
-    val request = FakeRequest(POST, "/").withBody(createPeriodsRequest(maybeNino, periods))
+    val request = FakeRequest(POST, "/").withJsonBody(createPeriodsRequest(maybeNino, periods))
     val response = controller.post()(request)
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, None, 4)
