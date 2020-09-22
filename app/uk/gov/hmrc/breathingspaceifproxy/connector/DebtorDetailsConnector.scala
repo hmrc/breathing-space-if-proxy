@@ -51,7 +51,7 @@ class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
 object DebtorDetailsConnector {
 
-  private val partial = "/breathing-space-debtors/api/v1/details/"
+  private val partial = "/api/v1/details/"
 
   def path(nino: Nino)(implicit appConfig: AppConfig): String =
     s"/${appConfig.integrationFrameworkContext}$partial${nino.value}"

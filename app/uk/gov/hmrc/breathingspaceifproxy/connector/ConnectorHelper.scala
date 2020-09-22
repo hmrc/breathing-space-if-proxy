@@ -35,8 +35,8 @@ import uk.gov.hmrc.http._
 trait ConnectorHelper extends HttpErrorFunctions with Logging {
 
   val ifCorrelationIdHeaderName = "CorrelationId"
-  val ifRequestTypeHeaderName = "RequestType"
-  val ifStaffIdHeaderName = "StaffId"
+  val ifRequestTypeHeaderName = "OriginatorId"
+  val ifStaffIdHeaderName = "UserId"
 
   def composeResponseFromIF(response: HttpResponse)(implicit url: Url, headerSet: RequiredHeaderSet): Future[Result] = {
     logResponse(response)

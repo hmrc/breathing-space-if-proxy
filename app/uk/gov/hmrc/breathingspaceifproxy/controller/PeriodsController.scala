@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import java.time.{LocalDate, LocalTime, ZonedDateTime}
-import javax.inject.{Inject, Singleton}
+import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
 
 import cats.implicits._
+import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model._
 
 @Singleton()
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
@@ -96,7 +96,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
   private val seconds = 60
 
   private def validateDateTime(requestDateTime: ZonedDateTime): Validation[Unit] =
-    if (requestDateTime.toLocalTime.isBefore(LocalTime.now.minusSeconds(seconds))) {
+    if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(seconds))) {
       Error(INVALID_DATE, s". Request timestamp is too old (more than $seconds seconds)".some).invalidNec
     } else unit.validNec
 
