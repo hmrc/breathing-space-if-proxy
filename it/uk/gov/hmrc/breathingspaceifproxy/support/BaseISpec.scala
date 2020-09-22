@@ -26,6 +26,7 @@ import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.ws.WSClient
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{DefaultAwaitTimeout, FakeRequest}
 import uk.gov.hmrc.breathingspaceifproxy.Header._
@@ -51,6 +52,10 @@ abstract class BaseISpec
     GuiceApplicationBuilder()
       .configure(configProperties)
       .build()
+
+  lazy val wsClient: WSClient = app.injector.instanceOf[WSClient]
+
+  val testServerAddress = s"http://localhost:$port"
 
   implicit lazy val materializer: Materializer = fakeApplication.materializer
 

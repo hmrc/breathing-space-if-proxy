@@ -17,18 +17,21 @@
 package uk.gov.hmrc.breathingspaceifproxy.support
 
 import java.time.{LocalDate, ZonedDateTime}
+import java.util.UUID
 
 import cats.syntax.option._
 import play.api.libs.json._
 import play.api.mvc.AnyContent
 import uk.gov.hmrc.breathingspaceifproxy.Periods
-import uk.gov.hmrc.breathingspaceifproxy.model.{CreatePeriodsRequest, Nino, Period}
+import uk.gov.hmrc.breathingspaceifproxy.model._
 
 trait TestData {
 
   val maybeNino = "MZ006526C"
   val nino = Nino(maybeNino)
   val unknownNino = Nino("MZ006526C")
+  val correlationId = CorrelationId(UUID.randomUUID().toString)
+  val unattendedStaffId = StaffId("0000000")
 
   lazy val period = Period(
     LocalDate.now.minusMonths(3),

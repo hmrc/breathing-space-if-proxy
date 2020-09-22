@@ -17,7 +17,6 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import play.api.http.Status
-import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 
@@ -31,12 +30,11 @@ class ApiPlatformControllerISpec extends BaseISpec {
   s"GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {
       val connectorUrl = "/api/definition"
-
-      val result = route(fakeApplication, fakeRequest(Helpers.GET, connectorUrl)).get
-      status(result) shouldBe Status.OK
-
       val appId = appConfig.v1WhitelistedApplicationIds.head
-      contentAsString(result) should include(s""""whitelistedApplicationIds": ["${appId}"""")
+
+      val response = await(wsClient.url(s"${testServerAddress}${connectorUrl}").get())
+      response.status shouldBe Status.OK
+      response.body should include(s""""whitelistedApplicationIds": ["${appId}"""")
     }
   }
 
@@ -44,9 +42,9 @@ class ApiPlatformControllerISpec extends BaseISpec {
     "return 200(OK) and the application.raml content" in {
       val connectorUrl = "/api/conf/1.0/application.raml"
 
-      val result = route(fakeApplication, fakeRequest(Helpers.GET, connectorUrl)).get
-      status(result) shouldBe Status.OK
-      contentAsString(result) should include("title: Breathing Space")
+      val response = await(wsClient.url(s"${testServerAddress}${connectorUrl}").get())
+      response.status shouldBe Status.OK
+      response.body should include("title: Breathing Space")
     }
   }
 }

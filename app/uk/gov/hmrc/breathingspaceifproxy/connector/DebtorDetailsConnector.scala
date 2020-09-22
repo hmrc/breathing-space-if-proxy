@@ -38,12 +38,12 @@ class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit hc: HeaderCarrier): Future[Result] = {
+  def get(nino: Nino)(implicit headerValues: RequiredHeaderSet): Future[Result] = {
     implicit val urlWrapper = Url(url(nino))
     monitor("ConsumedAPI-Breathing-Space-Debtor-Details-GET") {
       http
         .GET[HttpResponse](urlWrapper.value)
-        .map(composeResponseFromIF)
+        .flatMap(composeResponseFromIF)
         .recoverWith(logException)
     }
   }

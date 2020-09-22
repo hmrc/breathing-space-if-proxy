@@ -14,26 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.breathingspaceifproxy.model
 
-import cats.data.ValidatedNec
-import uk.gov.hmrc.breathingspaceifproxy.model.{Error, Period}
-import uk.gov.hmrc.http.HeaderCarrier
-
-package object breathingspaceifproxy {
-
-  val unit: Unit = ()
-
-  type Periods = List[Period]
-
-  type Validation[A] = ValidatedNec[Error, A]
-
-  object Header {
-    lazy val CorrelationId = "Correlation-Id"
-    lazy val RequestType = "Request-Type"
-    lazy val StaffId = "Staff-Id"
-  }
-
-  def retrieveCorrelationId(implicit hc: HeaderCarrier): Option[String] =
-    hc.extraHeaders.find(t => t._1.equals(Header.CorrelationId)).map(_._2)
-}
+case class CorrelationId(value: String) extends AnyVal

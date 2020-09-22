@@ -24,6 +24,7 @@ import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
+import play.api.http.HeaderNames
 
 trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   suite: Suite =>
@@ -56,7 +57,11 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
     val call = httpMethod.call(urlPathMatching(url))
     removeStub(call)
     stubFor {
-      val response = aResponse().withStatus(status).withBody(body)
+      val response = aResponse()
+        .withStatus(status)
+        .withBody(body)
+        .withHeader(HeaderNames.CONTENT_TYPE, "application/json")
+
       call.willReturn(response)
     }
   }

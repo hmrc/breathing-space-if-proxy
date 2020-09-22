@@ -20,7 +20,6 @@ import java.net.URL
 import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
-import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
@@ -36,10 +35,4 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
   lazy val v1WhitelistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
-
-  lazy val mappingForNPS = Map[String, String](
-    Header.CorrelationId -> servicesConfig.getString("mapping.nps.correlation-id"),
-    Header.RequestType -> servicesConfig.getString("mapping.nps.request-type"),
-    Header.StaffId -> servicesConfig.getString("mapping.nps.staff-id")
-  )
 }

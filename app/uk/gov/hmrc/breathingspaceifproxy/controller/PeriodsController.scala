@@ -17,9 +17,9 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, LocalTime, ZonedDateTime}
+import javax.inject.{Inject, Singleton}
 
 import cats.implicits._
-import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -35,10 +35,12 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateNino(maybeNino)
-    ).mapN((_, nino) => nino)
+    ).mapN((headerSet, nino) => (headerSet, nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
-        nino => {
+        validationTuple => {
+          implicit val (headerSet, nino) = validationTuple
+
           logger.debug(s"Retrieving Breathing Space periods for Nino(${nino.value})")
           periodsConnector.get(nino)
         }
@@ -49,11 +51,14 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
-    ).mapN((_, vcpr) => vcpr)
+    ).mapN((headerSet, vcpr) => (headerSet, vcpr))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
-        vcpr => {
+        validationTuple => {
+          implicit val (headerSet, vcpr) = validationTuple
+
           logger.debug(s"Creating Periods for $vcpr")
+
           periodsConnector.post(vcpr)
         }
       )

@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.Result
+import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector.url
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http._
@@ -37,31 +37,33 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 ) extends ConnectorHelper
     with HttpAPIMonitor {
 
+  import PeriodsConnector._
+
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit hc: HeaderCarrier): Future[Result] = {
+  def get(nino: Nino)(implicit headerValues: RequiredHeaderSet): Future[Result] = {
     implicit val urlWrapper = Url(url(nino))
     monitor("ConsumedAPI-Breathing-Space-Periods-GET") {
       http
         .GET[HttpResponse](urlWrapper.value)
-        .map(composeResponseFromIF)
+        .flatMap(composeResponseFromIF)
         .recoverWith(logException)
     }
   }
 
-  def post(vcpr: ValidatedCreatePeriodsRequest)(implicit hc: HeaderCarrier): Future[Result] = {
+  def post(vcpr: ValidatedCreatePeriodsRequest)(implicit headerValues: RequiredHeaderSet): Future[Result] = {
     implicit val urlWrapper = Url(url(vcpr.nino))
+
     monitor("ConsumedAPI-Breathing-Space-Periods-POST") {
       http
         .POST[Periods, HttpResponse](urlWrapper.value, vcpr.periods)
-        .map(composeResponseFromIF)
+        .flatMap(composeResponseFromIF)
         .recoverWith(logException)
     }
   }
 }
 
 object PeriodsConnector {
-
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkUrl}/breathing-space-periods/api/v1/${nino.value}/periods"
 }
