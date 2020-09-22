@@ -21,7 +21,6 @@ import java.util.UUID
 
 import cats.syntax.option._
 import play.api.libs.json._
-import play.api.mvc.AnyContent
 import uk.gov.hmrc.breathingspaceifproxy.Periods
 import uk.gov.hmrc.breathingspaceifproxy.model._
 
@@ -41,8 +40,8 @@ trait TestData {
 
   lazy val periods: List[Period] = List(period, period)
 
-  def createPeriodsRequest(nino: String, periods: Periods): AnyContent =
-    AnyContent(Json.toJson(CreatePeriodsRequest(nino, periods)))
+  def createPeriodsRequest(nino: String, periods: Periods): JsValue =
+    Json.toJson(CreatePeriodsRequest(nino, periods))
 
   def debtorDetailsResponse(nino: Nino): String =
     s"""
