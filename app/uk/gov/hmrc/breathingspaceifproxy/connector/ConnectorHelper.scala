@@ -38,7 +38,6 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
   val ifRequestTypeHeaderName = "RequestType"
   val ifStaffIdHeaderName = "StaffId"
 
-  // TODO: pass correlationId as implicit param rather than the request HeaderCarrier!
   def composeResponseFromIF(response: HttpResponse)(implicit url: Url, headerSet: RequiredHeaderSet): Future[Result] = {
     logResponse(response)
 
@@ -81,12 +80,12 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
     response.status match {
       case status if is2xx(status) =>
         logger.debug(
-          s"Status($status) for request with ${Header.CorrelationId}(${headerSet.correlationId.value}) to ${url.value}"
+          s"Status($status) for request with ${ifCorrelationIdHeaderName}(${headerSet.correlationId.value}) to ${url.value}"
         )
 
       case status =>
         logger.error(
-          s"ERROR($status) for request ${Header.CorrelationId}(${headerSet.correlationId.value}) to ${url.value}"
+          s"ERROR($status) for request ${ifCorrelationIdHeaderName}(${headerSet.correlationId.value}) to ${url.value}"
         )
         logger.debug(s"... with Body: ${response.body}")
     }

@@ -25,8 +25,8 @@ import play.api.libs.json.JsValue
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
-import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, RequiredHeaderSet, Url}
+import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
 import uk.gov.hmrc.http.{HttpException, HttpResponse}
 

@@ -33,7 +33,6 @@ trait TestData {
        |}
      """.stripMargin
 
-  // TODO: shouldn't have to have this copy in unit and it test packages
   val validCreatePeriodsResponse =
     """
       |{
