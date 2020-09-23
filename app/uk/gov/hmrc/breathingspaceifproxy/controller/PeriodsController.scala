@@ -83,8 +83,9 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       (
         validateDate(period.startDate),
         validateDate(endDate),
+        validateDateRange(period.startDate, endDate),
         validateDateTime(period.pegaRequestTimestamp)
-      ).mapN((startDate, endDate, _) => validateDateRange(startDate, endDate))
+      ).mapN((_, _, _, _) => unit)
     }
 
   private val BreathingSpaceProgramStartingYear = 2020
@@ -101,6 +102,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     } else unit.validNec
 
   private def validateDateRange(startDate: LocalDate, endDate: LocalDate): Validation[Unit] =
-    if (startDate.isBefore(endDate)) unit.validNec
-    else Error(INVALID_DATE_RANGE, s". startDate($startDate) is after endDate($endDate)".some).invalidNec
+    if (endDate.isBefore(startDate)) {
+      Error(INVALID_DATE_RANGE, s". startDate($startDate) is after endDate($endDate)".some).invalidNec
+    } else unit.validNec
 }

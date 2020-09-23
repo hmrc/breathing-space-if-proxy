@@ -32,13 +32,19 @@ trait TestData {
   val correlationId = CorrelationId(UUID.randomUUID().toString)
   val unattendedStaffId = StaffId("0000000")
 
-  lazy val period = Period(
+  lazy val validDateRangePeriod = Period(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
   )
 
-  lazy val periods: List[Period] = List(period, period)
+  lazy val invalidDateRangePeriod = Period(
+    LocalDate.now.minusMonths(3),
+    LocalDate.now.minusMonths(4).some,
+    ZonedDateTime.now
+  )
+
+  lazy val periods: List[Period] = List(validDateRangePeriod, validDateRangePeriod)
 
   def createPeriodsRequest(nino: String, periods: Periods): JsValue =
     Json.toJson(CreatePeriodsRequest(nino, periods))

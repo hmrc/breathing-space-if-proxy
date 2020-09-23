@@ -83,13 +83,28 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
   "post" should {
 
     "return 200(OK) when all required headers are present and the body is valid Json" in {
-      Given("a request with all required headers and a valid Json body")
       when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[RequiredHeaderSet]))
         .thenReturn(Future.successful(Status(OK)))
 
+      Given("a request with all required headers and a valid Json body")
       val request = requestWithAllHeaders(POST).withJsonBody(createPeriodsRequest(maybeNino, periods))
+
       val response = controller.post()(request)
       status(response) shouldBe OK
+    }
+
+    "return 400(BAD_REQUEST) when, for any of the periods provided, endDate is temporally before startDate" in {
+      val periods = List(invalidDateRangePeriod, invalidDateRangePeriod)
+      val request = requestWithAllHeaders(POST).withJsonBody(createPeriodsRequest(maybeNino, periods))
+
+      val controller = new PeriodsController(appConfig, Helpers.stubControllerComponents(), mockConnector)
+      val response = controller.post()(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.value.some, 2)
+
+      And(s"the error code should be $INVALID_DATE_RANGE")
+      errorList.head.code shouldBe INVALID_DATE_RANGE.entryName
+      assert(errorList.head.message.startsWith(INVALID_DATE_RANGE.message))
     }
   }
 }
