@@ -28,7 +28,7 @@ object BaseError extends Enum[BaseError] {
   case object INTERNAL_SERVER_ERROR extends BaseError("Internal server error")
   case object INVALID_HEADER extends BaseError(s"Invalid value for the header")
   case object INVALID_DATE extends BaseError("Invalid date")
-  case object INVALID_DATE_RANGE extends BaseError("End-date after start-date")
+  case object INVALID_DATE_RANGE extends BaseError("End-date before start-date")
   case object INVALID_JSON extends BaseError("Payload not in the expected Json format")
   case object INVALID_NINO extends BaseError("Invalid Nino")
   case object RESOURCE_NOT_FOUND extends BaseError("Resource not found")
