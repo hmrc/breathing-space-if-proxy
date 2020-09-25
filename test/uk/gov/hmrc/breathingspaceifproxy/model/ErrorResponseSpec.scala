@@ -22,7 +22,6 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
-import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
@@ -39,13 +38,13 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     val errors = Nec(Error(INVALID_NINO))
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
-    val response = ErrorResponse(correlationId.value.some, httpErrorCode, errors).value.futureValue
+    val response = ErrorResponse(correlationIdAsString.some, httpErrorCode, errors).value.futureValue
 
     And("the Http response should have the Http Status provided")
     response.header.status shouldBe httpErrorCode
 
     And("a \"Correlation-Id\" header")
-    response.header.headers.get(Header.CorrelationId) shouldBe Some(correlationId.value)
+    response.header.headers.get(Header.CorrelationId) shouldBe correlationIdAsString.some
 
     And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)

@@ -24,58 +24,37 @@ import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.http.HeaderNames.CONTENT_TYPE
-import play.api.http.MimeTypes
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.Json
+import play.api.http.{HeaderNames, MimeTypes}
+import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
-import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
+import uk.gov.hmrc.breathingspaceifproxy.RequestPeriods
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, RequiredHeaderSet}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.breathingspaceifproxy.model.CreatePeriodsRequest
 
 trait BaseSpec
-    extends DefaultAwaitTimeout
+    extends BreathingSpaceTestData
+    with DefaultAwaitTimeout
     with GivenWhenThen
     with GuiceOneAppPerSuite
+    with HeaderNames
     with Informing
     with Injecting
     with Matchers
-    with OptionValues
-    with TestData { this: TestSuite =>
+    with OptionValues { this: TestSuite =>
 
   implicit lazy val materializer: Materializer = inject[Materializer]
 
-  implicit lazy val hc: HeaderCarrier = HeaderCarrier().withExtraHeaders(
-    Header.CorrelationId -> correlationId.value
-  )
+  implicit lazy val appConfig: AppConfig = inject[AppConfig]
 
-  def configProperties: Map[String, Any] = Map.empty
-
-  override lazy val fakeApplication: Application =
-    GuiceApplicationBuilder()
-      .configure(configProperties)
-      .build()
-
-  lazy val appConfig: AppConfig = inject[AppConfig]
-
-  lazy val validHeaders = List(
-    CONTENT_TYPE -> MimeTypes.JSON,
-    Header.CorrelationId -> correlationId.value,
-    Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
-    Header.StaffId -> "1234567"
-  )
-
-  lazy val fakeGetRequest = FakeRequest().withHeaders(validHeaders: _*)
-
-  implicit lazy val validRequiredHeaderSet =
-    RequiredHeaderSet(correlationId, Attended.DS2_BS_UNATTENDED, unattendedStaffId)
+  lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
 
   def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
-    if (withCorrelationId) correlationId.value.some else None
+    if (withCorrelationId) correlationIdAsString.some else None
+
+  def createPeriodsRequest(periods: RequestPeriods): JsValue =
+    Json.toJson(CreatePeriodsRequest(maybeNino, periods))
 
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)
@@ -85,7 +64,7 @@ trait BaseSpec
     method: String = "GET"
   ): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, "/").withHeaders(
-      validHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
+      requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
 
   def verifyErrorResult(

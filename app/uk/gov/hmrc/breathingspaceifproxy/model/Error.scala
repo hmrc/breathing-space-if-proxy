@@ -25,13 +25,14 @@ object BaseError extends Enum[BaseError] {
 
   case object MISSING_BODY extends BaseError(s"The request must have a body")
   case object MISSING_HEADER extends BaseError(s"Missing required header")
-  case object INTERNAL_SERVER_ERROR extends BaseError("Internal server error")
   case object INVALID_HEADER extends BaseError(s"Invalid value for the header")
   case object INVALID_DATE extends BaseError("Invalid date")
   case object INVALID_DATE_RANGE extends BaseError("End-date before start-date")
   case object INVALID_JSON extends BaseError("Payload not in the expected Json format")
   case object INVALID_NINO extends BaseError("Invalid Nino")
   case object RESOURCE_NOT_FOUND extends BaseError("Resource not found")
+  case object SERVER_ERROR
+      extends BaseError("We are currently experiencing problems that require live service intervention")
   case object UNSUPPORTED_MEDIA_TYPE extends BaseError("Content-type should be \"application/json\"")
 
   override val values = findValues
@@ -52,7 +53,7 @@ object Error {
   def fromThrowable(httpErrorCode: Int, throwable: Throwable): JsArray =
     Json.arr(
       Json.obj(
-        "code" -> httpErrorIds.getOrElse[String](httpErrorCode, "INTERNAL_SERVER_ERROR"),
+        "code" -> httpErrorIds.getOrElse[String](httpErrorCode, "SERVER_ERROR"),
         "message" -> throwable.getMessage
       )
     )
@@ -83,7 +84,7 @@ object Error {
     426 -> "UPGRADE_REQUIRED",
     428 -> "PRECONDITION_REQUIRED",
     429 -> "TOO_MANY_REQUESTS",
-    500 -> "INTERNAL_SERVER_ERROR",
+    500 -> "SERVER_ERROR",
     501 -> "NOT_IMPLEMENTED",
     502 -> "BAD_GATEWAY",
     503 -> "SERVICE_UNAVAILABLE",

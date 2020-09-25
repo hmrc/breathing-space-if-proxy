@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import java.util.UUID
+
 import scala.concurrent.{ExecutionContext, Future}
 
 import com.codahale.metrics.MetricRegistry
@@ -23,7 +25,6 @@ import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.Result
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector.url
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http._
@@ -36,14 +37,16 @@ class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 ) extends ConnectorHelper
     with HttpAPIMonitor {
 
+  import DebtorDetailsConnector._
+
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit headerValues: RequiredHeaderSet): Future[Result] = {
+  def get(nino: Nino)(implicit requestId: UUID, hc: HeaderCarrier): Future[Result] = {
     implicit val urlWrapper = Url(url(nino))
     monitor("ConsumedAPI-Breathing-Space-Debtor-Details-GET") {
       http
         .GET[HttpResponse](urlWrapper.value)
-        .flatMap(composeResponseFromIF)
+        .map(composeResponse)
         .recoverWith(logException)
     }
   }
