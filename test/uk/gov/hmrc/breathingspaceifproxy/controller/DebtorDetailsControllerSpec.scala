@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
+import java.util.UUID
+
 import scala.concurrent.Future
 
 import cats.syntax.option._
@@ -26,9 +28,10 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.StaffId
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.{Nino, RequiredHeaderSet}
+import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.http.HeaderCarrier
 
 class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
@@ -39,7 +42,8 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       Given(s"a GET request with a valid Nino and all required headers")
-      when(mockConnector.get(any[Nino])(any[RequiredHeaderSet])).thenReturn(Future.successful(Status(OK)))
+      when(mockConnector.get(any[Nino])(any[UUID], any[HeaderCarrier]))
+        .thenReturn(Future.successful(Status(OK)))
 
       val response = controller.get(maybeNino)(fakeGetRequest)
       status(response) shouldBe OK
@@ -47,7 +51,8 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
       Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
-      when(mockConnector.get(any[Nino])(any[RequiredHeaderSet])).thenReturn(Future.successful(Status(OK)))
+      when(mockConnector.get(any[Nino])(any[UUID], any[HeaderCarrier]))
+        .thenReturn(Future.successful(Status(OK)))
 
       val response = controller.get(maybeNino)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
@@ -57,7 +62,7 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       Given(s"a GET request with an invalid Nino")
       val response = controller.get("HT1234B")(fakeGetRequest)
 
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.value.some, 1)
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
       And(s"the error code should be $INVALID_NINO")
       errorList.head.code shouldBe INVALID_NINO.entryName
@@ -68,7 +73,7 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       Given(s"a GET request with an invalid Nino and without the $StaffId request header")
       val response = controller.get("HT1234B")(requestFilteredOutOneHeader(StaffId))
 
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationId.value.some, 2)
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 
       And(s"the 1st error code should be $MISSING_HEADER")
       errorList.head.code shouldBe MISSING_HEADER.entryName

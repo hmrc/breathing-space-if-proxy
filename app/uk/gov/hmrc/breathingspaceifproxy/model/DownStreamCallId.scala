@@ -16,8 +16,16 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-case class StaffId(value: String) extends AnyVal
+import enumeratum._
 
-object StaffId {
-  val UnattendedRobotValue = StaffId("0000000")
+sealed trait DownStreamCallId extends EnumEntry
+
+object DownStreamCallId extends Enum[DownStreamCallId] {
+
+  case object GET_DEBTOR extends DownStreamCallId
+  case object GET_PERIODS extends DownStreamCallId
+  case object POST_PERIODS extends DownStreamCallId
+  case object PUT_PERIODS extends DownStreamCallId
+
+  override val values = findValues
 }

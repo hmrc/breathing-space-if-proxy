@@ -35,12 +35,13 @@ import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
 abstract class BaseISpec
   extends AnyWordSpec
+    with BreathingSpaceTestData
     with DefaultAwaitTimeout
     with GivenWhenThen
     with GuiceOneServerPerSuite
+    with HeaderNames
     with Matchers
     with OptionValues
-    with TestData
     with WireMockSupport {
 
   def configProperties: Map[String, Any] = Map(
@@ -63,7 +64,7 @@ abstract class BaseISpec
 
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(
-      HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
+      CONTENT_TYPE -> MimeTypes.JSON,
       CorrelationId -> UUID.randomUUID.toString,
       RequestType -> Attended.DS2_BS_UNATTENDED.toString,
       StaffId -> "1234567"

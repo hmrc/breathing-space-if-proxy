@@ -16,4 +16,14 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-case class RequiredHeaderSet(correlationId: CorrelationId, attended: Attended, staffId: StaffId)
+import java.time.LocalDate
+import java.util.UUID
+
+import play.api.libs.json.Json
+
+final case class ResponsePeriod(periodId: UUID, startDate: LocalDate, endDate: Option[LocalDate])
+
+object ResponsePeriod {
+
+  implicit val format = Json.format[ResponsePeriod]
+}

@@ -17,14 +17,15 @@
 package uk.gov.hmrc
 
 import cats.data.ValidatedNec
-import uk.gov.hmrc.breathingspaceifproxy.model.{Error, Period}
+import uk.gov.hmrc.breathingspaceifproxy.model.{Error, RequestPeriod, ResponsePeriod}
 import uk.gov.hmrc.http.HeaderCarrier
 
 package object breathingspaceifproxy {
 
   val unit: Unit = ()
 
-  type Periods = List[Period]
+  type RequestPeriods = List[RequestPeriod]
+  type ResponsePeriods = List[ResponsePeriod]
 
   type Validation[A] = ValidatedNec[Error, A]
 

@@ -18,8 +18,20 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
     extends BackendController(cc)
-    with RequestValidation
+    with RequestValidation {
+
+  override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
+    val headers = requestFromClient.headers.headers.map(mapHeadersToIF)
+    val request = requestFromClient.withHeaders(Headers(headers: _*))
+    HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
+  }
+
+  private def mapHeadersToIF(header: (String, String)): (String, String) =
+    (appConfig.mappingForIF.get(header._1).getOrElse(header._1), header._2)
+}

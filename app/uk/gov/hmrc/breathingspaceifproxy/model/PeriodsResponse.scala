@@ -16,4 +16,11 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-case class CorrelationId(value: String) extends AnyVal
+import play.api.libs.json.Json
+import uk.gov.hmrc.breathingspaceifproxy.ResponsePeriods
+
+final case class PeriodsResponse(periods: ResponsePeriods)
+
+object PeriodsResponse {
+  implicit val format = Json.format[PeriodsResponse]
+}

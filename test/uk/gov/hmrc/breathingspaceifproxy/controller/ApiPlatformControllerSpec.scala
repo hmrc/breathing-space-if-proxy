@@ -21,7 +21,9 @@ import scala.concurrent.Future
 import controllers.{Assets, Execution}
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.Application
 import play.api.http.MimeTypes
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{ActionBuilder, AnyContent, Request}
 import play.api.mvc.Results.Status
 import play.api.test.Helpers
@@ -30,10 +32,12 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  override def configProperties: Map[String, Any] = Map(
+  def configProperties: Map[String, Any] = Map(
     "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
     "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321"
   )
+
+  override lazy val fakeApplication: Application = GuiceApplicationBuilder().configure(configProperties).build()
 
   private val expectedStatus = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)

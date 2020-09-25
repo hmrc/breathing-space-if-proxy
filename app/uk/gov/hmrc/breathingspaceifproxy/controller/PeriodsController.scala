@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
+import java.time.{LocalDate, ZonedDateTime}
 
 import cats.implicits._
 import javax.inject.{Inject, Singleton}
@@ -24,8 +24,8 @@ import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 
 @Singleton()
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
@@ -35,13 +35,12 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateNino(maybeNino)
-    ).mapN((headerSet, nino) => (headerSet, nino))
+    ).mapN((requestId, nino) => (requestId, nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
-          implicit val (headerSet, nino) = validationTuple
-
-          logger.debug(s"Retrieving Breathing Space periods for Nino(${nino.value})")
+          implicit val (requestId, nino) = validationTuple
+          logger.debug(s"requestId($requestId) for Nino(${nino.value})")
           periodsConnector.get(nino)
         }
       )
@@ -51,14 +50,12 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
-    ).mapN((headerSet, vcpr) => (headerSet, vcpr))
+    ).mapN((requestId, vcpr) => (requestId, vcpr))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
-          implicit val (headerSet, vcpr) = validationTuple
-
-          logger.debug(s"Creating Periods for $vcpr")
-
+          implicit val (requestId, vcpr) = validationTuple
+          logger.debug(s"requestId($requestId) with $vcpr")
           periodsConnector.post(vcpr)
         }
       )
@@ -70,10 +67,10 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       validatePeriods(cpr.periods)
     ).mapN((nino, _) => ValidatedCreatePeriodsRequest(nino, cpr.periods))
 
-  private def validatePeriods(periods: Periods): Validation[Unit] =
+  private def validatePeriods(periods: RequestPeriods): Validation[Unit] =
     periods.map(validatePeriod).combineAll
 
-  private def validatePeriod(period: Period): Validation[Unit] =
+  private def validatePeriod(period: RequestPeriod): Validation[Unit] =
     period.endDate.fold {
       (
         validateDate(period.startDate),
@@ -94,12 +91,15 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     if (date.getYear >= BreathingSpaceProgramStartingYear) date.validNec
     else Error(INVALID_DATE, s". Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear".some).invalidNec
 
-  private val seconds = 60
+  // private val seconds = 60
 
   private def validateDateTime(requestDateTime: ZonedDateTime): Validation[Unit] =
+    unit.validNec
+  /* COMMENTED WHILE WAITING FOR A CONFIRMATION FROM THE STAKEHOLDERS. TO REMOVE IF NOT CONFIRMED.
     if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(seconds))) {
       Error(INVALID_DATE, s". Request timestamp is too old (more than $seconds seconds)".some).invalidNec
     } else unit.validNec
+   */
 
   private def validateDateRange(startDate: LocalDate, endDate: LocalDate): Validation[Unit] =
     if (endDate.isBefore(startDate)) {

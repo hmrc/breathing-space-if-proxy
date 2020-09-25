@@ -21,16 +21,16 @@ import java.time.format.DateTimeFormatter
 
 import play.api.libs.json.{JsObject, Json, Writes}
 
-final case class Period(startDate: LocalDate, endDate: Option[LocalDate], pegaRequestTimestamp: ZonedDateTime)
+final case class RequestPeriod(startDate: LocalDate, endDate: Option[LocalDate], pegaRequestTimestamp: ZonedDateTime)
 
-object Period {
+object RequestPeriod {
 
-  implicit val reads = Json.reads[Period]
+  implicit val reads = Json.reads[RequestPeriod]
 
   lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
 
-  implicit val writes = new Writes[Period] {
-    def writes(period: Period): JsObject =
+  implicit val writes = new Writes[RequestPeriod] {
+    def writes(period: RequestPeriod): JsObject =
       Json.obj(
         "startDate" -> period.startDate,
         "endDate" -> period.endDate,

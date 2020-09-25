@@ -20,12 +20,10 @@ import cats.syntax.option._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.{MimeTypes, Status}
-import play.api.libs.json.Json
-import play.api.libs.json.JsValue
+import play.api.libs.json._
 import play.api.mvc.Result
-import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
-import uk.gov.hmrc.breathingspaceifproxy.model.{Attended, RequiredHeaderSet, Url}
+import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
 import uk.gov.hmrc.http.{HttpException, HttpResponse}
@@ -34,7 +32,7 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
 
   implicit lazy val url = Url("http://aHost/aPath")
 
-  "composeResponseFromIF" should {
+  "composeResponse" should {
     "return an Http Response with the same data of the Response provided by IF" in {
       val expectedStatus = Status.OK
       val expectedContent = "Some Content"
@@ -45,12 +43,11 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
         s"""{ "content" : "$expectedContent" }""",
         Map(
           CONTENT_TYPE -> List(MimeTypes.JSON),
-          CorrelationId -> List(correlationId.value)
+          CorrelationId -> List(correlationIdAsString)
         )
       )
 
-      val result = composeResponseFromIF(httpResponse).futureValue
-
+      val result = composeResponse(httpResponse)
       val bodyAsJson = verifyResult(result, expectedStatus)
       (bodyAsJson \ "content").as[String] shouldBe expectedContent
     }
@@ -93,24 +90,6 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
     }
   }
 
-  "PeriodsConnector.hc" should {
-    "correctly compose a HeaderCarrier from the supplied RequiredHeaderSet" in {
-      Given("a RequiredHeaderSet")
-      val validRequiredHeaderSet = RequiredHeaderSet(correlationId, Attended.DS2_BS_UNATTENDED, unattendedStaffId)
-
-      val extraHeaders = hc(validRequiredHeaderSet).extraHeaders.toMap
-
-      Then(s"then the composed HeaderCarrier should contain a 'Correlation-Id' header with the correct value")
-      extraHeaders.get(ifCorrelationIdHeaderName) shouldBe validRequiredHeaderSet.correlationId.value.some
-
-      And(s"then the composed HeaderCarrier should contain a 'Request-Type' header with the correct value")
-      extraHeaders.get(ifRequestTypeHeaderName) shouldBe validRequiredHeaderSet.attended.toString.some
-
-      And(s"then the composed HeaderCarrier should contain a 'Staff-Id' header with the correct value")
-      extraHeaders.get(ifStaffIdHeaderName) shouldBe validRequiredHeaderSet.staffId.value.some
-    }
-  }
-
   def verifyResult(result: Result, expectedStatus: Int): JsValue = {
     Then(s"the resulting Response should have as Http Status $expectedStatus")
     val responseHeader = result.header
@@ -122,7 +101,7 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
     headers.get(CONTENT_TYPE) shouldBe Some(MimeTypes.JSON)
 
     And("a 'Correlation-Id' header")
-    headers.get(CorrelationId) shouldBe correlationId.value.some
+    headers.get(CorrelationId) shouldBe correlationIdAsString.some
 
     And("the expected Body")
     result.body.contentType shouldBe Some(MimeTypes.JSON)
