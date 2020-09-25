@@ -94,80 +94,102 @@ documentation:
                       </errorResponse>
 
   /{nino}:
-    get:
-      displayName: Retrieve all Breathing Space periods for a NINO
-      description: Retrieve all Breathing Space periods for the given NINO.
-      (annotations.scope): "read:breathing-space-periods"
-      securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-periods" ] } ]
-      headers:
-        Correlation-Id:
-          description: A unique UUID for this request
-          type: string
-          required: true
-          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-        Request-Type:
-          description: |
-            Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+    uriParameters:
+      nino:
+        description: |
+          National Insurance Number.
 
-            The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
-          type: string
-          required: true
-          example: DA2_BS_ATTENDED
-        Staff-Id:
-          description: |
-            The Staff identifier associated with the human attending the operation that generated this request.
+          Must conform to the regular expression
 
-            Must be a 7 digit numeric value
-          type: string
-          required: true
-          example: "1234567"
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                {
-                  "periods": [
-                    {
-                      "periodId": "75e4cdc2-eecb-11ea-913a-0a9f09f70a70",
-                      “startDate” : “2020-01-01”,
-                      “endDate” : “2020-02-29”
-                    },
-                    {
-                      "periodId": "75e4cdc2-eecb-11ea-913a-0a9f09f70a71",
-                      “startDate” : “2020-04-01”,
-                      “endDate” : “2020-05-31”
-                    }
-                  ]
-                }
+          <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
+        type: string
+        example: "MZ006526C"
+    /periods:
+      get:
+        displayName: Retrieve all Breathing Space periods for a NINO
+        description: Retrieve all Breathing Space periods for the given NINO.
+        (annotations.scope): "read:breathing-space-periods"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-periods" ] } ]
+        headers:
+          Content-Type:
+            description: Specifies the content type of the request payload. Must be same as the example given.
+            type: string
+            required: true
+            example: application/json
+          Correlation-Id:
+            description: A unique UUID for this request
+            type: string
+            required: true
+            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          Request-Type:
+            description: |
+              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
 
-        400:
-          body:
-            application/json:
-              type: types.errorResponse
-              examples:
-                missingHeader:
-                  description: Missing Header
-                  value:
-                    code: MISSING_HEADER
-                invalidHeader:
-                  description: Invalid Header
-                  value:
-                    code: INVALID_HEADER
-                invalidNino:
-                  description: Missing Nino
-                  value:
-                    code: INVALID_NINO
+              The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+            type: string
+            required: true
+            example: DA2_BS_ATTENDED
+          Staff-Id:
+            description: |
+              The Staff identifier associated with the human attending the operation that generated this request.
 
-        404:
-          body:
-            application/json:
-              type: types.errorResponse
-              examples:
-                resourceNotFound:
-                  description: Resource specified by the supplied NINO was not found
-                  value:
-                    code: RESOURCE_NOT_FOUND
+              Must be a 7 digit numeric value
+            type: string
+            required: true
+            example: "1234567"
+        responses:
+          200:
+            headers:
+              Correlation-Id:
+                description: A unique UUID for this request
+                type: string
+                required: true
+                example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+            body:
+              application/json:
+                type: !include schemas/GetBsPeriods.json
+                examples:
+                  examples-1:
+                    description: Multiple periods returned
+                    value: !include examples/GetBsPeriods.json
+
+          400:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  missingHeader:
+                    description: One or more of the required headers are missing
+                    value:
+                      code: MISSING_HEADER
+                  invalidHeader:
+                    description: One or more of the header values are invalid
+                    value:
+                      code: INVALID_HEADER
+                  invalidNino:
+                    description: Invalid NINO format
+                    value:
+                      code: INVALID_NINO
+
+          404:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  resourceNotFound:
+                    description: The supplied NINO was not found
+                    value:
+                      code: RESOURCE_NOT_FOUND
+
+          502:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  resourceNotFound:
+                    description: Dependent systems are currently not responding
+                    value:
+                      code: BAD_GATEWAY
 
   /periods:
     post:
