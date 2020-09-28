@@ -1,0 +1,14 @@
+{
+  "nino" : "MZ123456C",
+  "periods" : [
+    {
+      "startDate" : "2020-01-01",
+      "endDate" : "2020-02-29",
+      "pegaRequestTimestamp" : "2020-11-13T20:20:39.000Z"
+    },
+    {
+      "startDate" : "2020-04-01",
+      "pegaRequestTimestamp" : "2020-11-13T20:20:39.000Z"
+    }
+  ]
+}
