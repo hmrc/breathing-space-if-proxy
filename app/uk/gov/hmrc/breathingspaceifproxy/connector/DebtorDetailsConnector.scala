@@ -16,19 +16,17 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import java.util.UUID
+import scala.concurrent.ExecutionContext
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.Result
+import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http._
-import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
 class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
@@ -41,15 +39,14 @@ class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit requestId: UUID, hc: HeaderCarrier): Future[Result] = {
-    implicit val urlWrapper = Url(url(nino))
-    monitor("ConsumedAPI-Breathing-Space-Debtor-Details-GET") {
+  /* Using HttpResponse as resulting value is just a provisional solution. To replace with a proper case class */
+  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[HttpResponse] =
+    monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .GET[HttpResponse](urlWrapper.value)
-        .map(composeResponse)
-        .recoverWith(logException)
+        .GET(Url(url(nino)).value)
+        .map(_.validNec)
+        .recoverWith(handleUpstreamError)
     }
-  }
 }
 
 object DebtorDetailsConnector {

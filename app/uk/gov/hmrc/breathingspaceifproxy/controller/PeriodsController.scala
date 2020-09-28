@@ -18,7 +18,12 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, ZonedDateTime}
 
-import cats.implicits._
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import cats.syntax.apply._
+import cats.syntax.foldable._
+import cats.syntax.option._
+import cats.syntax.validated._
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
@@ -26,6 +31,7 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId._
 
 @Singleton()
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
@@ -35,13 +41,15 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateNino(maybeNino)
-    ).mapN((requestId, nino) => (requestId, nino))
+    ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Periods_GET, correlationId), nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
           implicit val (requestId, nino) = validationTuple
-          logger.debug(s"requestId($requestId) for Nino(${nino.value})")
-          periodsConnector.get(nino)
+          logger.debug(s"$requestId for Nino(${nino.value})")
+          periodsConnector.get(nino).flatMap {
+            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+          }
         }
       )
   }
@@ -50,13 +58,15 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeaders,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
-    ).mapN((requestId, vcpr) => (requestId, vcpr))
+    ).mapN((correlationId, vcpr) => (RequestId(Breathing_Space_Periods_POST, correlationId), vcpr))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
           implicit val (requestId, vcpr) = validationTuple
-          logger.debug(s"requestId($requestId) with $vcpr")
-          periodsConnector.post(vcpr)
+          logger.debug(s"$requestId with $vcpr")
+          periodsConnector.post(vcpr).flatMap {
+            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(CREATED, _))
+          }
         }
       )
   }

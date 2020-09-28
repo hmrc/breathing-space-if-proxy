@@ -16,20 +16,19 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import java.util.UUID
-
 import akka.stream.Materializer
+import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
-import play.api.http.{HeaderNames, MimeTypes}
+import play.api.http.HeaderNames
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{DefaultAwaitTimeout, FakeRequest}
-import uk.gov.hmrc.breathingspaceifproxy.Header._
+import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
@@ -54,19 +53,28 @@ abstract class BaseISpec
       .configure(configProperties)
       .build()
 
-  lazy val wsClient: WSClient = app.injector.instanceOf[WSClient]
+  lazy val wsClient: WSClient = fakeApplication.injector.instanceOf[WSClient]
 
   val testServerAddress = s"http://localhost:$port"
 
   implicit lazy val materializer: Materializer = fakeApplication.materializer
 
-  implicit lazy val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
+  override implicit lazy val appConfig: AppConfig = fakeApplication.injector.instanceOf[AppConfig]
 
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest(method, path).withHeaders(
-      CONTENT_TYPE -> MimeTypes.JSON,
-      CorrelationId -> UUID.randomUUID.toString,
-      RequestType -> Attended.DS2_BS_UNATTENDED.toString,
-      StaffId -> "1234567"
+    FakeRequest(method, path).withHeaders(requestHeaders: _*)
+
+  def verifyHeadersForGet(url: String): Unit =
+    verify(1, getRequestedFor(urlMatching(url))
+      .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
+      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
+      .withHeader(retrieveHeaderMapping(Header.StaffId), equalTo(attendedStaffId))
+    )
+
+  def verifyHeadersForPost(url: String): Unit =
+    verify(1, postRequestedFor(urlMatching(url))
+      .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
+      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
+      .withHeader(retrieveHeaderMapping(Header.StaffId), equalTo(attendedStaffId))
     )
 }

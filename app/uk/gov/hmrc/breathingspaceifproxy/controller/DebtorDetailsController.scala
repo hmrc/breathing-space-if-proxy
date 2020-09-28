@@ -16,12 +16,16 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.implicits._
 import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import cats.syntax.apply._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, RequestId}
+import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.Breathing_Space_Debtor_Details_GET
 
 @Singleton()
 class DebtorDetailsController @Inject()(
@@ -34,13 +38,15 @@ class DebtorDetailsController @Inject()(
     (
       validateHeaders,
       validateNino(maybeNino)
-    ).mapN((requestId, nino) => (requestId, nino))
+    ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Debtor_Details_GET, correlationId), nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
           implicit val (requestId, nino) = validationTuple
           logger.debug(s"$requestId for Nino(${nino.value})")
-          debtorDetailsConnector.get(nino)
+          debtorDetailsConnector.get(nino).flatMap {
+            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+          }
         }
       )
   }

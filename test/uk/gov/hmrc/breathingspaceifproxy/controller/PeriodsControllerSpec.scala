@@ -16,14 +16,12 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import java.util.UUID
-
 import scala.concurrent.Future
 
 import cats.syntax.option._
+import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.Results.Status
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header
@@ -42,8 +40,8 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       Given(s"a GET request with a valid Nino and all required headers")
-      when(mockConnector.get(any[Nino])(any[UUID], any[HeaderCarrier]))
-        .thenReturn(Future.successful(Status(OK)))
+      when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       val response = controller.get(maybeNino)(fakeGetRequest)
       status(response) shouldBe OK
@@ -51,8 +49,8 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
       Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
-      when(mockConnector.get(any[Nino])(any[UUID], any[HeaderCarrier]))
-        .thenReturn(Future.successful(Status(OK)))
+      when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       val response = controller.get(maybeNino)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
@@ -88,14 +86,14 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
   "post" should {
 
     "return 200(OK) when all required headers are present and the body is valid Json" in {
-      when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[UUID], any[HeaderCarrier]))
-        .thenReturn(Future.successful(Status(OK)))
+      when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body")
       val request = requestWithAllHeaders(POST).withJsonBody(createPeriodsRequest(validPeriods))
 
       val response = controller.post()(request)
-      status(response) shouldBe OK
+      status(response) shouldBe CREATED
     }
 
     "return 400(BAD_REQUEST) when, for any of the periods provided, endDate is temporally before startDate" in {

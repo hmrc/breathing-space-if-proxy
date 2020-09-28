@@ -18,28 +18,56 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import cats.data.{NonEmptyChain => Nec}
 import cats.syntax.option._
+import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
+import play.api.mvc.Result
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.Error.httpErrorIds
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
-import uk.gov.hmrc.http.HttpException
 
 class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
 
-  test("ErrorResponse for Http errors (with 1 detail error)") {
-    Given("an Http Status >= 400")
-    val httpErrorCode = Status.BAD_REQUEST
+  test("ErrorResponse with httpErrorCode param and an 'Errors' list with 1 'Error' item") {
+    genAndTestErrorResponse(true, Nec(Error(INVALID_NINO)))
+  }
 
-    And("one detail error")
-    val errors = Nec(Error(INVALID_NINO))
+  test("ErrorResponse with httpErrorCode param and an 'Errors' list with 2 'Error' items") {
+    genAndTestErrorResponse(true, Nec(Error(INVALID_NINO), Error(INVALID_DATE)))
+  }
+
+  test("ErrorResponse with an 'Errors' list with 1 'Error' item") {
+    genAndTestErrorResponse(false, Nec(Error(SERVER_ERROR)))
+  }
+
+  test("ErrorResponse with an 'Errors' list with 2 'Error' items") {
+    genAndTestErrorResponse(false, Nec(Error(INVALID_NINO), Error(INVALID_DATE)))
+  }
+
+  private def genAndTestErrorResponse(withHttpErrorCode: Boolean, errors: Nec[Error]): Assertion = {
+    Given("an Http Status >= 400")
+    val httpErrorCode = if (withHttpErrorCode) Status.BAD_REQUEST else errors.head.baseError.httpCode
+
+    val nrErrors = errors.length
+    And(s"$nrErrors Error items")
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
-    val response = ErrorResponse(correlationIdAsString.some, httpErrorCode, errors).value.futureValue
+    val response =
+      if (withHttpErrorCode) ErrorResponse(correlationIdAsString.some, httpErrorCode, errors).value.futureValue
+      else {
+        if (nrErrors == 1) {
+          // Testing the 'apply' taking a single 'Error'
+          testErrorResponse(ErrorResponse(correlationId, errors.head).value.futureValue, httpErrorCode, errors)
+        }
+        ErrorResponse(correlationId, errors).value.futureValue
+      }
 
+    testErrorResponse(response, httpErrorCode, errors)
+  }
+
+  private def testErrorResponse(response: Result, httpErrorCode: Int, errors: Nec[Error]): Assertion = {
     And("the Http response should have the Http Status provided")
     response.header.status shouldBe httpErrorCode
 
@@ -51,66 +79,14 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     response.body.contentType shouldBe Some(MimeTypes.JSON)
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
-    And("\"errors\" should be a list with 1 detail error")
+    val nrErrors = errors.length.toInt
+    And(s"'errors' should be a list with $nrErrors Error items")
     val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
-    errorList.size shouldBe 1
-    errorList.head.code shouldBe INVALID_NINO.entryName
-    errorList.head.message shouldBe INVALID_NINO.message
-  }
-
-  test("ErrorResponse for Http errors (with 2 detail errors)") {
-    Given("an Http Status >= 400")
-    val httpErrorCode = Status.BAD_REQUEST
-
-    And("two detail errors")
-    val detail = ". The date not in the expected format"
-    val errors = Nec(Error(INVALID_NINO), Error(INVALID_DATE, detail.some))
-
-    Then("the resulting ErrorResponse instance should wrap an Http response")
-    val response = ErrorResponse(None, httpErrorCode, errors).value.futureValue
-
-    And("the Http response should have the Http Status provided")
-    response.header.status shouldBe httpErrorCode
-
-    And("not a \"Correlation-Id\" header")
-    response.header.headers.get(Header.CorrelationId) shouldBe None
-
-    And("a body in Json format")
-    response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
-    response.body.contentType shouldBe Some(MimeTypes.JSON)
-    val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
-
-    And("\"errors\" should be a list with 2 detail errors")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
-    errorList.size shouldBe 2
-    errorList.head.code shouldBe INVALID_NINO.entryName
-    errorList.head.message shouldBe INVALID_NINO.message
-    errorList.last.code shouldBe INVALID_DATE.entryName
-    errorList.last.message shouldBe s"${INVALID_DATE.message}$detail"
-  }
-
-  test("ErrorResponse for caught exceptions") {
-    Given("a caught HttpException")
-    val expectedStatus = Status.GATEWAY_TIMEOUT
-    val expectedMessage = RESOURCE_NOT_FOUND.message
-    val httpException = new HttpException(expectedMessage, expectedStatus)
-
-    Then("the resulting ErrorResponse instance should wrap an Http response")
-    val reasonToLog = s"HTTP error(${expectedStatus}) while calling ${Url("http://aHost/aPath").value}."
-    val response = ErrorResponse(None, expectedStatus, reasonToLog, httpException).value.futureValue
-
-    And("the Http response should have the Http Status provided")
-    response.header.status shouldBe Status.INTERNAL_SERVER_ERROR
-
-    And("a body in Json format")
-    response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
-    response.body.contentType shouldBe Some(MimeTypes.JSON)
-    val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
-
-    And("\"errors\" should be a list with 1 detail error")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
-    errorList.size shouldBe 1
-    errorList.head.code shouldBe httpErrorIds.get(Status.GATEWAY_TIMEOUT).head
-    errorList.head.message shouldBe expectedMessage
+    errorList.size shouldBe nrErrors
+    assert(errorList.forall { errorItem =>
+      errors.exists { error =>
+        errorItem.code == error.baseError.entryName
+      }
+    })
   }
 }

@@ -18,14 +18,14 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import enumeratum._
 
-sealed trait DownStreamCallId extends EnumEntry
+sealed trait EndpointId extends EnumEntry
 
-object DownStreamCallId extends Enum[DownStreamCallId] {
+object EndpointId extends Enum[EndpointId] {
 
-  case object GET_DEBTOR extends DownStreamCallId
-  case object GET_PERIODS extends DownStreamCallId
-  case object POST_PERIODS extends DownStreamCallId
-  case object PUT_PERIODS extends DownStreamCallId
+  case object Breathing_Space_Debtor_Details_GET extends EndpointId
+  case object Breathing_Space_Periods_GET extends EndpointId
+  case object Breathing_Space_Periods_POST extends EndpointId
+  case object Breathing_Space_Periods_PUT extends EndpointId
 
   override val values = findValues
 }

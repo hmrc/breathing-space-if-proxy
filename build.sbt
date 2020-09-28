@@ -6,8 +6,6 @@ val appName = "breathing-space-if-proxy"
 
 val silencerVersion = "1.7.0"
 
-lazy val IT = IntegrationTest extend Test
-
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
@@ -24,20 +22,20 @@ lazy val microservice = Project(appName, file("."))
     )
     // ***************
   )
-  .configs(IT)
+  .configs(IntegrationTest extend Test)
   .settings(publishingSettings: _*)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     scoverageSettings,
     scalafmtOnCompile in Compile := true,
-    scalafmtOnCompile in Test := true
+    scalafmtOnCompile in Test := true,
+    scalafmtOnCompile in IntegrationTest := true
   )
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
-unmanagedResourceDirectories in IT += baseDirectory.value / "it" / "resources"
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(

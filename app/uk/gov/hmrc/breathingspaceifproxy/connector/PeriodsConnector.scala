@@ -16,18 +16,18 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import java.util.UUID
+import scala.concurrent.ExecutionContext
 
-import scala.concurrent.{ExecutionContext, Future}
-
+import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
-import play.api.mvc.Result
+import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.{ValidatedCreatePeriodsRequest => VCPR}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
@@ -42,28 +42,28 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit requestId: UUID, hc: HeaderCarrier): Future[Result] = {
-    implicit val urlWrapper = Url(url(nino))
-    monitor("ConsumedAPI-Breathing-Space-Periods-GET") {
+  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsResponse] =
+    monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .GET[HttpResponse](urlWrapper.value)
-        .map(composeResponse)
-        .recoverWith(logException)
+        .GET[PeriodsResponse](Url(url(nino)).value)
+        .map(_.validNec)
+        .recoverWith(handleUpstreamError)
     }
-  }
 
-  def post(vcpr: ValidatedCreatePeriodsRequest)(implicit requestId: UUID, hc: HeaderCarrier): Future[Result] = {
-    implicit val urlWrapper = Url(url(vcpr.nino))
-    monitor("ConsumedAPI-Breathing-Space-Periods-POST") {
+  def post(vcpr: VCPR)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsResponse] =
+    monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .POST[JsValue, HttpResponse](urlWrapper.value, Json.obj("periods" -> vcpr.periods))
-        .map(composeResponse)
-        .recoverWith(logException)
+        .POST[JsValue, PeriodsResponse](Url(url(vcpr.nino)).value, Json.obj("periods" -> vcpr.periods))
+        .map(_.validNec)
+        .recoverWith(handleUpstreamError)
     }
-  }
 }
 
 object PeriodsConnector {
+
+  def path(nino: Nino)(implicit appConfig: AppConfig): String =
+    s"/${appConfig.integrationFrameworkContext}/api/v1/${nino.value}/periods"
+
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkUrl}/api/v1/${nino.value}/periods"
 }

@@ -28,8 +28,7 @@ import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
-import uk.gov.hmrc.breathingspaceifproxy.Header.CorrelationId
-import uk.gov.hmrc.breathingspaceifproxy.RequestPeriods
+import uk.gov.hmrc.breathingspaceifproxy.{Header, RequestPeriods}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.CreatePeriodsRequest
 
@@ -46,7 +45,7 @@ trait BaseSpec
 
   implicit lazy val materializer: Materializer = inject[Materializer]
 
-  implicit lazy val appConfig: AppConfig = inject[AppConfig]
+  override implicit val appConfig: AppConfig = inject[AppConfig]
 
   lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
 
@@ -83,7 +82,7 @@ trait BaseSpec
 
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
-      headers.get(CorrelationId) shouldBe correlationId.some
+      headers.get(Header.CorrelationId) shouldBe correlationId.some
       headers.size shouldBe 2
     }
 

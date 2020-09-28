@@ -23,40 +23,47 @@ import cats.syntax.option._
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.HeaderCarrier
 
 trait BreathingSpaceTestData {
+
+  def appConfig: AppConfig
 
   val maybeNino = "MZ006526C"
   val nino = Nino(maybeNino)
   val unknownNino = Nino("MZ005527C")
   val invalidNino = Nino("MG34567")
 
-  implicit val requestId = UUID.randomUUID
-  val correlationIdAsString = requestId.toString
+  val correlationId = UUID.randomUUID
+  val correlationIdAsString = correlationId.toString
+
+  val attendedStaffId = "1234567"
   val unattendedStaffId = "0000000"
+
+  implicit val genericRequestId = RequestId(EndpointId.Breathing_Space_Periods_POST, correlationId)
 
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationIdAsString,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
-    Header.StaffId -> "1234567"
-  )
-
-  implicit lazy val headerCarrier = HeaderCarrier(
-    otherHeaders = List(
-      CONTENT_TYPE -> MimeTypes.JSON,
-      Header.CorrelationId -> correlationIdAsString,
-      Header.RequestType -> Attended.DS2_BS_UNATTENDED.entryName,
-      Header.StaffId -> unattendedStaffId
-    )
+    Header.StaffId -> attendedStaffId
   )
 
   lazy val validDateRangePeriod = RequestPeriod(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
+  )
+
+  implicit lazy val headerCarrierForIF = HeaderCarrier(
+    otherHeaders = List(
+      CONTENT_TYPE -> MimeTypes.JSON,
+      retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
+      retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,
+      retrieveHeaderMapping(Header.StaffId) -> attendedStaffId
+    )
   )
 
   lazy val invalidDateRangePeriod = RequestPeriod(
@@ -67,23 +74,17 @@ trait BreathingSpaceTestData {
 
   lazy val validPeriods: List[RequestPeriod] = List(validDateRangePeriod, validDateRangePeriod)
 
-  val validCreatePeriodsResponse =
-    """
-      |{
-      | "periods": [
-      |   {
-      |     "periodId": "76f31303-3336-440c-a2d8-7608be1c32d2",
-      |     "startDate": "2020-09-12",
-      |     "endDate": "2020-12-13"
-      |   },
-      |   {
-      |     "periodId": "c6743de1-28d4-43ab-9a26-978d2f5157b9",
-      |     "startDate": "2020-09-10",
-      |     "endDate": "2020-12-11"
-      |   }
-      | ]
-      |}
-    """.stripMargin
+  lazy val validCreatePeriodsRequest = ValidatedCreatePeriodsRequest(nino, validPeriods)
+
+  lazy val invalidCreatePeriodsRequest = ValidatedCreatePeriodsRequest(unknownNino, validPeriods)
+
+  lazy val validPeriodsResponse =
+    PeriodsResponse(
+      List(
+        ResponsePeriod(UUID.randomUUID(), LocalDate.now.minusMonths(5), None),
+        ResponsePeriod(UUID.randomUUID(), LocalDate.now.minusMonths(2), LocalDate.now.some)
+      )
+    )
 
   def debtorDetails(nino: Nino): String =
     s"""
@@ -93,4 +94,7 @@ trait BreathingSpaceTestData {
        | "dateOfBirth" : "1990-01-01",
        |}
      """.stripMargin
+
+  def retrieveHeaderMapping(header: String): String =
+    appConfig.headerMapping.getOrElse(header, throw new NoSuchElementException(s"Missing mapping for header($header)"))
 }
