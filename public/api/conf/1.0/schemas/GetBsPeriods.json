@@ -17,7 +17,8 @@
           "periodID": {
             "type": "string",
             "description": "Identity of the Breathing Space Period",
-            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "example": "c6743de1-28d4-43ab-9a26-978d2f5157b9"
           },
           "startDate": {
             "description": "Start date of a breathing space period",
