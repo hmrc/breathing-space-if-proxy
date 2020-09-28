@@ -44,6 +44,7 @@ abstract class BaseISpec
     with WireMockSupport {
 
   def configProperties: Map[String, Any] = Map(
+    "internalServiceHostPatterns" -> List("localhost"),
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )
