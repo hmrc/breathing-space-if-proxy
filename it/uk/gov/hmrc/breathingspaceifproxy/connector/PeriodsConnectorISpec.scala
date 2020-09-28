@@ -1,39 +1,78 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import java.time.{LocalDate, ZonedDateTime}
-
-import cats.syntax.option._
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsConnectorISpec extends BaseISpec {
 
-  lazy val connector = app.injector.instanceOf[PeriodsConnector]
+  lazy val connector = fakeApplication.injector.instanceOf[PeriodsConnector]
 
-  val vcpr = ValidatedCreatePeriodsRequest(
-    invalidNino,
-    List(RequestPeriod(
-      LocalDate.now(),
-      LocalDate.now().some,
-      ZonedDateTime.now()
-    ))
-  )
+  lazy val url = PeriodsConnector.path(nino)
 
-  s"PeriodsConnector.parseIFPostBreathingSpaceResponse" should {
-    "return a Right[IFCreatePeriodsResponse] when it receives a 201 response" ignore {
-      stubCall(
-        HttpMethod.Post,
-        PeriodsConnector.url(invalidNino),
-        Status.CREATED,
-        Json.obj("periods" -> vcpr.periods).toString
-      )
+  lazy val errorResponsePayload = """{"failures":[{"code":"AN_ERROR","message":"An error message"}]}"""
+  lazy val notAnErrorInstance = assert(false, "Not even an Error instance?")
 
-      await(connector.post(vcpr))
+  "get" should {
+    "return a PeriodsResponse instance when it receives a 200(OK) response" in {
+      val responsePayload = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Get, url, Status.OK, responsePayload)
+      val response = await(connector.get(nino))
+      verifyHeadersForGet(url)
+      assert(response.fold(_ => false, _ => true))
     }
 
-    "return a Left[ErrorResponse] when it receives any other status than 201" ignore {}
+    "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
+      val url = PeriodsConnector.path(unknownNino)
+
+      stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayload)
+      val response = await(connector.get(unknownNino))
+      verifyHeadersForGet(url)
+      response.fold(_.head.baseError shouldBe RESOURCE_NOT_FOUND, _ => notAnErrorInstance)
+    }
+
+    "return SERVER_ERROR for any 4xx error, 404 excluded" in {
+      stubCall(HttpMethod.Get, url, Status.BAD_REQUEST, errorResponsePayload)
+      val response = await(connector.get(nino))
+      verifyHeadersForGet(url)
+      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+    }
+
+    "return SERVER_ERROR for any 5xx error, (500,502,503) excluded" in {
+      stubCall(HttpMethod.Get, url, Status.NOT_IMPLEMENTED, errorResponsePayload)
+      val response = await(connector.get(nino))
+      verifyHeadersForGet(url)
+      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+    }
+
+    "return DOWNSTREAM_DOWN for a 502(BAD_GATEWAY) error" in {
+      stubCall(HttpMethod.Get, url, Status.BAD_GATEWAY, errorResponsePayload)
+      val response = await(connector.get(nino))
+      verifyHeadersForGet(url)
+      response.fold(_.head.baseError shouldBe DOWNSTREAM_BAD_GATEWAY, _ => notAnErrorInstance)
+    }
+
+    "return DOWNSTREAM_UNAVAILABLE for a 503(SERVICE_UNAVAILABLE) error" in {
+      stubCall(HttpMethod.Get, url, Status.SERVICE_UNAVAILABLE, errorResponsePayload)
+      val response = await(connector.get(nino))
+      verifyHeadersForGet(url)
+      response.fold(_.head.baseError shouldBe DOWNSTREAM_UNAVAILABLE, _ => notAnErrorInstance)
+    }
+  }
+
+  "post" should {
+    "return a PeriodsResponse instance when it receives a 201(CREATED) response" in {
+      val nino = validCreatePeriodsRequest.nino
+      val url = PeriodsConnector.path(nino)
+
+      val responsePayload = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Post, url, Status.CREATED, responsePayload)
+
+      val response = await(connector.post(validCreatePeriodsRequest))
+      verifyHeadersForPost(url)
+      assert(response.fold(_ => false, _ => true))
+    }
   }
 }

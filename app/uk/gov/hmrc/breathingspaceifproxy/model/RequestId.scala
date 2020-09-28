@@ -14,26 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.breathingspaceifproxy.model
 
-import scala.concurrent.Future
+import java.util.UUID
 
-import cats.data.ValidatedNec
-import uk.gov.hmrc.breathingspaceifproxy.model.{Error, RequestPeriod, ResponsePeriod}
-
-package object breathingspaceifproxy {
-
-  val unit: Unit = ()
-
-  type RequestPeriods = List[RequestPeriod]
-  type ResponsePeriods = List[ResponsePeriod]
-
-  type Validation[A] = ValidatedNec[Error, A]
-  type ResponseValidation[T] = Future[Validation[T]]
-
-  object Header {
-    lazy val CorrelationId = "Correlation-Id"
-    lazy val RequestType = "Request-Type"
-    lazy val StaffId = "Staff-Id"
-  }
-}
+final case class RequestId(endpointId: EndpointId, correlationId: UUID)

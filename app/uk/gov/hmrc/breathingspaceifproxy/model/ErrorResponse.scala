@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
+import java.util.UUID
+
 import scala.concurrent.Future
 
 import cats.data.NonEmptyChain
+import cats.syntax.option._
 import play.api.Logging
-import play.api.http.{HeaderNames, MimeTypes, Status => HttpStatus}
+import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
@@ -34,32 +37,30 @@ object ErrorResponse extends Logging {
 
   def apply(correlationId: => Option[String], httpErrorCode: Int, errors: Errors): ErrorResponse = {
     val payload = Json.obj("errors" -> errors.toChain.toList)
-    logger.error(correlationId.fold(payload.toString)(corrId => s"(Correlation-id: $corrId) ${payload.toString}"))
     errorResponse(correlationId, httpErrorCode, payload)
   }
 
-  def apply(correlationId: => Option[String], httpErrorCode: Int, error: Error): ErrorResponse = {
+  def apply(correlationId: UUID, errors: Errors): ErrorResponse = {
+    val errorList = errors.toChain.toList
+    val payload = Json.obj("errors" -> errorList)
+    // The HTTP error code is provided by the 1st error item
+    errorResponse(correlationId.toString.some, errorList.head.baseError.httpCode, payload)
+  }
+
+  def apply(correlationId: UUID, error: Error): ErrorResponse = {
     val payload = Json.obj("errors" -> List(error))
-    logger.error(correlationId.fold(payload.toString)(corrId => s"(Correlation-id: $corrId) ${payload.toString}"))
-    errorResponse(correlationId, httpErrorCode, payload)
-  }
-
-  def apply(
-    correlationId: => Option[String],
-    httpErrorCode: Int,
-    reasonToLog: => String,
-    throwable: Throwable
-  ): ErrorResponse = {
-    logger.error(correlationId.fold(reasonToLog)(corrId => s"(Correlation-id: $corrId) $reasonToLog"), throwable)
-    val payload = Json.obj("errors" -> Error.fromThrowable(httpErrorCode, throwable))
-    errorResponse(correlationId, HttpStatus.INTERNAL_SERVER_ERROR, payload)
+    errorResponse(correlationId.toString.some, error.baseError.httpCode, payload)
   }
 
   private def errorResponse(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): ErrorResponse = {
     val headers = List(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
     new ErrorResponse(Future.successful {
       Status(httpErrorCode)(payload)
-        .withHeaders(correlationId.fold(headers)(corrId => headers :+ (Header.CorrelationId -> corrId)): _*)
+        .withHeaders(
+          correlationId.fold(headers) { corrId =>
+            headers :+ (Header.CorrelationId -> corrId)
+          }: _*
+        )
     })
   }
 }

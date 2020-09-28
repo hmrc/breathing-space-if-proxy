@@ -16,52 +16,43 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import java.util.UUID
-
 import scala.concurrent.Future
 
-import cats.syntax.option._
+import cats.syntax.validated._
 import play.api.Logging
-import play.api.http.{HeaderNames, MimeTypes, Status => HttpStatus}
-import play.api.mvc.Result
-import play.api.mvc.Results.Status
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.http._
 
 trait ConnectorHelper extends HttpErrorFunctions with Logging {
 
-  def composeResponse(response: HttpResponse)(implicit requestId: UUID, url: Url): Result = {
-    logResponse(response)
-    Status(response.status)(response.body)
-    // the 'withHeaders' is just a memo. To remove from the connector since it will handled by the controller.
-      .withHeaders(
-        HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-        Header.CorrelationId -> requestId.toString
-      )
-      .as(MimeTypes.JSON)
-  }
+  def handleUpstreamError[T](implicit requestId: RequestId): PartialFunction[Throwable, ResponseValidation[T]] = {
+    case UpstreamErrorResponse.Upstream4xxResponse(response) if response.statusCode == 404 =>
+      logErrorAndGenUpstreamResponse(response, RESOURCE_NOT_FOUND)
 
-  def logException(implicit requestId: UUID, url: Url): PartialFunction[Throwable, Future[Result]] = {
-    case httpException: HttpException =>
-      val reasonToLog = s"HTTP error(${httpException.responseCode}) while calling ${url.value}."
-      ErrorResponse(correlationId, httpException.responseCode, reasonToLog, httpException).value
+    case UpstreamErrorResponse.Upstream4xxResponse(response) =>
+      logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
+
+    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 503 =>
+      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_UNAVAILABLE)
+
+    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 502 =>
+      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_BAD_GATEWAY)
+
+    case UpstreamErrorResponse.Upstream5xxResponse(response) =>
+      logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 
     case throwable: Throwable =>
-      val reasonToLog = s"Exception caught while calling ${url.value}."
-      ErrorResponse(correlationId, HttpStatus.INTERNAL_SERVER_ERROR, reasonToLog, throwable).value
+      logger.error(s"Exception caught for $requestId while sending the request downstream. ${throwable.getMessage}")
+      Future.successful(Error(SERVER_ERROR).invalidNec)
   }
 
-  def logResponse(response: HttpResponse)(implicit requestId: UUID, url: Url): Unit =
-    response.status match {
-      case status if is2xx(status) =>
-        logger.debug(s"Status($status) for request(${requestId.toString}) to ${url.value}")
+  private def logErrorAndGenUpstreamResponse[T](response: UpstreamErrorResponse, baseError: BaseError)(
+    implicit requestId: RequestId
+  ): ResponseValidation[T] = {
 
-      case status =>
-        logger.error(s"ERROR($status) for request(${requestId.toString}) to ${url.value}")
-        logger.debug(s"... with Body: ${response.body}")
-    }
-
-  private def correlationId(implicit requestId: UUID): Option[String] =
-    requestId.toString.some
+    logger.error(s"Error(${response.statusCode}) for $requestId. ${response.message}")
+    Future.successful(Error(baseError).invalidNec)
+  }
 }

@@ -18,7 +18,10 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.util.UUID
 
-import cats.implicits._
+import cats.syntax.apply._
+import cats.syntax.either._
+import cats.syntax.option._
+import cats.syntax.validated._
 import play.api.Logging
 import play.api.http.{HttpVerbs, MimeTypes}
 import play.api.libs.json._
