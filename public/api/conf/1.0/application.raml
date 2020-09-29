@@ -133,6 +133,8 @@ documentation:
             description: |
               The Staff identifier associated with the human attending the operation that generated this request.
 
+              Please note: when the 'Request-Type' header has the value ‘DA2_BS_UNATTENDED’ then this header's value must equal '0000000'
+
               Must be a 7 digit numeric value
             type: string
             required: true
@@ -219,6 +221,8 @@ documentation:
         Staff-Id:
           description: |
             The Staff identifier associated with the human attending the operation that generated this request.
+
+            Please note: when the 'Request-Type' header has the value ‘DA2_BS_UNATTENDED’ then this header's value must equal '0000000'
 
             Must be a 7 digit numeric value
           type: string
