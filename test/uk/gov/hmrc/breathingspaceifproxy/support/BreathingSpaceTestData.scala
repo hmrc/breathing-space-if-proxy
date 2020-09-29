@@ -31,8 +31,8 @@ trait BreathingSpaceTestData {
 
   def appConfig: AppConfig
 
-  val maybeNino = "MZ006526C"
-  val nino = Nino(maybeNino)
+  val validNinoAsString = "MZ006526C"
+  val nino = Nino(validNinoAsString)
   val unknownNino = Nino("MZ005527C")
   val invalidNino = Nino("MG34567")
 
@@ -57,7 +57,7 @@ trait BreathingSpaceTestData {
   )
 
   implicit lazy val headerCarrierForIF = HeaderCarrier(
-    otherHeaders = List(
+    extraHeaders = List(
       CONTENT_TYPE -> MimeTypes.JSON,
       retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
       retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,

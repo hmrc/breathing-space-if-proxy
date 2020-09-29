@@ -43,7 +43,7 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
       when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
-      val response = controller.get(maybeNino)(fakeGetRequest)
+      val response = controller.get(validNinoAsString)(fakeGetRequest)
       status(response) shouldBe OK
     }
 
@@ -52,7 +52,7 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
       when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
-      val response = controller.get(maybeNino)(requestFilteredOutOneHeader(CONTENT_TYPE))
+      val response = controller.get(validNinoAsString)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
     }
 

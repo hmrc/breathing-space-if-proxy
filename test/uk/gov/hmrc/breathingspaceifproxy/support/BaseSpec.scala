@@ -53,7 +53,7 @@ trait BaseSpec
     if (withCorrelationId) correlationIdAsString.some else None
 
   def createPeriodsRequest(periods: RequestPeriods): JsValue =
-    Json.toJson(CreatePeriodsRequest(maybeNino, periods))
+    Json.toJson(CreatePeriodsRequest(validNinoAsString, periods))
 
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)

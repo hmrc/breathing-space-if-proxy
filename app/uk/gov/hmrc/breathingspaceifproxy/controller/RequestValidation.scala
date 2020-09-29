@@ -24,14 +24,15 @@ import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.Logging
 import play.api.http.{HttpVerbs, MimeTypes}
+import play.api.http.HeaderNames._
 import play.api.libs.json._
-import play.api.mvc.{BaseController => PlayController, _}
+import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.domain.{Nino => DomainNino}
 
-trait RequestValidation extends PlayController with Logging {
+trait RequestValidation extends Logging {
 
   def validateNino(maybeNino: String): Validation[Nino] =
     if (DomainNino.isValid(maybeNino)) Nino(maybeNino).validNec
