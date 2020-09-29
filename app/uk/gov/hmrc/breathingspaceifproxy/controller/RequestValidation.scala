@@ -37,14 +37,15 @@ trait RequestValidation extends PlayController with Logging {
     if (DomainNino.isValid(maybeNino)) Nino(maybeNino).validNec
     else Error(INVALID_NINO, s"($maybeNino)".some).invalidNec
 
-  def validateHeaders(implicit request: Request[_]): Validation[UUID] = {
+  def validateHeadersForNPS(implicit request: Request[_]): Validation[UUID] = {
     val headers = request.headers
     (
       validateContentType(request),
       validateCorrelationId(headers),
       validateRequestType(headers),
       validateStaffId(headers)
-    ).mapN((_, correlationId, _, _) => correlationId)
+    ).mapN((_, correlationId, attended, staffId) => (correlationId, attended, staffId))
+      .andThen(validateStaffIdForRequestType)
   }
 
   def validateBody[A, B](f: A => Validation[B])(implicit request: Request[AnyContent], reads: Reads[A]): Validation[B] =
@@ -87,37 +88,43 @@ trait RequestValidation extends PlayController with Logging {
   private lazy val invalidRequestHeader =
     s"(${Header.RequestType}). Valid values are: ${Attended.values.mkString(", ")}".some
 
-  private def validateRequestType(headers: Headers): Validation[Unit] =
+  private def validateRequestType(headers: Headers): Validation[Attended] =
     headers
       .get(Header.RequestType)
-      .fold[Validation[Unit]] {
+      .fold[Validation[Attended]] {
         Error(MISSING_HEADER, s"(${Header.RequestType})".some).invalidNec
       } { requestType =>
         Attended
           .withNameOption(requestType.toUpperCase)
-          .fold[Validation[Unit]] {
+          .fold[Validation[Attended]] {
             Error(INVALID_HEADER, invalidRequestHeader).invalidNec
-          } { _ =>
-            unit.validNec
-          }
+          } { _.validNec }
       }
 
   private val staffIdRegex = "^[0-9]{7}$".r
 
-  private def validateStaffId(headers: Headers): Validation[Unit] =
+  private def validateStaffId(headers: Headers): Validation[String] =
     headers
       .get(Header.StaffId)
-      .fold[Validation[Unit]] {
+      .fold[Validation[String]] {
         Error(MISSING_HEADER, s"(${Header.StaffId})".some).invalidNec
       } { staffId =>
         staffIdRegex
           .findFirstIn(staffId)
-          .fold[Validation[Unit]] {
+          .fold[Validation[String]] {
             Error(INVALID_HEADER, s"(${Header.StaffId}). Expected a 7-digit number but was $staffId".some).invalidNec
-          } { _ =>
-            unit.validNec
-          }
+          } { _.validNec }
       }
+
+  private def validateStaffIdForRequestType(headerValues: (UUID, Attended, String)): Validation[UUID] = {
+    val requestType = headerValues._2
+    val staffId = headerValues._3
+    if (requestType == Attended.DS2_BS_ATTENDED && staffId != unattendedStaffId
+      || requestType == Attended.DS2_BS_UNATTENDED && staffId == unattendedStaffId) {
+      // correlationId as UUID
+      headerValues._1.validNec[Error]
+    } else Error(INVALID_HEADER, s"(${Header.StaffId}). Cannot be '$staffId' for $requestType".some).invalidNec[UUID]
+  }
 
   private def createErrorFromInvalidPayload[B](throwable: Throwable)(implicit request: Request[_]): Validation[B] = {
     val correlationId = retrieveCorrelationId

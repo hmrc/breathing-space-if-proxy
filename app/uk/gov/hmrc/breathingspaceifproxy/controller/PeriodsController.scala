@@ -39,7 +39,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
 
   def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
     (
-      validateHeaders,
+      validateHeadersForNPS,
       validateNino(maybeNino)
     ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Periods_GET, correlationId), nino))
       .fold(
@@ -56,7 +56,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
 
   val post: Action[AnyContent] = Action.async { implicit request =>
     (
-      validateHeaders,
+      validateHeadersForNPS,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
     ).mapN((correlationId, vcpr) => (RequestId(Breathing_Space_Periods_POST, correlationId), vcpr))
       .fold(

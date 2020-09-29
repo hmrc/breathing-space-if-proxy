@@ -21,11 +21,10 @@ import scala.concurrent.Future
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.RequestId
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
@@ -51,11 +50,14 @@ abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
   }
 
   override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
-    val headers = requestFromClient.headers.headers.map(mapHeadersToIF)
-    val request = requestFromClient.withHeaders(Headers(headers: _*))
-    HeaderCarrierConverter.fromHeadersAndSessionAndRequest(request.headers, request = Some(request))
-  }
+    val headers = requestFromClient.headers.headers
+    val extraHeaders = appConfig.headerMapping
+      .map { headerMapping =>
+        val headerValue = headers.filter(headerFromClient => headerFromClient._1 == headerMapping.nameToMap).head._2
+        headerMapping.nameMapped -> headerValue
+      }
+      .filter(header => header._1 != appConfig.staffIdMapped || header._2 != unattendedStaffId)
 
-  private def mapHeadersToIF(header: (String, String)): (String, String) =
-    (appConfig.headerMapping.get(header._1).getOrElse(header._1), header._2)
+    super.hc.withExtraHeaders(extraHeaders: _*)
+  }
 }

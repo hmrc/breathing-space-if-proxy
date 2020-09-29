@@ -23,6 +23,8 @@ import play.api.Configuration
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
+final case class HeaderMapping(nameToMap: String, nameMapped: String)
+
 @Singleton
 class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
 
@@ -37,9 +39,11 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   lazy val v1WhitelistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
 
-  lazy val headerMapping = Map[String, String](
-    Header.CorrelationId -> servicesConfig.getString("mapping.if.correlation-id"),
-    Header.RequestType -> servicesConfig.getString("mapping.if.request-type"),
-    Header.StaffId -> servicesConfig.getString("mapping.if.staff-id")
+  lazy val staffIdMapped = servicesConfig.getString("headers.mapping.staff-id")
+
+  lazy val headerMapping = List[HeaderMapping](
+    HeaderMapping(Header.CorrelationId, servicesConfig.getString("headers.mapping.correlation-id")),
+    HeaderMapping(Header.RequestType, servicesConfig.getString("headers.mapping.request-type")),
+    HeaderMapping(Header.StaffId, staffIdMapped)
   )
 }

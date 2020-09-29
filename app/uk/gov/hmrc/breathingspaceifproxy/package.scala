@@ -25,6 +25,8 @@ package object breathingspaceifproxy {
 
   val unit: Unit = ()
 
+  val unattendedStaffId = "0000000"
+
   type RequestPeriods = List[RequestPeriod]
   type ResponsePeriods = List[ResponsePeriod]
 

@@ -40,7 +40,6 @@ trait BreathingSpaceTestData {
   val correlationIdAsString = correlationId.toString
 
   val attendedStaffId = "1234567"
-  val unattendedStaffId = "0000000"
 
   implicit val genericRequestId = RequestId(EndpointId.Breathing_Space_Periods_POST, correlationId)
 
@@ -96,5 +95,5 @@ trait BreathingSpaceTestData {
      """.stripMargin
 
   def retrieveHeaderMapping(header: String): String =
-    appConfig.headerMapping.getOrElse(header, throw new NoSuchElementException(s"Missing mapping for header($header)"))
+    appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped
 }

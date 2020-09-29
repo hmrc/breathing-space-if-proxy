@@ -24,9 +24,6 @@ sealed abstract class BaseError(val httpCode: Int, val message: String) extends 
 
 object BaseError extends Enum[BaseError] {
 
-  case object DOWNSTREAM_BAD_GATEWAY extends BaseError(BAD_GATEWAY, "A downstream system is currently not responding")
-  case object DOWNSTREAM_UNAVAILABLE
-      extends BaseError(SERVICE_UNAVAILABLE, "A downstream service is currently not available")
   case object MISSING_BODY extends BaseError(BAD_REQUEST, "The request must have a body")
   case object MISSING_HEADER extends BaseError(BAD_REQUEST, "Missing required header")
   case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")

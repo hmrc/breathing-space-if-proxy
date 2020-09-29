@@ -44,7 +44,6 @@ abstract class BaseISpec
     with WireMockSupport {
 
   def configProperties: Map[String, Any] = Map(
-    "internalServiceHostPatterns" -> List("localhost"),
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )
@@ -70,6 +69,13 @@ abstract class BaseISpec
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
       .withHeader(retrieveHeaderMapping(Header.StaffId), equalTo(attendedStaffId))
+    )
+
+  def verifyHeadersForGetUnattended(url: String): Unit =
+    verify(1, getRequestedFor(urlMatching(url))
+      .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
+      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_UNATTENDED.entryName))
+      .withoutHeader(retrieveHeaderMapping(Header.StaffId))
     )
 
   def verifyHeadersForPost(url: String): Unit =

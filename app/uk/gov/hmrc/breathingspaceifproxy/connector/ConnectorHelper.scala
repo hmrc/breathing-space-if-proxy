@@ -34,12 +34,6 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
     case UpstreamErrorResponse.Upstream4xxResponse(response) =>
       logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 
-    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 503 =>
-      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_UNAVAILABLE)
-
-    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 502 =>
-      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_BAD_GATEWAY)
-
     case UpstreamErrorResponse.Upstream5xxResponse(response) =>
       logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 
