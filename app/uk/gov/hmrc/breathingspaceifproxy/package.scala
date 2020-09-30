@@ -25,6 +25,8 @@ package object breathingspaceifproxy {
 
   val unit: Unit = ()
 
+  val unattendedStaffPid = "0000000"
+
   type RequestPeriods = List[RequestPeriod]
   type ResponsePeriods = List[ResponsePeriod]
 
@@ -34,6 +36,6 @@ package object breathingspaceifproxy {
   object Header {
     lazy val CorrelationId = "Correlation-Id"
     lazy val RequestType = "Request-Type"
-    lazy val StaffId = "Staff-Id"
+    lazy val StaffPid = "Pid"
   }
 }

@@ -31,16 +31,15 @@ trait BreathingSpaceTestData {
 
   def appConfig: AppConfig
 
-  val maybeNino = "MZ006526C"
-  val nino = Nino(maybeNino)
+  val validNinoAsString = "MZ006526C"
+  val nino = Nino(validNinoAsString)
   val unknownNino = Nino("MZ005527C")
   val invalidNino = Nino("MG34567")
 
   val correlationId = UUID.randomUUID
   val correlationIdAsString = correlationId.toString
 
-  val attendedStaffId = "1234567"
-  val unattendedStaffId = "0000000"
+  val attendedStaffPid = "1234567"
 
   implicit val genericRequestId = RequestId(EndpointId.Breathing_Space_Periods_POST, correlationId)
 
@@ -48,7 +47,7 @@ trait BreathingSpaceTestData {
     CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationIdAsString,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
-    Header.StaffId -> attendedStaffId
+    Header.StaffPid -> attendedStaffPid
   )
 
   lazy val validDateRangePeriod = RequestPeriod(
@@ -58,11 +57,11 @@ trait BreathingSpaceTestData {
   )
 
   implicit lazy val headerCarrierForIF = HeaderCarrier(
-    otherHeaders = List(
+    extraHeaders = List(
       CONTENT_TYPE -> MimeTypes.JSON,
       retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
       retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,
-      retrieveHeaderMapping(Header.StaffId) -> attendedStaffId
+      retrieveHeaderMapping(Header.StaffPid) -> attendedStaffPid
     )
   )
 
@@ -96,5 +95,5 @@ trait BreathingSpaceTestData {
      """.stripMargin
 
   def retrieveHeaderMapping(header: String): String =
-    appConfig.headerMapping.getOrElse(header, throw new NoSuchElementException(s"Missing mapping for header($header)"))
+    appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped
 }

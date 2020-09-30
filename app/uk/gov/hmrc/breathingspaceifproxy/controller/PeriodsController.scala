@@ -17,6 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, ZonedDateTime}
+import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -24,7 +25,6 @@ import cats.syntax.apply._
 import cats.syntax.foldable._
 import cats.syntax.option._
 import cats.syntax.validated._
-import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -39,7 +39,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
 
   def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
     (
-      validateHeaders,
+      validateHeadersForNPS,
       validateNino(maybeNino)
     ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Periods_GET, correlationId), nino))
       .fold(
@@ -56,7 +56,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
 
   val post: Action[AnyContent] = Action.async { implicit request =>
     (
-      validateHeaders,
+      validateHeadersForNPS,
       validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
     ).mapN((correlationId, vcpr) => (RequestId(Breathing_Space_Periods_POST, correlationId), vcpr))
       .fold(

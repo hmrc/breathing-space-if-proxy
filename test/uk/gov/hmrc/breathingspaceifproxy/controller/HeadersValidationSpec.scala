@@ -35,20 +35,20 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar 
     new PeriodsController(appConfig, Helpers.stubControllerComponents(), inject[PeriodsConnector])
 
   test(s"Response should be 400(BAD_REQUEST) when the $CorrelationId header is missing") {
-    verifyHeaderIsMissing(controller.get(maybeNino)(requestFilteredOutOneHeader(CorrelationId)), CorrelationId)
+    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(CorrelationId)), CorrelationId)
   }
 
   test(s"return 400(BAD_REQUEST) when the $RequestType header is missing") {
-    verifyHeaderIsMissing(controller.get(maybeNino)(requestFilteredOutOneHeader(RequestType)), RequestType)
+    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(RequestType)), RequestType)
   }
 
-  test(s"return 400(BAD_REQUEST) when the $StaffId header is missing") {
-    verifyHeaderIsMissing(controller.get(maybeNino)(requestFilteredOutOneHeader(StaffId)), StaffId)
+  test(s"return 400(BAD_REQUEST) when the $StaffPid header is missing") {
+    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(StaffPid)), StaffPid)
   }
 
   test("return 400(BAD_REQUEST) for a GET when all required headers are missing") {
     Given("a GET request without any of the requested headers")
-    val response = controller.get(maybeNino)(FakeRequest())
+    val response = controller.get(validNinoAsString)(FakeRequest())
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, None, 3)
 

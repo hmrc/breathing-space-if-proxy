@@ -24,10 +24,10 @@ import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.Header.StaffId
+import uk.gov.hmrc.breathingspaceifproxy.Header.StaffPid
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
@@ -43,7 +43,7 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(HttpResponse(OK, "").validNec))
 
-      val response = controller.get(maybeNino)(fakeGetRequest)
+      val response = controller.get(validNinoAsString)(fakeGetRequest)
       status(response) shouldBe OK
     }
 
@@ -52,7 +52,7 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(HttpResponse(OK, "").validNec))
 
-      val response = controller.get(maybeNino)(requestFilteredOutOneHeader(CONTENT_TYPE))
+      val response = controller.get(validNinoAsString)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
     }
 
@@ -68,8 +68,8 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
-      Given(s"a GET request with an invalid Nino and without the $StaffId request header")
-      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(StaffId))
+      Given(s"a GET request with an invalid Nino and without the $StaffPid request header")
+      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(StaffPid))
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 

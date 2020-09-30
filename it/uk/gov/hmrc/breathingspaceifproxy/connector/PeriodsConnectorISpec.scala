@@ -41,24 +41,10 @@ class PeriodsConnectorISpec extends BaseISpec {
     }
 
     "return SERVER_ERROR for any 5xx error, (500,502,503) excluded" in {
-      stubCall(HttpMethod.Get, url, Status.NOT_IMPLEMENTED, errorResponsePayload)
-      val response = await(connector.get(nino))
-      verifyHeadersForGet(url)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
-    }
-
-    "return DOWNSTREAM_DOWN for a 502(BAD_GATEWAY) error" in {
       stubCall(HttpMethod.Get, url, Status.BAD_GATEWAY, errorResponsePayload)
       val response = await(connector.get(nino))
       verifyHeadersForGet(url)
-      response.fold(_.head.baseError shouldBe DOWNSTREAM_BAD_GATEWAY, _ => notAnErrorInstance)
-    }
-
-    "return DOWNSTREAM_UNAVAILABLE for a 503(SERVICE_UNAVAILABLE) error" in {
-      stubCall(HttpMethod.Get, url, Status.SERVICE_UNAVAILABLE, errorResponsePayload)
-      val response = await(connector.get(nino))
-      verifyHeadersForGet(url)
-      response.fold(_.head.baseError shouldBe DOWNSTREAM_UNAVAILABLE, _ => notAnErrorInstance)
+      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
   }
 

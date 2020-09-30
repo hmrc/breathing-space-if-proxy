@@ -36,7 +36,7 @@ class DebtorDetailsController @Inject()(
 
   def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
     (
-      validateHeaders,
+      validateHeadersForNPS,
       validateNino(maybeNino)
     ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Debtor_Details_GET, correlationId), nino))
       .fold(
