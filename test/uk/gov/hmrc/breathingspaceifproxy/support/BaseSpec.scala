@@ -55,6 +55,9 @@ trait BaseSpec
   def createPeriodsRequest(periods: RequestPeriods): JsValue =
     Json.toJson(CreatePeriodsRequest(validNinoAsString, periods))
 
+  val requestWithAllHeaders: FakeRequest[AnyContentAsEmpty.type] =
+    requestFilteredOutOneHeader("", "GET")
+
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)
 

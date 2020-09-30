@@ -42,8 +42,8 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar 
     verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(RequestType)), RequestType)
   }
 
-  test(s"return 400(BAD_REQUEST) when the $StaffId header is missing") {
-    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(StaffId)), StaffId)
+  test(s"return 400(BAD_REQUEST) when the $StaffPid header is missing") {
+    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(StaffPid)), StaffPid)
   }
 
   test("return 400(BAD_REQUEST) for a GET when all required headers are missing") {

@@ -68,20 +68,20 @@ abstract class BaseISpec
     verify(1, getRequestedFor(urlMatching(url))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
-      .withHeader(retrieveHeaderMapping(Header.StaffId), equalTo(attendedStaffId))
+      .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
     )
 
   def verifyHeadersForGetUnattended(url: String): Unit =
     verify(1, getRequestedFor(urlMatching(url))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_UNATTENDED.entryName))
-      .withoutHeader(retrieveHeaderMapping(Header.StaffId))
+      .withoutHeader(retrieveHeaderMapping(Header.StaffPid))
     )
 
   def verifyHeadersForPost(url: String): Unit =
     verify(1, postRequestedFor(urlMatching(url))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
-      .withHeader(retrieveHeaderMapping(Header.StaffId), equalTo(attendedStaffId))
+      .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
     )
 }

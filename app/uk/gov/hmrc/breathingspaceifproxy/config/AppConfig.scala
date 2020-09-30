@@ -39,11 +39,11 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   lazy val v1WhitelistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
 
-  lazy val staffIdMapped = servicesConfig.getString("headers.mapping.staff-id")
+  lazy val staffPidMapped = servicesConfig.getString("headers.mapping.staff-pid")
 
   lazy val headerMapping = List[HeaderMapping](
     HeaderMapping(Header.CorrelationId, servicesConfig.getString("headers.mapping.correlation-id")),
     HeaderMapping(Header.RequestType, servicesConfig.getString("headers.mapping.request-type")),
-    HeaderMapping(Header.StaffId, staffIdMapped)
+    HeaderMapping(Header.StaffPid, staffPidMapped)
   )
 }

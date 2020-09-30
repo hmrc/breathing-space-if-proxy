@@ -68,8 +68,8 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
-      Given(s"a GET request with an invalid Nino and without the ${Header.StaffId} request header")
-      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(Header.StaffId))
+      Given(s"a GET request with an invalid Nino and without the ${Header.StaffPid} request header")
+      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(Header.StaffPid))
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 

@@ -56,7 +56,7 @@ abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
         val headerValue = headers.filter(headerFromClient => headerFromClient._1 == headerMapping.nameToMap).head._2
         headerMapping.nameMapped -> headerValue
       }
-      .filter(header => header._1 != appConfig.staffIdMapped || header._2 != unattendedStaffId)
+      .filter(header => header._1 != appConfig.staffPidMapped || header._2 != unattendedStaffPid)
 
     super.hc.withExtraHeaders(extraHeaders: _*)
   }

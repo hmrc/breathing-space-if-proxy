@@ -39,7 +39,7 @@ trait BreathingSpaceTestData {
   val correlationId = UUID.randomUUID
   val correlationIdAsString = correlationId.toString
 
-  val attendedStaffId = "1234567"
+  val attendedStaffPid = "1234567"
 
   implicit val genericRequestId = RequestId(EndpointId.Breathing_Space_Periods_POST, correlationId)
 
@@ -47,7 +47,7 @@ trait BreathingSpaceTestData {
     CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationIdAsString,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
-    Header.StaffId -> attendedStaffId
+    Header.StaffPid -> attendedStaffPid
   )
 
   lazy val validDateRangePeriod = RequestPeriod(
@@ -61,7 +61,7 @@ trait BreathingSpaceTestData {
       CONTENT_TYPE -> MimeTypes.JSON,
       retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
       retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,
-      retrieveHeaderMapping(Header.StaffId) -> attendedStaffId
+      retrieveHeaderMapping(Header.StaffPid) -> attendedStaffPid
     )
   )
 

@@ -17,6 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, ZonedDateTime}
+import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -24,7 +25,6 @@ import cats.syntax.apply._
 import cats.syntax.foldable._
 import cats.syntax.option._
 import cats.syntax.validated._
-import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig

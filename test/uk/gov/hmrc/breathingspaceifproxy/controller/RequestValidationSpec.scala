@@ -17,8 +17,8 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.syntax.validated._
-import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.Assertion
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
@@ -105,7 +105,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "assert a RequestType value of UNATTENDED is valid" in {
       val mockRequest = fakeGetRequest.withHeaders(
         (Header.RequestType, Attended.DS2_BS_UNATTENDED.toString),
-        (Header.StaffId, unattendedStaffId)
+        (Header.StaffPid, unattendedStaffPid)
       )
 
       assert(validator.validateHeadersForNPS(mockRequest).isValid)
@@ -149,60 +149,60 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     }
   }
 
-  "RequestValidation.validateStaffId" should {
-    "capture missing StaffId header" in {
-      val mockRequest = requestFilteredOutOneHeader(Header.StaffId)
+  "RequestValidation.validateStaffPid" should {
+    "capture missing StaffPid header" in {
+      val mockRequest = requestFilteredOutOneHeader(Header.StaffPid)
 
       val result = validator.validateHeadersForNPS(mockRequest)
 
-      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, Header.StaffId)
+      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, Header.StaffPid)
     }
 
-    "capture empty value for the StaffId header" in {
-      val mockRequest = fakeGetRequest.withHeaders((Header.StaffId, ""))
+    "capture empty value for the StaffPid header" in {
+      val mockRequest = fakeGetRequest.withHeaders((Header.StaffPid, ""))
 
       val result = validator.validateHeadersForNPS(mockRequest)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffId)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
 
-    "capture invalid value for the StaffId header" in {
-      val mockRequest = fakeGetRequest.withHeaders((Header.StaffId, "334534534534"))
+    "capture invalid value for the StaffPid header" in {
+      val mockRequest = fakeGetRequest.withHeaders((Header.StaffPid, "334534534534"))
 
       val result = validator.validateHeadersForNPS(mockRequest)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffId)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
   }
 
-  "RequestValidation.validateStaffIdForRequestType" should {
-    "capture invalid value for the StaffId header when RequestType value is ATTENDED" in {
-      val mockRequest = fakeGetRequest.withHeaders((Header.StaffId, unattendedStaffId))
+  "RequestValidation.validateStaffPidForRequestType" should {
+    "capture invalid value for the StaffPid header when RequestType value is ATTENDED" in {
+      val mockRequest = fakeGetRequest.withHeaders((Header.StaffPid, unattendedStaffPid))
 
       val result = validator.validateHeadersForNPS(mockRequest)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffId)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
 
-    "capture invalid value for the StaffId header when RequestType value is UNATTENDED" in {
+    "capture invalid value for the StaffPid header when RequestType value is UNATTENDED" in {
       val mockRequest = fakeGetRequest.withHeaders(
         (Header.RequestType, Attended.DS2_BS_UNATTENDED.toString),
-        (Header.StaffId, attendedStaffId)
+        (Header.StaffPid, attendedStaffPid)
       )
 
       val result = validator.validateHeadersForNPS(mockRequest)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffId)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
 
-    "assert a StaffId value is valid when RequestType value is ATTENDED" in {
+    "assert a StaffPid value is valid when RequestType value is ATTENDED" in {
       assert(validator.validateHeadersForNPS(fakeGetRequest).isValid)
     }
 
-    "assert a StaffId value is valid when RequestType value is UNATTENDED" in {
+    "assert a StaffPid value is valid when RequestType value is UNATTENDED" in {
       val mockRequest = fakeGetRequest.withHeaders(
         (Header.RequestType, Attended.DS2_BS_UNATTENDED.toString),
-        (Header.StaffId, unattendedStaffId)
+        (Header.StaffPid, unattendedStaffPid)
       )
 
       assert(validator.validateHeadersForNPS(mockRequest).isValid)
@@ -210,7 +210,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
   }
 
   "RequestValidation.validateBody" should {
-    val mockValidator = (cpr: CreatePeriodsRequest) => ValidatedCreatePeriodsRequest(nino, List.empty).validNec
+    val mockValidator = (_: CreatePeriodsRequest) => ValidatedCreatePeriodsRequest(nino, List.empty).validNec
 
     "capture missing request body" in {
       val result = validator.validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](mockValidator(_))(
@@ -257,16 +257,6 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     expectedError: BaseError,
     missingHeaderName: Option[String] = None
   ): Option[Assertion] = {
-    /* When back to original way as the error msg the unit test prints out when this fails is
-       confusing and very verbose!
-
-      assert( validated.fold(errors => {
-      assert(errors.length == 1)
-      errors.head.baseError shouldBe expectedError
-      assert(errors.head.details.isDefined)
-      errors.head.details.get.contains(missingHeaderName)
-    }, _ => false))*/
-
     assert(validated.isInvalid)
 
     val errors = validated.toEither.left.get
