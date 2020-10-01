@@ -185,16 +185,6 @@ documentation:
                     value:
                       code: RESOURCE_NOT_FOUND
 
-          502:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  resourceNotFound:
-                    description: Dependent systems are currently not responding
-                    value:
-                      code: BAD_GATEWAY
-
   /periods:
     post:
       displayName: Create new Breathing Space periods
