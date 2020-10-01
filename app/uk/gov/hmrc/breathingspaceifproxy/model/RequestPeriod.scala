@@ -29,12 +29,16 @@ object RequestPeriod {
 
   lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
 
+  val StartDateKey = "startDate"
+  val EndDateKey = "endDate"
+  val PegaRequestTimestampKey = "pegaRequestTimestamp"
+
   implicit val writes = new Writes[RequestPeriod] {
     def writes(period: RequestPeriod): JsObject =
       Json.obj(
-        "startDate" -> period.startDate,
-        "endDate" -> period.endDate,
-        "pegaRequestTimestamp" -> period.pegaRequestTimestamp.format(formatter)
+        StartDateKey -> period.startDate,
+        EndDateKey -> period.endDate,
+        PegaRequestTimestampKey -> period.pegaRequestTimestamp.format(formatter)
       )
   }
 }
