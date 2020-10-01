@@ -17,12 +17,13 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.syntax.validated._
-import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.Json
+import play.api.libs.json._
+import play.api.mvc.{AnyContent, AnyContentAsText}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.RequestPeriod._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class RequestValidationSpec extends AnyWordSpec with BaseSpec {
@@ -231,6 +232,17 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
 
       assertOnlyExpectedErrorPresent(result, INVALID_JSON)
     }
+
+    "capture request body that is not of content type Json" in {
+      val mockRequest = fakeGetRequest.withBody[AnyContent](AnyContentAsText(""))
+
+      val result = validator.validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](mockValidator(_))(
+        mockRequest,
+        CreatePeriodsRequest.format
+      )
+
+      assertOnlyExpectedErrorPresent(result, INVALID_JSON)
+    }
   }
 
   "RequestValidation.retrieveCorrelationId" should {
@@ -245,27 +257,86 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     }
   }
 
-  private def assertOnlyExpectedErrorPresent[A](
-    validated: Validation[A],
-    expectedError: BaseError,
-    missingHeaderName: String
-  ): Option[Assertion] =
-    assertOnlyExpectedErrorPresent(validated, expectedError, Some(missingHeaderName))
+  "RequestValidation.constructErrorsFromJsResultException" should {
+    "create a Validation for a JsResultException that contains a single date field error" in {
+      val errorPath = s"""/periods(0)/$StartDateKey"""
+      val mockJsException = JsResultException(
+        Seq(
+          (JsPath(List(KeyPathNode(errorPath))), Seq(JsonValidationError(Seq(""))))
+        )
+      )
+
+      val result = validator.constructErrorsFromJsResultException[Unit](mockJsException)
+
+      assertOnlyExpectedErrorPresent(result, INVALID_DATE, errorPath)
+    }
+
+    "create a Validation for a JsResultException that contains multiple date field errors" in {
+      val errorPath1 = s"""/periods(0)/$StartDateKey"""
+      val errorPath2 = s"""/periods(1)/$EndDateKey"""
+      val errorPath3 = s"""/periods(3)/$PegaRequestTimestampKey"""
+      val mockJsException = JsResultException(
+        Seq(
+          (JsPath(List(KeyPathNode(errorPath1))), Seq(JsonValidationError(Seq("")))),
+          (JsPath(List(KeyPathNode(errorPath2))), Seq(JsonValidationError(Seq("")))),
+          (JsPath(List(KeyPathNode(errorPath3))), Seq(JsonValidationError(Seq(""))))
+        )
+      )
+
+      val result = validator.constructErrorsFromJsResultException[Unit](mockJsException)
+
+      assertAllErrorsAreAsExpected(result, INVALID_DATE, 3)
+    }
+
+    "create a Validation for a JsResultException that contains a different type of error other than a date field error" in {
+      val errorPath = """/periods(0)/SomeOtherField"""
+      val mockJsException = JsResultException(
+        Seq(
+          (JsPath(List(KeyPathNode(errorPath))), Seq(JsonValidationError(Seq(""))))
+        )
+      )
+
+      val result = validator.constructErrorsFromJsResultException[Unit](mockJsException)
+
+      assertOnlyExpectedErrorPresent(result, INVALID_JSON)
+    }
+  }
 
   private def assertOnlyExpectedErrorPresent[A](
     validated: Validation[A],
     expectedError: BaseError,
-    missingHeaderName: Option[String] = None
-  ): Option[Assertion] = {
+    errorMsgContains: String
+  ): Error =
+    assertOnlyExpectedErrorPresent(validated, expectedError, Some(errorMsgContains))
+
+  private def assertOnlyExpectedErrorPresent[A](
+    validated: Validation[A],
+    expectedError: BaseError,
+    errorMsgContains: Option[String] = None
+  ): Error = {
     assert(validated.isInvalid)
 
     val errors = validated.toEither.left.get
     assert(errors.length == 1)
     errors.head.baseError shouldBe expectedError
 
-    missingHeaderName.map { headerName =>
+    errorMsgContains.map { headerName =>
       assert(errors.head.details.isDefined)
       assert(errors.head.details.get.contains(headerName))
     }
+
+    errors.head
+  }
+
+  private def assertAllErrorsAreAsExpected[A](
+    validated: Validation[A],
+    expectedError: BaseError,
+    errorCount: Int
+  ) = {
+    assert(validated.isInvalid)
+
+    val errors = validated.toEither.left.get
+    assert(errors.length == errorCount)
+    assert(errors.filter(_.baseError == expectedError).length == errors.length)
   }
 }

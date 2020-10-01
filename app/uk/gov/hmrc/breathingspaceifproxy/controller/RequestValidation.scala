@@ -18,10 +18,11 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.util.UUID
 
-import cats.syntax.apply._
-import cats.syntax.either._
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.data.NonEmptyChain
+
+//import cats.data.Validated.Invalid
+//import cats.data.ValidatedNec
+import cats.implicits._
 import play.api.Logging
 import play.api.http.{HttpVerbs, MimeTypes}
 import play.api.http.HeaderNames._
@@ -30,6 +31,7 @@ import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.RequestPeriod._
 import uk.gov.hmrc.domain.{Nino => DomainNino}
 
 trait RequestValidation extends Logging {
@@ -128,12 +130,41 @@ trait RequestValidation extends Logging {
   }
 
   private def createErrorFromInvalidPayload[B](throwable: Throwable)(implicit request: Request[_]): Validation[B] = {
-    val correlationId = retrieveCorrelationId
+    val correlationIdAsString = retrieveCorrelationId.fold("")(_)
+
     val reason = s"Exception raised while validating the request's body: ${request.body}"
-    logger.error(s"(Correlation-id: ${correlationId.fold("")(_)}) $reason", throwable)
-    Error(INVALID_JSON).invalidNec
+    logger.error(s"(Correlation-id: $correlationIdAsString) $reason", throwable)
+
+    throwable match {
+      case jsError: JsResultException =>
+        constructErrorsFromJsResultException(jsError)
+
+      case _ =>
+        Error(INVALID_JSON).invalidNec
+    }
   }
 
   def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
     request.headers.get(Header.CorrelationId)
+
+  def constructErrorsFromJsResultException[B](jsError: JsResultException): Validation[B] = {
+    val errors = jsError.errors
+      .map {
+        case (jsPath, errors) =>
+          val path = jsPath.toString()
+
+          if (requestDateFields.exists(path.contains(_))) {
+            Some(Error(INVALID_DATE, Some(s"Found at $path")))
+          } else {
+            None
+          }
+      }
+      .filter(_.isDefined)
+      .map(_.get)
+
+    val optionNecErrors = NonEmptyChain.fromSeq(errors)
+    Error(INVALID_JSON).invalidNec.leftMap(invalidJsonError => optionNecErrors.getOrElse(invalidJsonError))
+  }
+
+  private val requestDateFields = List(StartDateKey, EndDateKey, PegaRequestTimestampKey)
 }
