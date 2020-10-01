@@ -12,7 +12,6 @@ class PeriodsConnectorISpec extends BaseISpec {
 
   lazy val url = PeriodsConnector.path(nino)
 
-  lazy val errorResponsePayload = """{"failures":[{"code":"AN_ERROR","message":"An error message"}]}"""
   lazy val notAnErrorInstance = assert(false, "Not even an Error instance?")
 
   "get" should {
@@ -27,21 +26,21 @@ class PeriodsConnectorISpec extends BaseISpec {
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
       val url = PeriodsConnector.path(unknownNino)
 
-      stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayload)
+      stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
       val response = await(connector.get(unknownNino))
       verifyHeadersForGet(url)
       response.fold(_.head.baseError shouldBe RESOURCE_NOT_FOUND, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 excluded" in {
-      stubCall(HttpMethod.Get, url, Status.BAD_REQUEST, errorResponsePayload)
+      stubCall(HttpMethod.Get, url, Status.BAD_REQUEST, errorResponsePayloadFromIF)
       val response = await(connector.get(nino))
       verifyHeadersForGet(url)
       response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 5xx error, (500,502,503) excluded" in {
-      stubCall(HttpMethod.Get, url, Status.BAD_GATEWAY, errorResponsePayload)
+      stubCall(HttpMethod.Get, url, Status.BAD_GATEWAY, errorResponsePayloadFromIF)
       val response = await(connector.get(nino))
       verifyHeadersForGet(url)
       response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)

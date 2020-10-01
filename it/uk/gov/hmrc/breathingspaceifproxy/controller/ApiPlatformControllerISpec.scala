@@ -17,15 +17,15 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import play.api.http.Status
+import play.api.libs.ws.WSClient
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 
 class ApiPlatformControllerISpec extends BaseISpec {
 
-  override def configProperties: Map[String, Any] = super.configProperties ++ Map(
-    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
-    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321"
-  )
+  lazy val wsClient: WSClient = inject[WSClient]
+
+  val testServerAddress = s"http://localhost:$port"
 
   s"GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {

@@ -29,6 +29,7 @@ object BaseError extends Enum[BaseError] {
   case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")
   case object INVALID_DATE extends BaseError(BAD_REQUEST, "Invalid date value")
   case object INVALID_DATE_RANGE extends BaseError(BAD_REQUEST, "End-date before start-date")
+  case object INVALID_TIMESTAMP extends BaseError(BAD_REQUEST, "Timestamp is too old for Period")
   case object INVALID_JSON extends BaseError(BAD_REQUEST, "Payload not in the expected Json format")
   case object INVALID_NINO extends BaseError(BAD_REQUEST, "Invalid Nino")
 
