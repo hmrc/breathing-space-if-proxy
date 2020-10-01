@@ -298,14 +298,3 @@ documentation:
                   description: Resource specified by the supplied NINO was not found
                   value:
                     code: RESOURCE_NOT_FOUND
-
-        415:
-          body:
-            application/json:
-              type: types.errorResponse
-              examples:
-                unupportedMediaType:
-                  description: Content-type header was not equal to 'application/json'
-                  value:
-                    code: UNSUPPORT_MEDIA_TYPE
-
