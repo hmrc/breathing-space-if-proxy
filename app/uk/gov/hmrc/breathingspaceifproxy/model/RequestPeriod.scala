@@ -27,7 +27,7 @@ object RequestPeriod {
 
   implicit val reads = Json.reads[RequestPeriod]
 
-  lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
+  lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
 
   val StartDateKey = "startDate"
   val EndDateKey = "endDate"
