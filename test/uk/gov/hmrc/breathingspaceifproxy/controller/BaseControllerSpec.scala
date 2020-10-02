@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import scala.concurrent.Future
+import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-import cats.data.ValidatedNec
-import uk.gov.hmrc.breathingspaceifproxy.model.{Error, RequestPeriod, ResponsePeriod}
+class BaseControllerSpec extends AnyWordSpec with BaseSpec {
 
-package object breathingspaceifproxy {
+  "retrieveCorrelationId" should {
+    "return None for missing CorrelationId header" in {
+      val mockRequest = requestFilteredOutOneHeader(Header.CorrelationId)
 
-  val unit: Unit = ()
+      assert(retrieveCorrelationId(mockRequest).isEmpty)
+    }
 
-  val unattendedStaffPid = "0000000"
-
-  type RequestPeriods = List[RequestPeriod]
-  type ResponsePeriods = List[ResponsePeriod]
-
-  type Validation[T] = ValidatedNec[Error, T]
-  type ResponseValidation[T] = Future[Validation[T]]
-
-  object Header {
-    lazy val CorrelationId = "Correlation-Id"
-    lazy val RequestType = "Request-Type"
-    lazy val StaffPid = "Pid"
+    "return Some value for passed CorrelationId header" in {
+      assert(retrieveCorrelationId(fakeGetRequest).isDefined)
+    }
   }
 }

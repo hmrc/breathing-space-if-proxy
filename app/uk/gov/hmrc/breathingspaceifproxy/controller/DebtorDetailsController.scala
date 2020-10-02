@@ -32,7 +32,7 @@ class DebtorDetailsController @Inject()(
   appConfig: AppConfig,
   cc: ControllerComponents,
   debtorDetailsConnector: DebtorDetailsConnector
-) extends BaseController(appConfig, cc) {
+) extends AbstractBaseController(appConfig, cc) {
 
   def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
     (

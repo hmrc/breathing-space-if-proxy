@@ -35,7 +35,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId._
 
 @Singleton()
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
-    extends BaseController(appConfig, cc) {
+    extends AbstractBaseController(appConfig, cc) {
 
   def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
     (

@@ -245,18 +245,6 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     }
   }
 
-  "RequestValidation.retrieveCorrelationId" should {
-    "return None for missing CorrelationId header" in {
-      val mockRequest = requestFilteredOutOneHeader(Header.CorrelationId)
-
-      assert(validator.retrieveCorrelationId(mockRequest).isEmpty)
-    }
-
-    "return Some value for passed CorrelationId header" in {
-      assert(validator.retrieveCorrelationId(fakeGetRequest).isDefined)
-    }
-  }
-
   "RequestValidation.constructErrorsFromJsResultException" should {
     "create a Validation for a JsResultException that contains a single date field error" in {
       val errorPath = s"""/periods(0)/$StartDateKey"""
