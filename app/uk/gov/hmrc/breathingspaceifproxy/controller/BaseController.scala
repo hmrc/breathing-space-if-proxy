@@ -51,17 +51,12 @@ abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
 
   override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
     val headers = requestFromClient.headers.headers
-    logger.error(headers.toString())
-    logger.error(appConfig.headerMapping.toString())
-
+    // Presence of the headers in "headerMapping" was already validated in RequestValidation
     val extraHeaders = appConfig.headerMapping
       .map { headerMapping =>
-        val headerValue = headers.filter(headerFromClient => {
-          logger.error(headerFromClient._1)
-          logger.error(headerMapping.nameToMap)
-          logger.error((headerFromClient._1 == headerMapping.nameToMap).toString)
-          headerFromClient._1 == headerMapping.nameToMap
-        }).head._2
+        val headerValue = headers
+          .filter(headerFromClient => headerFromClient._1.toLowerCase == headerMapping.nameToMap.toLowerCase).head._2
+
         headerMapping.nameMapped -> headerValue
       }
       .filter(header => header._1 != appConfig.staffPidMapped || header._2 != unattendedStaffPid)
