@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
+import java.time.{LocalDate, ZonedDateTime}
+
 import scala.concurrent.Future
 
 import cats.syntax.option._
@@ -85,7 +87,7 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
 
   "post" should {
 
-    "return 200(OK) when all required headers are present and the body is valid Json" in {
+    "return 201(CREATED) when all required headers are present and the body is valid Json" in {
       when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
@@ -96,11 +98,41 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
       status(response) shouldBe CREATED
     }
 
+    "return 201(CREATED) when for a period the endDate is not present" in {
+      when(mockConnector.post(any[ValidatedCreatePeriodsRequest])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(validPeriodsResponse.validNec))
+
+      Given("a Period where the endDate is missing")
+      val cpr = createPeriodsRequest(List(RequestPeriod(LocalDate.now, None, ZonedDateTime.now)))
+
+      And("a request with all required headers and the Period as a valid Json body")
+      val request = requestWithAllHeaders(POST).withJsonBody(cpr)
+
+      val response = controller.post()(request)
+      status(response) shouldBe CREATED
+    }
+
+    "return 400(BAD_REQUEST) when startDate is not a valid date" in {
+      val cpr = createPeriodRequestAsJson(
+        validNinoAsString,
+        "2020-04-31",
+        "2020-06-30",
+        ZonedDateTime.now.toString
+      )
+
+      val response = controller.post()(requestWithAllHeaders(POST).withJsonBody(cpr))
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_DATE")
+      errorList.head.code shouldBe INVALID_DATE.entryName
+      assert(errorList.head.message.startsWith(INVALID_DATE.message))
+    }
+
     "return 400(BAD_REQUEST) when, for any of the periods provided, endDate is temporally before startDate" in {
       val periods = List(invalidDateRangePeriod, invalidDateRangePeriod)
       val request = requestWithAllHeaders(POST).withJsonBody(createPeriodsRequest(periods))
 
-      val controller = new PeriodsController(appConfig, Helpers.stubControllerComponents(), mockConnector)
       val response = controller.post()(request)
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
@@ -108,6 +140,22 @@ class PeriodsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar 
       And(s"the error code should be $INVALID_DATE_RANGE")
       errorList.head.code shouldBe INVALID_DATE_RANGE.entryName
       assert(errorList.head.message.startsWith(INVALID_DATE_RANGE.message))
+    }
+
+    "return 400(BAD_REQUEST) if the timestamp is not less than nn secs before the request's processing time" in {
+      val cpr = createPeriodRequestAsJson(
+        validNinoAsString,
+        "2020-04-30",
+        "2020-06-30",
+        ZonedDateTime.now.minusSeconds(controller.timestampLimit).toString
+      )
+      val response = controller.post()(requestWithAllHeaders(POST).withJsonBody(cpr))
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_TIMESTAMP")
+      errorList.head.code shouldBe INVALID_TIMESTAMP.entryName
+      assert(errorList.head.message.startsWith(INVALID_TIMESTAMP.message))
     }
   }
 }

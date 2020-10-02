@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import java.time.{LocalDate, ZonedDateTime}
+import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -101,15 +101,12 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     if (date.getYear >= BreathingSpaceProgramStartingYear) date.validNec
     else Error(INVALID_DATE, s". Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear".some).invalidNec
 
-  // private val seconds = 60
+  val timestampLimit = 60
 
   private def validateDateTime(requestDateTime: ZonedDateTime): Validation[Unit] =
-    unit.validNec
-  /* COMMENTED WHILE WAITING FOR A CONFIRMATION FROM THE STAKEHOLDERS. TO REMOVE IF NOT CONFIRMED.
-    if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(seconds))) {
-      Error(INVALID_DATE, s". Request timestamp is too old (more than $seconds seconds)".some).invalidNec
+    if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(timestampLimit))) {
+      Error(INVALID_TIMESTAMP, s". Request timestamp is too old (more than $timestampLimit seconds)".some).invalidNec
     } else unit.validNec
-   */
 
   private def validateDateRange(startDate: LocalDate, endDate: LocalDate): Validation[Unit] =
     if (endDate.isBefore(startDate)) {

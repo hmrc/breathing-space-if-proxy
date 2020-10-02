@@ -22,12 +22,15 @@ import java.util.UUID
 import cats.syntax.option._
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import play.api.libs.json._
+import play.api.mvc.AnyContentAsEmpty
+import play.api.test.FakeRequest
+import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.HeaderCarrier
 
-trait BreathingSpaceTestData {
+trait BreathingSpaceTestSupport {
 
   def appConfig: AppConfig
 
@@ -41,6 +44,8 @@ trait BreathingSpaceTestData {
 
   val attendedStaffPid = "1234567"
 
+  val errorResponsePayloadFromIF = """{"failures":[{"code":"AN_ERROR","message":"An error message"}]}"""
+
   implicit val genericRequestId = RequestId(EndpointId.Breathing_Space_Periods_POST, correlationId)
 
   lazy val requestHeaders = List(
@@ -48,6 +53,13 @@ trait BreathingSpaceTestData {
     Header.CorrelationId -> correlationIdAsString,
     Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
     Header.StaffPid -> attendedStaffPid
+  )
+
+  lazy val requestHeadersForUnattended = List(
+    CONTENT_TYPE -> MimeTypes.JSON,
+    Header.CorrelationId -> correlationIdAsString,
+    Header.RequestType -> Attended.DS2_BS_UNATTENDED.toString,
+    Header.StaffPid -> unattendedStaffPid
   )
 
   lazy val validDateRangePeriod = RequestPeriod(
@@ -85,6 +97,31 @@ trait BreathingSpaceTestData {
       )
     )
 
+  lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
+
+  def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
+    if (withCorrelationId) correlationIdAsString.some else None
+
+  def createPeriodsRequest(periods: RequestPeriods): JsValue =
+    Json.toJson(CreatePeriodsRequest(validNinoAsString, periods))
+
+  def createPeriodsRequest(nino: Nino, periods: RequestPeriods): JsValue =
+    Json.toJson(CreatePeriodsRequest(nino.value, periods))
+
+  val requestWithAllHeaders: FakeRequest[AnyContentAsEmpty.type] =
+    requestFilteredOutOneHeader("", "GET")
+
+  def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+    requestFilteredOutOneHeader("", method)
+
+  def requestFilteredOutOneHeader(
+    headerToFilterOut: String,
+    method: String = "GET"
+  ): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(method, "/").withHeaders(
+      requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
+    )
+
   def debtorDetails(nino: Nino): String =
     s"""
        |{"nino" : "${nino.value}",
@@ -96,4 +133,9 @@ trait BreathingSpaceTestData {
 
   def retrieveHeaderMapping(header: String): String =
     appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped
+
+  def createPeriodRequestAsJson(nino: String, startDate: String, endDate: String, timestamp: String): JsValue =
+    Json.parse(
+      s"""{"nino":"$nino","periods":[{"startDate":"$startDate","endDate":"$endDate","pegaRequestTimestamp":"$timestamp"}]}"""
+    )
 }

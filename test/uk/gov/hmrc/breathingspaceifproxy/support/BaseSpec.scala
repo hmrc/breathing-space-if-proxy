@@ -26,14 +26,13 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
-import play.api.mvc.{AnyContentAsEmpty, Result}
-import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
-import uk.gov.hmrc.breathingspaceifproxy.{Header, RequestPeriods}
+import play.api.mvc.Result
+import play.api.test.{DefaultAwaitTimeout, Injecting}
+import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.CreatePeriodsRequest
 
 trait BaseSpec
-    extends BreathingSpaceTestData
+    extends BreathingSpaceTestSupport
     with DefaultAwaitTimeout
     with GivenWhenThen
     with GuiceOneAppPerSuite
@@ -46,28 +45,6 @@ trait BaseSpec
   implicit lazy val materializer: Materializer = inject[Materializer]
 
   override implicit val appConfig: AppConfig = inject[AppConfig]
-
-  lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
-
-  def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
-    if (withCorrelationId) correlationIdAsString.some else None
-
-  def createPeriodsRequest(periods: RequestPeriods): JsValue =
-    Json.toJson(CreatePeriodsRequest(validNinoAsString, periods))
-
-  val requestWithAllHeaders: FakeRequest[AnyContentAsEmpty.type] =
-    requestFilteredOutOneHeader("", "GET")
-
-  def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
-    requestFilteredOutOneHeader("", method)
-
-  def requestFilteredOutOneHeader(
-    headerToFilterOut: String,
-    method: String = "GET"
-  ): FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest(method, "/").withHeaders(
-      requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
-    )
 
   def verifyErrorResult(
     future: Future[Result],
