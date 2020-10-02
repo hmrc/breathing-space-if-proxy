@@ -59,7 +59,7 @@ abstract class BaseController(appConfig: AppConfig, cc: ControllerComponents)
         val headerValue = headers.filter(headerFromClient => {
           logger.error(headerFromClient._1)
           logger.error(headerMapping.nameToMap)
-          logger.error(headerFromClient._1 == headerMapping.nameToMap)
+          logger.error((headerFromClient._1 == headerMapping.nameToMap).toString)
           headerFromClient._1 == headerMapping.nameToMap
         }).head._2
         headerMapping.nameMapped -> headerValue
