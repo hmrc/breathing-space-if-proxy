@@ -31,7 +31,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.RequestPeriod._
 import uk.gov.hmrc.domain.{Nino => DomainNino}
 
-trait RequestValidation extends Logging {
+trait RequestValidation extends BaseController with Logging {
 
   def validateNino(maybeNino: String): Validation[Nino] =
     if (DomainNino.isValid(maybeNino)) Nino(maybeNino).validNec
@@ -140,9 +140,6 @@ trait RequestValidation extends Logging {
         Error(INVALID_JSON).invalidNec
     }
   }
-
-  def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
-    request.headers.get(Header.CorrelationId)
 
   def constructErrorsFromJsResultException[B](jsError: JsResultException): Validation[B] = {
     val errors = jsError.errors

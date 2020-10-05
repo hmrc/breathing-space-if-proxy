@@ -37,22 +37,22 @@ object ErrorResponse extends Logging {
 
   def apply(correlationId: => Option[String], httpErrorCode: Int, errors: Errors): ErrorResponse = {
     val payload = Json.obj("errors" -> errors.toChain.toList)
-    errorResponse(correlationId, httpErrorCode, payload)
+    apply(correlationId, httpErrorCode, payload)
   }
 
   def apply(correlationId: UUID, errors: Errors): ErrorResponse = {
     val errorList = errors.toChain.toList
     val payload = Json.obj("errors" -> errorList)
     // The HTTP error code is provided by the 1st error item
-    errorResponse(correlationId.toString.some, errorList.head.baseError.httpCode, payload)
+    apply(correlationId.toString.some, errorList.head.baseError.httpCode, payload)
   }
 
   def apply(correlationId: UUID, error: Error): ErrorResponse = {
     val payload = Json.obj("errors" -> List(error))
-    errorResponse(correlationId.toString.some, error.baseError.httpCode, payload)
+    apply(correlationId.toString.some, error.baseError.httpCode, payload)
   }
 
-  private def errorResponse(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): ErrorResponse = {
+  def apply(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): ErrorResponse = {
     val headers = List(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
     new ErrorResponse(Future.successful {
       Status(httpErrorCode)(payload)

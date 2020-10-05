@@ -30,9 +30,11 @@ import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.controller.BaseController
 
 trait BaseSpec
-    extends BreathingSpaceTestSupport
+    extends BaseController
+    with BreathingSpaceTestSupport
     with DefaultAwaitTimeout
     with GivenWhenThen
     with GuiceOneAppPerSuite
