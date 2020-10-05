@@ -52,7 +52,7 @@ class ErrorHandler @Inject()(
     val correlationId = request.headers.get(Header.CorrelationId)
     val endpoint = s"${request.method} ${request.path}"
     logger.error(s"(Correlation-id: ${logCorrelationId(request)}) $endpoint", throwable)
-    ErrorResponse(correlationId, INTERNAL_SERVER_ERROR, Nec(Error(SERVER_ERROR))).value
+    ErrorResponse(correlationId, INTERNAL_SERVER_ERROR, Nec(ErrorItem(SERVER_ERROR))).value
   }
 
   private def logCorrelationId(request: RequestHeader): String =

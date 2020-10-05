@@ -16,31 +16,25 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.syntax.validated._
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json._
-import play.api.mvc.{AnyContent, AnyContentAsText}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.RequestPeriod._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class RequestValidationSpec extends AnyWordSpec with BaseSpec {
-
-  val validator = new RequestValidation() {}
+class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValidation {
 
   "RequestValidation.validateNino" should {
     "capture empty Nino value is invalid" in {
-      assert(validator.validateNino("").isInvalid)
+      assert(validateNino("").isInvalid)
     }
 
     "capture invalid Nino value is invalid" in {
-      assert(validator.validateNino("werr").isInvalid)
+      assert(validateNino("werr").isInvalid)
     }
 
     "assert a valid Nino value is valid" in {
-      assert(validator.validateNino(validNinoAsString).isValid)
+      assert(validateNino(validNinoAsString).isValid)
     }
   }
 
@@ -48,7 +42,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture missing CorrelationId header" in {
       val mockRequest = requestFilteredOutOneHeader(Header.CorrelationId)
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, MISSING_HEADER, Header.CorrelationId)
     }
@@ -56,7 +50,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture empty value for the CorrelationId header" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.CorrelationId, ""))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.CorrelationId)
     }
@@ -64,13 +58,13 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture invalid value for the CorrelationId header" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.CorrelationId, "334534534534"))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.CorrelationId)
     }
 
     "assert a valid CorrelationId value is valid" in {
-      assert(validator.validateHeadersForNPS(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(fakeGetRequest).isValid)
     }
   }
 
@@ -78,7 +72,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture missing RequestType header" in {
       val mockRequest = requestFilteredOutOneHeader(Header.RequestType)
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, MISSING_HEADER, Header.RequestType)
     }
@@ -86,7 +80,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture empty value for the RequestType header" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.RequestType, ""))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.RequestType)
     }
@@ -94,13 +88,13 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture invalid value for the RequestType header" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.RequestType, "334534534534"))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.RequestType)
     }
 
     "assert a RequestType value of ATTENDED is valid" in {
-      assert(validator.validateHeadersForNPS(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(fakeGetRequest).isValid)
     }
 
     "assert a RequestType value of UNATTENDED is valid" in {
@@ -109,7 +103,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
         (Header.StaffPid, unattendedStaffPid)
       )
 
-      assert(validator.validateHeadersForNPS(mockRequest).isValid)
+      assert(validateHeadersForNPS(mockRequest).isValid)
     }
   }
 
@@ -118,7 +112,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture missing ContentType header for non-GET methods" in {
       val mockRequest = requestFilteredOutOneHeader(CONTENT_TYPE, "POST")
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, MISSING_HEADER, CONTENT_TYPE)
     }
@@ -126,13 +120,13 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "allow missing ContentType header for GET methods" in {
       val mockRequest = requestFilteredOutOneHeader(CONTENT_TYPE)
 
-      assert(validator.validateHeadersForNPS(mockRequest).isValid)
+      assert(validateHeadersForNPS(mockRequest).isValid)
     }
 
     "capture empty value for the ContentType header" in {
       val mockRequest = fakeGetRequest.withHeaders((CONTENT_TYPE, ""))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, CONTENT_TYPE)
     }
@@ -140,13 +134,13 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture invalid value for the ContentType header" in {
       val mockRequest = fakeGetRequest.withHeaders((CONTENT_TYPE, "334534534534"))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, CONTENT_TYPE)
     }
 
     "assert a valid ContentType value is valid" in {
-      assert(validator.validateHeadersForNPS(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(fakeGetRequest).isValid)
     }
   }
 
@@ -154,7 +148,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture missing StaffPid header" in {
       val mockRequest = requestFilteredOutOneHeader(Header.StaffPid)
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, MISSING_HEADER, Header.StaffPid)
     }
@@ -162,7 +156,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture empty value for the StaffPid header" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.StaffPid, ""))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
@@ -170,7 +164,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture invalid value for the StaffPid header" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.StaffPid, "334534534534"))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
@@ -180,7 +174,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     "capture invalid value for the StaffPid header when RequestType value is ATTENDED" in {
       val mockRequest = fakeGetRequest.withHeaders((Header.StaffPid, unattendedStaffPid))
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
@@ -191,13 +185,13 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
         (Header.StaffPid, attendedStaffPid)
       )
 
-      val result = validator.validateHeadersForNPS(mockRequest)
+      val result = validateHeadersForNPS(mockRequest)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, Header.StaffPid)
     }
 
     "assert a StaffPid value is valid when RequestType value is ATTENDED" in {
-      assert(validator.validateHeadersForNPS(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(fakeGetRequest).isValid)
     }
 
     "assert a StaffPid value is valid when RequestType value is UNATTENDED" in {
@@ -206,87 +200,19 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
         (Header.StaffPid, unattendedStaffPid)
       )
 
-      assert(validator.validateHeadersForNPS(mockRequest).isValid)
+      assert(validateHeadersForNPS(mockRequest).isValid)
     }
   }
 
-  "RequestValidation.validateBody" should {
-    val mockValidator = (_: CreatePeriodsRequest) => ValidatedCreatePeriodsRequest(nino, List.empty).validNec
+  "RequestValidation.retrieveCorrelationId" should {
+    "return None for missing CorrelationId header" in {
+      val mockRequest = requestFilteredOutOneHeader(Header.CorrelationId)
 
-    "capture missing request body" in {
-      val result = validator.validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](mockValidator(_))(
-        fakeGetRequest,
-        CreatePeriodsRequest.format
-      )
-
-      assertOnlyExpectedErrorPresent(result, MISSING_BODY)
+      assert(retrieveCorrelationId(mockRequest).isEmpty)
     }
 
-    "capture request body contains Json that does not match expected schema" in {
-      val mockRequest = fakeGetRequest.withJsonBody(Json.parse("{}"))
-
-      val result = validator.validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](mockValidator(_))(
-        mockRequest,
-        CreatePeriodsRequest.format
-      )
-
-      assertOnlyExpectedErrorPresent(result, INVALID_JSON)
-    }
-
-    "capture request body that is not of content type Json" in {
-      val mockRequest = fakeGetRequest.withBody[AnyContent](AnyContentAsText(""))
-
-      val result = validator.validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](mockValidator(_))(
-        mockRequest,
-        CreatePeriodsRequest.format
-      )
-
-      assertOnlyExpectedErrorPresent(result, INVALID_JSON)
-    }
-  }
-
-  "RequestValidation.constructErrorsFromJsResultException" should {
-    "create a Validation for a JsResultException that contains a single date field error" in {
-      val errorPath = s"""/periods(0)/$StartDateKey"""
-      val mockJsException = JsResultException(
-        Seq(
-          (JsPath(List(KeyPathNode(errorPath))), Seq(JsonValidationError(Seq(""))))
-        )
-      )
-
-      val result = validator.constructErrorsFromJsResultException[Unit](mockJsException)
-
-      assertOnlyExpectedErrorPresent(result, INVALID_DATE, errorPath)
-    }
-
-    "create a Validation for a JsResultException that contains multiple date field errors" in {
-      val errorPath1 = s"""/periods(0)/$StartDateKey"""
-      val errorPath2 = s"""/periods(1)/$EndDateKey"""
-      val errorPath3 = s"""/periods(3)/$PegaRequestTimestampKey"""
-      val mockJsException = JsResultException(
-        Seq(
-          (JsPath(List(KeyPathNode(errorPath1))), Seq(JsonValidationError(Seq("")))),
-          (JsPath(List(KeyPathNode(errorPath2))), Seq(JsonValidationError(Seq("")))),
-          (JsPath(List(KeyPathNode(errorPath3))), Seq(JsonValidationError(Seq(""))))
-        )
-      )
-
-      val result = validator.constructErrorsFromJsResultException[Unit](mockJsException)
-
-      assertAllErrorsAreAsExpected(result, INVALID_DATE, 3)
-    }
-
-    "create a Validation for a JsResultException that contains a different type of error other than a date field error" in {
-      val errorPath = """/periods(0)/SomeOtherField"""
-      val mockJsException = JsResultException(
-        Seq(
-          (JsPath(List(KeyPathNode(errorPath))), Seq(JsonValidationError(Seq(""))))
-        )
-      )
-
-      val result = validator.constructErrorsFromJsResultException[Unit](mockJsException)
-
-      assertOnlyExpectedErrorPresent(result, INVALID_JSON)
+    "return Some value for passed CorrelationId header" in {
+      assert(retrieveCorrelationId(fakeGetRequest).isDefined)
     }
   }
 
@@ -294,14 +220,14 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     validated: Validation[A],
     expectedError: BaseError,
     errorMsgContains: String
-  ): Error =
+  ): ErrorItem =
     assertOnlyExpectedErrorPresent(validated, expectedError, Some(errorMsgContains))
 
   private def assertOnlyExpectedErrorPresent[A](
     validated: Validation[A],
     expectedError: BaseError,
-    errorMsgContains: Option[String] = None
-  ): Error = {
+    errorMsgContains: Option[String]
+  ): ErrorItem = {
     assert(validated.isInvalid)
 
     val errors = validated.toEither.left.get
@@ -314,17 +240,5 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec {
     }
 
     errors.head
-  }
-
-  private def assertAllErrorsAreAsExpected[A](
-    validated: Validation[A],
-    expectedError: BaseError,
-    errorCount: Int
-  ) = {
-    assert(validated.isInvalid)
-
-    val errors = validated.toEither.left.get
-    assert(errors.length == errorCount)
-    assert(errors.filter(_.baseError == expectedError).length == errors.length)
   }
 }

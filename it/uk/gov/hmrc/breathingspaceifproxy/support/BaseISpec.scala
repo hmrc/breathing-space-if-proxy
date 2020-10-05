@@ -19,16 +19,19 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 import akka.stream.Materializer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest._
+import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
-import play.api.http.HeaderNames
+import play.api.http.{HeaderNames, MimeTypes}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.AnyContentAsEmpty
+import play.api.libs.json.Json
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
 abstract class BaseISpec
@@ -59,30 +62,54 @@ abstract class BaseISpec
 
   implicit val appConfig: AppConfig = inject[AppConfig]
 
+  val periodsConnectorUrl = PeriodsConnector.path(nino)
+
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeaders: _*)
 
   def fakeRequestForUnattended(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeadersForUnattended: _*)
 
-  def verifyHeadersForGet(url: String): Unit =
-    verify(1, getRequestedFor(urlMatching(url))
+  def verifyHeadersForAttended(method: HttpMethod, url: String): Unit =
+    verify(1, method.verifyHeaderFor(urlMatching(url))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
       .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
     )
 
-  def verifyHeadersForGetUnattended(url: String): Unit =
-    verify(1, getRequestedFor(urlMatching(url))
+  def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
+    verify(1, method.verifyHeaderFor(urlMatching(url))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_UNATTENDED.entryName))
       .withoutHeader(retrieveHeaderMapping(Header.StaffPid))
     )
 
-  def verifyHeadersForPost(url: String): Unit =
-    verify(1, postRequestedFor(urlMatching(url))
-      .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
-      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
-      .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
-    )
+  def verifyErrorResult(
+    result: Result,
+    expectedStatus: Int,
+    correlationId: Option[String],
+    numberOfErrors: Int
+  ): List[TestingErrorItem] = {
+
+    Then(s"the resulting response should have as Http Status $expectedStatus")
+    val responseHeader = result.header
+    responseHeader.status shouldBe expectedStatus
+
+    val headers = responseHeader.headers
+
+    correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
+      And("a \"Correlation-Id\" header")
+      headers.get(Header.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
+    }
+
+    And("the body should be in Json format")
+    headers.get(CONTENT_TYPE).get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
+
+    And(s"""contain an "errors" list with $numberOfErrors detail errors""")
+    val errorList = (bodyAsJson \ "errors").as[List[TestingErrorItem]]
+    errorList.size shouldBe numberOfErrors
+    errorList
+  }
 }

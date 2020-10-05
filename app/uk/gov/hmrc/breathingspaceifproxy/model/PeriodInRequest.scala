@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.controller
+package uk.gov.hmrc.breathingspaceifproxy.model
 
-import play.api.mvc._
-import uk.gov.hmrc.breathingspaceifproxy._
+import java.time.{LocalDate, ZonedDateTime}
 
-trait BaseController {
-
-  def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
-    request.headers.get(Header.CorrelationId)
+trait PeriodInRequest {
+  val startDate: LocalDate
+  val endDate: Option[LocalDate]
+  val pegaRequestTimestamp: ZonedDateTime
 }

@@ -17,14 +17,14 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
-import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.syntax.apply._
-import cats.syntax.foldable._
 import cats.syntax.option._
 import cats.syntax.validated._
+import javax.inject.{Inject, Singleton}
+import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -37,11 +37,12 @@ import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId._
 class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
     extends AbstractBaseController(appConfig, cc) {
 
-  def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
+  def get(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
     (
       validateHeadersForNPS,
-      validateNino(maybeNino)
-    ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Periods_GET, correlationId), nino))
+      validateNino(maybeNino),
+      request.body
+    ).mapN((correlationId, nino, _) => (RequestId(Breathing_Space_Periods_GET, correlationId), nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
@@ -54,62 +55,89 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       )
   }
 
-  val post: Action[AnyContent] = Action.async { implicit request =>
+  val post: Action[Validation[JsValue]] = Action.async(withJsonBody) { implicit request =>
     (
       validateHeadersForNPS,
-      validateBody[CreatePeriodsRequest, ValidatedCreatePeriodsRequest](validateCreatePeriods(_))
-    ).mapN((correlationId, vcpr) => (RequestId(Breathing_Space_Periods_POST, correlationId), vcpr))
+      request.body.andThen(validateBodyOfPost)
+    ).mapN((correlationId, ninoAndBody) => (RequestId(Breathing_Space_Periods_POST, correlationId), ninoAndBody))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
-          implicit val (requestId, vcpr) = validationTuple
-          logger.debug(s"$requestId with $vcpr")
-          periodsConnector.post(vcpr).flatMap {
+          implicit val requestId = validationTuple._1
+          val (nino, body) = validationTuple._2
+          logger.debug(s"$requestId with $body for Nino(${nino.value})")
+          periodsConnector.post(nino, body).flatMap {
             _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(CREATED, _))
           }
         }
       )
   }
 
-  private def validateCreatePeriods(cpr: CreatePeriodsRequest): Validation[ValidatedCreatePeriodsRequest] =
+  def put(maybeNino: String): Action[Validation[JsValue]] = Action.async(withJsonBody) { implicit request =>
     (
-      validateNino(cpr.nino),
-      validatePeriods(cpr.periods)
-    ).mapN((nino, _) => ValidatedCreatePeriodsRequest(nino, cpr.periods))
+      validateHeadersForNPS,
+      validateNino(maybeNino),
+      request.body.andThen(validateBodyOfPut)
+    ).mapN((correlationId, nino, body) => (RequestId(Breathing_Space_Periods_POST, correlationId), nino, body))
+      .fold(
+        ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+        validationTuple => {
+          implicit val (requestId, nino, body) = validationTuple
+          logger.debug(s"$requestId with $body for Nino(${nino.value})")
+          periodsConnector.put(nino, body).flatMap {
+            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+          }
+        }
+      )
+  }
 
-  private def validatePeriods(periods: RequestPeriods): Validation[Unit] =
-    periods.map(validatePeriod).combineAll
+  private def validateBodyOfPost(json: JsValue): Validation[(Nino, PostPeriods)] =
+    (
+      validateNino(validateJsValue[String](json, "nino")),
+      validateJsValue[JsArray](json, "periods")
+        .fold(ErrorItem(MISSING_PERIODS).invalidNec[PostPeriods]) {
+          validateJsArray[PostPeriod](_, "period", validatePeriod)
+        }
+    ).mapN((nino, periods) => (nino, periods))
 
-  private def validatePeriod(period: RequestPeriod): Validation[Unit] =
+  private def validateBodyOfPut(json: JsValue): Validation[PutPeriods] =
+    validateJsValue[JsArray](json, "periods")
+      .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriods]) {
+        validateJsArray[PutPeriod](_, "period", validatePeriod)
+      }
+
+  private def validatePeriod[T <: PeriodInRequest](period: T, ix: Int): Validation[T] =
     period.endDate.fold {
       (
-        validateDate(period.startDate),
-        validateDateTime(period.pegaRequestTimestamp)
-      ).mapN((_, _) => unit)
+        validateDate(period.startDate, ix),
+        validateDateTime(period.pegaRequestTimestamp, ix)
+      ).mapN((_, _) => period)
     } { endDate =>
       (
-        validateDate(period.startDate),
-        validateDate(endDate),
-        validateDateRange(period.startDate, endDate),
-        validateDateTime(period.pegaRequestTimestamp)
-      ).mapN((_, _, _, _) => unit)
+        validateDate(period.startDate, ix),
+        validateDate(endDate, ix),
+        validateDateRange(period.startDate, endDate, ix),
+        validateDateTime(period.pegaRequestTimestamp, ix)
+      ).mapN((_, _, _, _) => period)
     }
 
   private val BreathingSpaceProgramStartingYear = 2020
 
-  private def validateDate(date: LocalDate): Validation[LocalDate] =
+  private def validateDate(date: LocalDate, ix: Int): Validation[LocalDate] =
     if (date.getYear >= BreathingSpaceProgramStartingYear) date.validNec
-    else Error(INVALID_DATE, s". Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear".some).invalidNec
+    else {
+      ErrorItem(INVALID_DATE, s"$ix. Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear".some).invalidNec
+    }
 
   val timestampLimit = 60
 
-  private def validateDateTime(requestDateTime: ZonedDateTime): Validation[Unit] =
+  private def validateDateTime(requestDateTime: ZonedDateTime, ix: Int): Validation[Unit] =
     if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(timestampLimit))) {
-      Error(INVALID_TIMESTAMP, s". Request timestamp is too old (more than $timestampLimit seconds)".some).invalidNec
+      ErrorItem(INVALID_TIMESTAMP, s"$ix. Request timestamp is too old (more than $timestampLimit seconds)".some).invalidNec
     } else unit.validNec
 
-  private def validateDateRange(startDate: LocalDate, endDate: LocalDate): Validation[Unit] =
+  private def validateDateRange(startDate: LocalDate, endDate: LocalDate, ix: Int): Validation[Unit] =
     if (endDate.isBefore(startDate)) {
-      Error(INVALID_DATE_RANGE, s". startDate($startDate) is after endDate($endDate)".some).invalidNec
+      ErrorItem(INVALID_DATE_RANGE, s"$ix. startDate($startDate) is after endDate($endDate)".some).invalidNec
     } else unit.validNec
 }

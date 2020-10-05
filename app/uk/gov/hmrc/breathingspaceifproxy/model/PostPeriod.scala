@@ -16,14 +16,26 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.time.LocalDate
-import java.util.UUID
+import java.time.{LocalDate, ZonedDateTime}
 
-import play.api.libs.json.Json
+import play.api.libs.json.{JsObject, Json, Writes}
 
-final case class ResponsePeriod(periodId: UUID, startDate: LocalDate, endDate: Option[LocalDate])
+final case class PostPeriod(
+  startDate: LocalDate,
+  endDate: Option[LocalDate],
+  pegaRequestTimestamp: ZonedDateTime
+) extends PeriodInRequest
 
-object ResponsePeriod {
+object PostPeriod {
 
-  implicit val format = Json.format[ResponsePeriod]
+  implicit val reads = Json.reads[PostPeriod]
+
+  implicit val writes = new Writes[PostPeriod] {
+    def writes(postPeriod: PostPeriod): JsObject =
+      Json.obj(
+        startDateKey -> postPeriod.startDate,
+        endDateKey -> postPeriod.endDate,
+        timestampKey -> postPeriod.pegaRequestTimestamp.format(timestampFormatter)
+      )
+  }
 }

@@ -17,10 +17,9 @@
 package uk.gov.hmrc.breathingspaceifproxy.model
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.breathingspaceifproxy.ResponsePeriods
 
-final case class PeriodsResponse(periods: ResponsePeriods)
+final case class PeriodsInResponse(periods: List[PeriodInResponse])
 
-object PeriodsResponse {
-  implicit val format = Json.format[PeriodsResponse]
+object PeriodsInResponse {
+  implicit val format = Json.format[PeriodsInResponse]
 }

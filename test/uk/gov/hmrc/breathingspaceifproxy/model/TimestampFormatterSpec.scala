@@ -18,17 +18,14 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import java.time.ZonedDateTime
 
-import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.breathingspaceifproxy.model.RequestPeriod.formatter
+import org.scalatest.funsuite.AnyFunSuite
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class RequestPeriodSpec extends AnyWordSpec with BaseSpec {
+class TimestampFormatterSpec extends AnyFunSuite with BaseSpec {
 
-  "RequestPeriod.formatter" should {
-    "writes the timestamp according to the expected ISO format" in {
-      val expectedFormattedDateTime = "2020-12-31T23:59:59.999+01:00"
-      val dateTime = ZonedDateTime.parse(expectedFormattedDateTime)
-      dateTime.format(formatter) shouldBe expectedFormattedDateTime
-    }
+  test("timestampFormatter outputs the timestamp according to the expected ISO format") {
+    val expectedFormattedDateTime = "2020-12-31T23:59:59.999+01:00"
+    val dateTime = ZonedDateTime.parse(expectedFormattedDateTime)
+    dateTime.format(timestampFormatter) shouldBe expectedFormattedDateTime
   }
 }

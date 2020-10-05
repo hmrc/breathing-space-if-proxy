@@ -17,28 +17,28 @@
 package uk.gov.hmrc.breathingspaceifproxy.model
 
 import java.time.{LocalDate, ZonedDateTime}
-import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 import play.api.libs.json.{JsObject, Json, Writes}
 
-final case class RequestPeriod(startDate: LocalDate, endDate: Option[LocalDate], pegaRequestTimestamp: ZonedDateTime)
+final case class PutPeriod(
+  periodID: UUID,
+  startDate: LocalDate,
+  endDate: Option[LocalDate],
+  pegaRequestTimestamp: ZonedDateTime
+) extends PeriodInRequest
 
-object RequestPeriod {
+object PutPeriod {
 
-  implicit val reads = Json.reads[RequestPeriod]
+  implicit val reads = Json.reads[PutPeriod]
 
-  lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
-
-  val StartDateKey = "startDate"
-  val EndDateKey = "endDate"
-  val PegaRequestTimestampKey = "pegaRequestTimestamp"
-
-  implicit val writes = new Writes[RequestPeriod] {
-    def writes(period: RequestPeriod): JsObject =
+  implicit val writes = new Writes[PutPeriod] {
+    def writes(putPeriod: PutPeriod): JsObject =
       Json.obj(
-        StartDateKey -> period.startDate,
-        EndDateKey -> period.endDate,
-        PegaRequestTimestampKey -> period.pegaRequestTimestamp.format(formatter)
+        periodIdKey -> putPeriod.periodID,
+        startDateKey -> putPeriod.startDate,
+        endDateKey -> putPeriod.endDate,
+        timestampKey -> putPeriod.pegaRequestTimestamp.format(timestampFormatter)
       )
   }
 }

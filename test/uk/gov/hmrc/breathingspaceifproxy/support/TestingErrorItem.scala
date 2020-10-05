@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
+package uk.gov.hmrc.breathingspaceifproxy.support
 
 import play.api.libs.json.Json
-import uk.gov.hmrc.breathingspaceifproxy.RequestPeriods
 
-final case class CreatePeriodsRequest(nino: String, periods: RequestPeriods)
+final case class TestingErrorItem(code: String, message: String)
 
-final case class ValidatedCreatePeriodsRequest(nino: Nino, periods: RequestPeriods)
-
-object CreatePeriodsRequest {
-  implicit val format = Json.format[CreatePeriodsRequest]
+object TestingErrorItem {
+  implicit val reads = Json.reads[TestingErrorItem]
 }

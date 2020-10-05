@@ -22,6 +22,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.syntax.apply._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, RequestId}
@@ -34,11 +35,12 @@ class DebtorDetailsController @Inject()(
   debtorDetailsConnector: DebtorDetailsConnector
 ) extends AbstractBaseController(appConfig, cc) {
 
-  def get(maybeNino: String): Action[AnyContent] = Action.async { implicit request =>
+  def get(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
     (
       validateHeadersForNPS,
-      validateNino(maybeNino)
-    ).mapN((correlationId, nino) => (RequestId(Breathing_Space_Debtor_Details_GET, correlationId), nino))
+      validateNino(maybeNino),
+      request.body
+    ).mapN((correlationId, nino, _) => (RequestId(Breathing_Space_Debtor_Details_GET, correlationId), nino))
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {

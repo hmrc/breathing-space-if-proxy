@@ -1,0 +1,59 @@
+package uk.gov.hmrc.breathingspaceifproxy.controller
+
+import cats.syntax.option._
+import play.api.http.Status
+import play.api.libs.json.Json
+import play.api.test.Helpers
+import play.api.test.Helpers._
+import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.put
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.MISSING_BODY
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
+
+class PeriodsControllerPutISpec extends BaseISpec {
+
+  val putPathWithValidNino = put(validNinoAsString).url
+  val putPathWithUnknownNino = put(unknownNino.value).url
+
+  "PUT BS Periods for Nino" should {
+
+    "return 200(OK) and all periods for the valid Nino provided" in {
+      val expectedBody = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Put, periodsConnectorUrl, Status.OK, expectedBody)
+
+      val request = fakeRequest(Helpers.PUT, putPathWithValidNino)
+        .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
+
+      val response = route(app, request).get
+      status(response) shouldBe Status.OK
+
+      verifyHeadersForAttended(HttpMethod.Put, periodsConnectorUrl)
+      contentAsString(response) shouldBe expectedBody
+    }
+
+    "return 400(BAD_REQUEST) when no body is provided" in {
+      val request = fakeRequest(Helpers.PUT, putPathWithValidNino)
+
+      val response = await(route(app, request).get)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $MISSING_BODY")
+      errorList.head.code shouldBe MISSING_BODY.entryName
+      assert(errorList.head.message.startsWith(MISSING_BODY.message))
+    }
+
+    "return 404(NOT_FOUND) when the provided Nino is unknown" in {
+      val url = PeriodsConnector.path(unknownNino)
+      stubCall(HttpMethod.Put, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
+
+      val request = fakeRequest(Helpers.PUT, putPathWithUnknownNino)
+        .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
+
+      val response = route(app, request).get
+      status(response) shouldBe Status.NOT_FOUND
+
+      verifyHeadersForAttended(HttpMethod.Put, url)
+    }
+  }
+}

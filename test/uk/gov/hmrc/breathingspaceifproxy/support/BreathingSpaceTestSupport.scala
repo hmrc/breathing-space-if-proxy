@@ -20,6 +20,7 @@ import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
 import cats.syntax.option._
+import cats.syntax.validated._
 import play.api.http.HeaderNames.CONTENT_TYPE
 import play.api.http.MimeTypes
 import play.api.libs.json._
@@ -30,6 +31,12 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.HeaderCarrier
 
+final case class PostPeriodsRequest(nino: String, periods: PostPeriods)
+
+object PostPeriodsRequest {
+  implicit val format = Json.format[PostPeriodsRequest]
+}
+
 trait BreathingSpaceTestSupport {
 
   def appConfig: AppConfig
@@ -37,10 +44,14 @@ trait BreathingSpaceTestSupport {
   val validNinoAsString = "MZ006526C"
   val nino = Nino(validNinoAsString)
   val unknownNino = Nino("MZ005527C")
-  val invalidNino = Nino("MG34567")
+  val invalidNino = "MG34567"
 
-  val correlationId = UUID.randomUUID
-  val correlationIdAsString = correlationId.toString
+  val randomUUID = UUID.randomUUID
+  val randomUUIDAsString = randomUUID.toString
+  val correlationId = randomUUID
+  val correlationIdAsString = randomUUIDAsString
+  val periodId = randomUUID
+  val periodIdAsString = randomUUIDAsString
 
   val attendedStaffPid = "1234567"
 
@@ -62,12 +73,6 @@ trait BreathingSpaceTestSupport {
     Header.StaffPid -> unattendedStaffPid
   )
 
-  lazy val validDateRangePeriod = RequestPeriod(
-    LocalDate.now.minusMonths(3),
-    LocalDate.now.minusMonths(1).some,
-    ZonedDateTime.now
-  )
-
   implicit lazy val headerCarrierForIF = HeaderCarrier(
     extraHeaders = List(
       CONTENT_TYPE -> MimeTypes.JSON,
@@ -77,23 +82,41 @@ trait BreathingSpaceTestSupport {
     )
   )
 
-  lazy val invalidDateRangePeriod = RequestPeriod(
+  lazy val validPostPeriod = PostPeriod(
+    LocalDate.now.minusMonths(3),
+    LocalDate.now.minusMonths(1).some,
+    ZonedDateTime.now
+  )
+
+  lazy val invalidPostPeriod = PostPeriod(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(4).some,
     ZonedDateTime.now
   )
 
-  lazy val validPeriods: List[RequestPeriod] = List(validDateRangePeriod, validDateRangePeriod)
+  lazy val postPeriodsRequest: PostPeriods = List(validPostPeriod, validPostPeriod)
 
-  lazy val validCreatePeriodsRequest = ValidatedCreatePeriodsRequest(nino, validPeriods)
+  lazy val validPutPeriod = PutPeriod(
+    UUID.randomUUID(),
+    LocalDate.now.minusMonths(3),
+    LocalDate.now.minusMonths(1).some,
+    ZonedDateTime.now
+  )
 
-  lazy val invalidCreatePeriodsRequest = ValidatedCreatePeriodsRequest(unknownNino, validPeriods)
+  lazy val invalidPutPeriod = PutPeriod(
+    UUID.randomUUID(),
+    LocalDate.now.minusMonths(3),
+    LocalDate.now.minusMonths(4).some,
+    ZonedDateTime.now
+  )
+
+  lazy val putPeriodsRequest: PutPeriods = List(validPutPeriod, validPutPeriod)
 
   lazy val validPeriodsResponse =
-    PeriodsResponse(
+    PeriodsInResponse(
       List(
-        ResponsePeriod(UUID.randomUUID(), LocalDate.now.minusMonths(5), None),
-        ResponsePeriod(UUID.randomUUID(), LocalDate.now.minusMonths(2), LocalDate.now.some)
+        PeriodInResponse(UUID.randomUUID(), LocalDate.now.minusMonths(5), None),
+        PeriodInResponse(UUID.randomUUID(), LocalDate.now.minusMonths(2), LocalDate.now.some)
       )
     )
 
@@ -101,15 +124,6 @@ trait BreathingSpaceTestSupport {
 
   def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
     if (withCorrelationId) correlationIdAsString.some else None
-
-  def createPeriodsRequest(periods: RequestPeriods): JsValue =
-    Json.toJson(CreatePeriodsRequest(validNinoAsString, periods))
-
-  def createPeriodsRequest(nino: Nino, periods: RequestPeriods): JsValue =
-    Json.toJson(CreatePeriodsRequest(nino.value, periods))
-
-  val requestWithAllHeaders: FakeRequest[AnyContentAsEmpty.type] =
-    requestFilteredOutOneHeader("", "GET")
 
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)
@@ -122,6 +136,43 @@ trait BreathingSpaceTestSupport {
       requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
 
+  def postPeriodsRequestAsJson(postPeriods: PostPeriods): JsValue =
+    Json.toJson(PostPeriodsRequest(validNinoAsString, postPeriods))
+
+  def postPeriodsRequestAsJson(nino: String, postPeriods: PostPeriods): JsValue =
+    Json.toJson(PostPeriodsRequest(nino, postPeriods))
+
+  def postPeriodsRequest(postPeriods: PostPeriods): Validation[JsValue] =
+    postPeriodsRequestAsJson(postPeriods).validNec[ErrorItem]
+
+  def postPeriodsRequest(nino: String, startDate: String, endDate: String, timestamp: String): Validation[JsValue] = {
+    val sd = s""""$startDateKey":"$startDate""""
+    val ed = s""""$endDateKey":"$endDate""""
+    val ts = s""""$timestampKey":"$timestamp""""
+
+    Json.parse(s"""{"nino":"$nino","periods":[{$sd,$ed,$ts}]}""").validNec[ErrorItem]
+  }
+
+  def putPeriodsRequestAsJson(putPeriods: PutPeriods): JsValue =
+    Json.obj("periods" -> putPeriods)
+
+  def putPeriodsRequest(putPeriods: PutPeriods): Validation[JsValue] =
+    putPeriodsRequestAsJson(putPeriods).validNec[ErrorItem]
+
+  def putPeriodsRequest(
+    periodId: String,
+    startDate: String,
+    endDate: Option[String],
+    timestamp: String
+  ): Validation[JsValue] = {
+    val pi = s""""$periodIdKey":"$periodId""""
+    val sd = s""""$startDateKey":"$startDate""""
+    val ed = endDate.fold("")(v => s""","$endDateKey":"$v"""")
+    val ts = s""""$timestampKey":"$timestamp""""
+
+    Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
+  }
+
   def debtorDetails(nino: Nino): String =
     s"""
        |{"nino" : "${nino.value}",
@@ -133,9 +184,4 @@ trait BreathingSpaceTestSupport {
 
   def retrieveHeaderMapping(header: String): String =
     appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped
-
-  def createPeriodRequestAsJson(nino: String, startDate: String, endDate: String, timestamp: String): JsValue =
-    Json.parse(
-      s"""{"nino":"$nino","periods":[{"startDate":"$startDate","endDate":"$endDate","pegaRequestTimestamp":"$timestamp"}]}"""
-    )
 }

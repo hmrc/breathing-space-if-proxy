@@ -27,7 +27,6 @@ import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.{ValidatedCreatePeriodsRequest => VCPR}
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
@@ -42,18 +41,32 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsResponse] =
+  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
     monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .GET[PeriodsResponse](Url(url(nino)).value)
+        .GET[PeriodsInResponse](Url(url(nino)).value)
         .map(_.validNec)
         .recoverWith(handleUpstreamError)
     }
 
-  def post(vcpr: VCPR)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsResponse] =
+  def post(
+    nino: Nino,
+    periods: PostPeriods
+  )(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
     monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .POST[JsValue, PeriodsResponse](Url(url(vcpr.nino)).value, Json.obj("periods" -> vcpr.periods))
+        .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> periods))
+        .map(_.validNec)
+        .recoverWith(handleUpstreamError)
+    }
+
+  def put(
+    nino: Nino,
+    periods: PutPeriods
+  )(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
+    monitor(s"ConsumedAPI-${requestId.endpointId}") {
+      http
+        .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> periods))
         .map(_.validNec)
         .recoverWith(handleUpstreamError)
     }

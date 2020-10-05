@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.support
+package uk.gov.hmrc.breathingspaceifproxy
 
-import play.api.libs.json.Json
+import java.time.format.DateTimeFormatter
 
-final case class ErrorItem(code: String, message: String)
+import cats.data.NonEmptyChain
 
-object ErrorItem { implicit val reads = Json.reads[ErrorItem] }
+package object model {
+
+  type Errors = NonEmptyChain[ErrorItem]
+
+  lazy val timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSxxx")
+
+  val periodIdKey = "periodID"
+  val startDateKey = "startDate"
+  val endDateKey = "endDate"
+  val timestampKey = "pegaRequestTimestamp"
+}

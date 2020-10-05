@@ -14,28 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.breathingspaceifproxy.model
 
-import scala.concurrent.Future
+import java.time.LocalDate
+import java.util.UUID
 
-import cats.data.ValidatedNec
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import play.api.libs.json.Json
 
-package object breathingspaceifproxy {
+final case class PeriodInResponse(periodID: UUID, startDate: LocalDate, endDate: Option[LocalDate])
 
-  val unit: Unit = ()
+object PeriodInResponse {
 
-  val unattendedStaffPid = "0000000"
-
-  type PostPeriods = List[PostPeriod]
-  type PutPeriods = List[PutPeriod]
-
-  type Validation[T] = ValidatedNec[ErrorItem, T]
-  type ResponseValidation[T] = Future[Validation[T]]
-
-  object Header {
-    lazy val CorrelationId = "Correlation-Id"
-    lazy val RequestType = "Request-Type"
-    lazy val StaffPid = "Pid"
-  }
+  implicit val format = Json.format[PeriodInResponse]
 }
