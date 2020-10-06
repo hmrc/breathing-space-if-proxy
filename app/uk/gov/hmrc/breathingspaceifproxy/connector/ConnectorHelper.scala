@@ -38,7 +38,7 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
       logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 
     case throwable: Throwable =>
-      logger.error(s"Exception caught for $requestId while sending the request downstream. ${throwable.getMessage}")
+      logger.error(s"Exception caught for downstream request $requestId. ${throwable.getMessage}")
       Future.successful(ErrorItem(SERVER_ERROR).invalidNec)
   }
 

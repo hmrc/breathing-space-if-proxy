@@ -68,7 +68,7 @@ trait RequestValidation extends Logging {
     implicit rds: Reads[T]
   ): Validation[List[T]] =
     if (json.value.isEmpty) ErrorItem(MISSING_PERIODS).invalidNec[List[T]]
-    else
+    else {
       json.value.zipWithIndex
         .map { jsValueAndIndex =>
           validateJsObject[T](jsValueAndIndex._1)
@@ -80,6 +80,7 @@ trait RequestValidation extends Logging {
             .map(List(_))
         }
         .reduceLeft(_.combine(_))
+    }
 
   private def validateContentType(request: Request[_]): Validation[Unit] =
     request.headers

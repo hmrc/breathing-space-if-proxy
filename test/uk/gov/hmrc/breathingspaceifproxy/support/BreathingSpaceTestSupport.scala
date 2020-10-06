@@ -145,12 +145,17 @@ trait BreathingSpaceTestSupport {
   def postPeriodsRequest(postPeriods: PostPeriods): Validation[JsValue] =
     postPeriodsRequestAsJson(postPeriods).validNec[ErrorItem]
 
-  def postPeriodsRequest(nino: String, startDate: String, endDate: String, timestamp: String): Validation[JsValue] = {
+  def postPeriodsRequest(
+    nino: String,
+    startDate: String,
+    endDate: Option[String],
+    timestamp: String
+  ): Validation[JsValue] = {
     val sd = s""""$startDateKey":"$startDate""""
-    val ed = s""""$endDateKey":"$endDate""""
+    val ed = endDate.fold("")(v => s""","$endDateKey":"$v"""")
     val ts = s""""$timestampKey":"$timestamp""""
 
-    Json.parse(s"""{"nino":"$nino","periods":[{$sd,$ed,$ts}]}""").validNec[ErrorItem]
+    Json.parse(s"""{"nino":"$nino","periods":[{$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
   def putPeriodsRequestAsJson(putPeriods: PutPeriods): JsValue =

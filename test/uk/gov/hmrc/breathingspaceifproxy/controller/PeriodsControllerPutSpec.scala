@@ -70,7 +70,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       val body = putPeriodsRequest(putPeriodsRequest)
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = requestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(invalidNino)(request)
 
@@ -82,7 +82,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when the 'periods' array is empty" in {
-      val body = Json.obj("periods" -> List.empty[PostPeriod]).validNec[ErrorItem]
+      val body = Json.obj("periods" -> List.empty[PutPeriod]).validNec[ErrorItem]
       val request = requestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(validNinoAsString)(request)
@@ -95,7 +95,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when 'periods' is not an array" in {
-      val body = Json.obj("periods" -> validPostPeriod).validNec[ErrorItem]
+      val body = Json.obj("periods" -> validPutPeriod).validNec[ErrorItem]
       val request = requestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(validNinoAsString)(request)
@@ -108,54 +108,41 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when format of periodID is invalid" in {
-      verifyJsonItemValidation("1234567890".some, "2020-04-30", None, ZonedDateTime.now.toString)
+      verifyJsonItemValidation(INVALID_JSON_ITEM, "1234567890".some, "2020-04-30")
     }
 
     "return 400(BAD_REQUEST) when startDate is not a valid date" in {
-      verifyJsonItemValidation(None, "2020-04-31", None, ZonedDateTime.now.toString)
+      verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-31")
+    }
+
+    "return 400(BAD_REQUEST) when year in startDate is before 2020" in {
+      verifyJsonItemValidation(INVALID_DATE, None, "2000-04-01")
     }
 
     "return 400(BAD_REQUEST) when endDate is present but it is not a valid date" in {
-      verifyJsonItemValidation(None, "2020-01-01", "2020-02-30".some, ZonedDateTime.now.toString)
+      verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-01-01", "2020-02-30".some)
     }
 
     "return 400(BAD_REQUEST) when pegaRequestTimestamp is not in the expected ISO-8601 format" in {
-      verifyJsonItemValidation(None, "2020-04-01", None, LocalDateTime.now.toString)
+      verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-01", None, LocalDateTime.now.toString)
     }
 
-    "return 400(BAD_REQUEST) when, for any of the periods provided, endDate is temporally before startDate" in {
-      val body = putPeriodsRequest(List(invalidPutPeriod, invalidPutPeriod))
-      val request = requestWithAllHeaders(POST).withBody(body)
-
-      val response = controller.put(validNinoAsString)(request)
-
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
-
-      And(s"the error code should be $INVALID_DATE_RANGE")
-      errorList.head.code shouldBe INVALID_DATE_RANGE.entryName
-      assert(errorList.head.message.startsWith(INVALID_DATE_RANGE.message))
+    "return 400(BAD_REQUEST) when endDate is temporally before startDate" in {
+      verifyJsonItemValidation(INVALID_DATE_RANGE, None, "2020-04-01", "2020-03-01".some)
     }
 
     "return 400(BAD_REQUEST) if the timestamp is not less than nn secs before the request's processing time" in {
       val invalidTimestamp = ZonedDateTime.now.minusSeconds(controller.timestampLimit).toString
-      val body = putPeriodsRequest(periodIdAsString, "2020-04-30", None, invalidTimestamp)
-      val request = requestWithAllHeaders(PUT).withBody(body)
-
-      val response = controller.put(validNinoAsString)(request)
-
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
-
-      And(s"the error code should be $INVALID_TIMESTAMP")
-      errorList.head.code shouldBe INVALID_TIMESTAMP.entryName
-      assert(errorList.head.message.startsWith(INVALID_TIMESTAMP.message))
+      verifyJsonItemValidation(INVALID_TIMESTAMP, None, "2020-04-01", None, invalidTimestamp)
     }
   }
 
   private def verifyJsonItemValidation(
+    error: BaseError,
     periodId: Option[String],
     startDate: String,
-    endDate: Option[String],
-    timestamp: String
+    endDate: Option[String] = None,
+    timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
     val body = putPeriodsRequest(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
     val request = requestWithAllHeaders(PUT).withBody(body)
@@ -164,8 +151,8 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
-    And(s"the error code should be $INVALID_JSON_ITEM")
-    errorList.head.code shouldBe INVALID_JSON_ITEM.entryName
-    assert(errorList.head.message.startsWith(INVALID_JSON_ITEM.message))
+    And(s"the error code should be $error")
+    errorList.head.code shouldBe error.entryName
+    assert(errorList.head.message.startsWith(error.message))
   }
 }

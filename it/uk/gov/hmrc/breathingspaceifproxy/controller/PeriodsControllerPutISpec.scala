@@ -7,7 +7,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.put
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.MISSING_BODY
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_JSON, MISSING_BODY}
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerPutISpec extends BaseISpec {
@@ -41,6 +41,19 @@ class PeriodsControllerPutISpec extends BaseISpec {
       And(s"the error code should be $MISSING_BODY")
       errorList.head.code shouldBe MISSING_BODY.entryName
       assert(errorList.head.message.startsWith(MISSING_BODY.message))
+    }
+
+    "return 400(BAD_REQUEST) when body is not valid Json" in {
+      val body = s"""{periods":[${Json.toJson(validPostPeriod).toString}]}"""
+      val request = fakeRequest(Helpers.PUT, putPathWithValidNino).withBody(body)
+
+      val response = await(route(app, request).get)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_JSON")
+      errorList.head.code shouldBe INVALID_JSON.entryName
+      assert(errorList.head.message.startsWith(INVALID_JSON.message))
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
