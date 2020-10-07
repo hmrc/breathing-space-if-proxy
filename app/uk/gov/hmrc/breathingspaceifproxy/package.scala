@@ -27,9 +27,6 @@ package object breathingspaceifproxy {
 
   val unattendedStaffPid = "0000000"
 
-  type PostPeriods = List[PostPeriod]
-  type PutPeriods = List[PutPeriod]
-
   type Validation[T] = ValidatedNec[ErrorItem, T]
   type ResponseValidation[T] = Future[Validation[T]]
 

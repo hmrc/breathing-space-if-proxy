@@ -31,7 +31,7 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.HeaderCarrier
 
-final case class PostPeriodsRequest(nino: String, periods: PostPeriods)
+final case class PostPeriodsRequest(nino: String, periods: PostPeriodsInRequest)
 
 object PostPeriodsRequest {
   implicit val format = Json.format[PostPeriodsRequest]
@@ -82,35 +82,35 @@ trait BreathingSpaceTestSupport {
     )
   )
 
-  lazy val validPostPeriod = PostPeriod(
+  lazy val validPostPeriod = PostPeriodInRequest(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
   )
 
-  lazy val invalidPostPeriod = PostPeriod(
+  lazy val invalidPostPeriod = PostPeriodInRequest(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(4).some,
     ZonedDateTime.now
   )
 
-  lazy val postPeriodsRequest: PostPeriods = List(validPostPeriod, validPostPeriod)
+  lazy val postPeriodsRequest: PostPeriodsInRequest = List(validPostPeriod, validPostPeriod)
 
-  lazy val validPutPeriod = PutPeriod(
+  lazy val validPutPeriod = PutPeriodInRequest(
     UUID.randomUUID(),
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
   )
 
-  lazy val invalidPutPeriod = PutPeriod(
+  lazy val invalidPutPeriod = PutPeriodInRequest(
     UUID.randomUUID(),
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(4).some,
     ZonedDateTime.now
   )
 
-  lazy val putPeriodsRequest: PutPeriods = List(validPutPeriod, validPutPeriod)
+  lazy val putPeriodsRequest: PutPeriodsInRequest = List(validPutPeriod, validPutPeriod)
 
   lazy val validPeriodsResponse =
     PeriodsInResponse(
@@ -136,13 +136,13 @@ trait BreathingSpaceTestSupport {
       requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
 
-  def postPeriodsRequestAsJson(postPeriods: PostPeriods): JsValue =
+  def postPeriodsRequestAsJson(postPeriods: PostPeriodsInRequest): JsValue =
     Json.toJson(PostPeriodsRequest(validNinoAsString, postPeriods))
 
-  def postPeriodsRequestAsJson(nino: String, postPeriods: PostPeriods): JsValue =
+  def postPeriodsRequestAsJson(nino: String, postPeriods: PostPeriodsInRequest): JsValue =
     Json.toJson(PostPeriodsRequest(nino, postPeriods))
 
-  def postPeriodsRequest(postPeriods: PostPeriods): Validation[JsValue] =
+  def postPeriodsRequest(postPeriods: PostPeriodsInRequest): Validation[JsValue] =
     postPeriodsRequestAsJson(postPeriods).validNec[ErrorItem]
 
   def postPeriodsRequest(
@@ -158,10 +158,10 @@ trait BreathingSpaceTestSupport {
     Json.parse(s"""{"nino":"$nino","periods":[{$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
-  def putPeriodsRequestAsJson(putPeriods: PutPeriods): JsValue =
+  def putPeriodsRequestAsJson(putPeriods: PutPeriodsInRequest): JsValue =
     Json.obj("periods" -> putPeriods)
 
-  def putPeriodsRequest(putPeriods: PutPeriods): Validation[JsValue] =
+  def putPeriodsRequest(putPeriods: PutPeriodsInRequest): Validation[JsValue] =
     putPeriodsRequestAsJson(putPeriods).validNec[ErrorItem]
 
   def putPeriodsRequest(

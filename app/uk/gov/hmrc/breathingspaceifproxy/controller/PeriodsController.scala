@@ -59,14 +59,16 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
     (
       validateHeadersForNPS,
       request.body.andThen(validateBodyOfPost)
-    ).mapN((correlationId, ninoAndBody) => (RequestId(Breathing_Space_Periods_POST, correlationId), ninoAndBody))
+    ).mapN(
+        (correlationId, ninoAndPostPeriods) =>
+          (RequestId(Breathing_Space_Periods_POST, correlationId), ninoAndPostPeriods._1, ninoAndPostPeriods._2)
+      )
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
-          implicit val requestId = validationTuple._1
-          val (nino, body) = validationTuple._2
-          logger.debug(s"$requestId with $body for Nino(${nino.value})")
-          periodsConnector.post(nino, body).flatMap {
+          implicit val (requestId, nino, postPeriodsInRequest) = validationTuple
+          logger.debug(s"$requestId with $postPeriodsInRequest for Nino(${nino.value})")
+          periodsConnector.post(nino, postPeriodsInRequest).flatMap {
             _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(CREATED, _))
           }
         }
@@ -78,66 +80,72 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       validateHeadersForNPS,
       validateNino(maybeNino),
       request.body.andThen(validateBodyOfPut)
-    ).mapN((correlationId, nino, body) => (RequestId(Breathing_Space_Periods_POST, correlationId), nino, body))
+    ).mapN(
+        (correlationId, nino, putPeriodsInRequest) =>
+          (RequestId(Breathing_Space_Periods_POST, correlationId), nino, putPeriodsInRequest)
+      )
       .fold(
         ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
         validationTuple => {
-          implicit val (requestId, nino, body) = validationTuple
-          logger.debug(s"$requestId with $body for Nino(${nino.value})")
-          periodsConnector.put(nino, body).flatMap {
+          implicit val (requestId, nino, putPeriodsInRequest) = validationTuple
+          logger.debug(s"$requestId with $putPeriodsInRequest for Nino(${nino.value})")
+          periodsConnector.put(nino, putPeriodsInRequest).flatMap {
             _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
           }
         }
       )
   }
 
-  private def validateBodyOfPost(json: JsValue): Validation[(Nino, PostPeriods)] =
+  private def validateBodyOfPost(json: JsValue): Validation[(Nino, PostPeriodsInRequest)] =
     (
-      validateNino(validateJsValue[String](json, "nino")),
-      validateJsValue[JsArray](json, "periods")
-        .fold(ErrorItem(MISSING_PERIODS).invalidNec[PostPeriods]) {
-          validateJsArray[PostPeriod](_, "period", validatePeriod)
+      validateNino(parseJsValue[String](json, "nino")),
+      parseJsValue[JsArray](json, "periods")
+        .fold(ErrorItem(MISSING_PERIODS).invalidNec[PostPeriodsInRequest]) {
+          validateJsArray[PostPeriodInRequest](_, "period", validatePeriod)
         }
     ).mapN((nino, periods) => (nino, periods))
 
-  private def validateBodyOfPut(json: JsValue): Validation[PutPeriods] =
-    validateJsValue[JsArray](json, "periods")
-      .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriods]) {
-        validateJsArray[PutPeriod](_, "period", validatePeriod)
+  private def validateBodyOfPut(json: JsValue): Validation[PutPeriodsInRequest] =
+    parseJsValue[JsArray](json, "periods")
+      .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriodsInRequest]) {
+        validateJsArray[PutPeriodInRequest](_, "period", validatePeriod)
       }
 
-  private def validatePeriod[T <: PeriodInRequest](period: T, ix: Int): Validation[T] =
+  private def validatePeriod[T <: PeriodInRequest](period: T, itemIndex: Int): Validation[T] =
     period.endDate.fold {
       (
-        validateDate(period.startDate, ix),
-        validateDateTime(period.pegaRequestTimestamp, ix)
+        validateDate(period.startDate, itemIndex),
+        validateDateTime(period.pegaRequestTimestamp, itemIndex)
       ).mapN((_, _) => period)
     } { endDate =>
       (
-        validateDate(period.startDate, ix),
-        validateDate(endDate, ix),
-        validateDateRange(period.startDate, endDate, ix),
-        validateDateTime(period.pegaRequestTimestamp, ix)
+        validateDate(period.startDate, itemIndex),
+        validateDate(endDate, itemIndex),
+        validateDateRange(period.startDate, endDate, itemIndex),
+        validateDateTime(period.pegaRequestTimestamp, itemIndex)
       ).mapN((_, _, _, _) => period)
     }
 
   private val BreathingSpaceProgramStartingYear = 2020
 
-  private def validateDate(date: LocalDate, ix: Int): Validation[LocalDate] =
+  private def validateDate(date: LocalDate, itemIndex: Int): Validation[LocalDate] =
     if (date.getYear >= BreathingSpaceProgramStartingYear) date.validNec
     else {
-      ErrorItem(INVALID_DATE, s"$ix. Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear".some).invalidNec
+      val details = s"$itemIndex. Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear"
+      ErrorItem(INVALID_DATE, details.some).invalidNec
     }
 
   val timestampLimit = 60
 
-  private def validateDateTime(requestDateTime: ZonedDateTime, ix: Int): Validation[Unit] =
+  private def validateDateTime(requestDateTime: ZonedDateTime, itemIndex: Int): Validation[Unit] =
     if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(timestampLimit))) {
-      ErrorItem(INVALID_TIMESTAMP, s"$ix. Request timestamp is too old (more than $timestampLimit seconds)".some).invalidNec
+      val details = s"$itemIndex. Request timestamp is too old (more than $timestampLimit seconds)"
+      ErrorItem(INVALID_TIMESTAMP, details.some).invalidNec
     } else unit.validNec
 
-  private def validateDateRange(startDate: LocalDate, endDate: LocalDate, ix: Int): Validation[Unit] =
+  private def validateDateRange(startDate: LocalDate, endDate: LocalDate, itemIndex: Int): Validation[Unit] =
     if (endDate.isBefore(startDate)) {
-      ErrorItem(INVALID_DATE_RANGE, s"$ix. startDate($startDate) is after endDate($endDate)".some).invalidNec
+      val details = s"$itemIndex. startDate($startDate) is after endDate($endDate)"
+      ErrorItem(INVALID_DATE_RANGE, details.some).invalidNec
     } else unit.validNec
 }

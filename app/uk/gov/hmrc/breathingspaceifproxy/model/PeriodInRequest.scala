@@ -17,9 +17,58 @@
 package uk.gov.hmrc.breathingspaceifproxy.model
 
 import java.time.{LocalDate, ZonedDateTime}
+import java.util.UUID
+
+import play.api.libs.json.{JsObject, Json, Writes}
+
+// --------------------------------------------------------------------------------
 
 trait PeriodInRequest {
   val startDate: LocalDate
   val endDate: Option[LocalDate]
   val pegaRequestTimestamp: ZonedDateTime
+}
+
+// --------------------------------------------------------------------------------
+
+final case class PostPeriodInRequest(
+  startDate: LocalDate,
+  endDate: Option[LocalDate],
+  pegaRequestTimestamp: ZonedDateTime
+) extends PeriodInRequest
+
+object PostPeriodInRequest {
+  implicit val reads = Json.reads[PostPeriodInRequest]
+
+  implicit val writes = new Writes[PostPeriodInRequest] {
+    def writes(postPeriod: PostPeriodInRequest): JsObject =
+      Json.obj(
+        startDateKey -> postPeriod.startDate,
+        endDateKey -> postPeriod.endDate,
+        timestampKey -> postPeriod.pegaRequestTimestamp.format(timestampFormatter)
+      )
+  }
+}
+
+// --------------------------------------------------------------------------------
+
+final case class PutPeriodInRequest(
+  periodID: UUID,
+  startDate: LocalDate,
+  endDate: Option[LocalDate],
+  pegaRequestTimestamp: ZonedDateTime
+) extends PeriodInRequest
+
+object PutPeriodInRequest {
+  implicit val reads = Json.reads[PutPeriodInRequest]
+
+  implicit val writes = new Writes[PutPeriodInRequest] {
+    def writes(putPeriod: PutPeriodInRequest): JsObject =
+      Json.obj(
+        periodIdKey -> putPeriod.periodID,
+        startDateKey -> putPeriod.startDate,
+        endDateKey -> putPeriod.endDate,
+        timestampKey -> putPeriod.pegaRequestTimestamp.format(timestampFormatter)
+      )
+  }
 }

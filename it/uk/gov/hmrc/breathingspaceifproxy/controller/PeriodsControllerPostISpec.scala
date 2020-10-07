@@ -1,6 +1,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.syntax.option._
+import org.scalatest.Assertion
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.Helpers
@@ -17,17 +18,15 @@ class PeriodsControllerPostISpec extends BaseISpec {
   "POST BS Periods for Nino" should {
 
     "return 201(CREATED) and all periods for the valid Nino provided" in {
-      val expectedBody = Json.toJson(validPeriodsResponse).toString
-      stubCall(HttpMethod.Post, periodsConnectorUrl, Status.CREATED, expectedBody)
+      verifyCreated(attended = true)
+    }
 
-      val body = postPeriodsRequestAsJson(postPeriodsRequest)
-      val request = fakeRequest(Helpers.POST, postPath).withBody(body)
+    "return 201(CREATED) for an ATTENDED request" in {
+      verifyCreated(attended = true)
+    }
 
-      val response = route(app, request).get
-      status(response) shouldBe Status.CREATED
-
-      verifyHeadersForAttended(HttpMethod.Post, periodsConnectorUrl)
-      contentAsString(response) shouldBe expectedBody
+    "return 201(CREATED) for an UNATTENDED request" in {
+      verifyCreated(attended = false)
     }
 
     "return 400(BAD_REQUEST) when no body is provided" in {
@@ -65,7 +64,25 @@ class PeriodsControllerPostISpec extends BaseISpec {
       val response = route(app, request).get
       status(response) shouldBe Status.NOT_FOUND
 
-      verifyHeadersForAttended(HttpMethod.Post, url)
+      verifyHeaders(HttpMethod.Post, url)
     }
+  }
+
+  private def verifyCreated(attended: Boolean): Assertion = {
+    val expectedBody = Json.toJson(validPeriodsResponse).toString
+    stubCall(HttpMethod.Post, periodsConnectorUrl, Status.CREATED, expectedBody)
+
+    val request =
+      (if (attended) fakeRequest(Helpers.POST, postPath)
+      else fakeRequestForUnattended(Helpers.POST, postPath))
+        .withBody(postPeriodsRequestAsJson(postPeriodsRequest))
+
+    val response = route(app, request).get
+    status(response) shouldBe Status.CREATED
+
+    if (attended) verifyHeadersForAttended(HttpMethod.Post, periodsConnectorUrl)
+    else verifyHeadersForUnattended(HttpMethod.Post, periodsConnectorUrl)
+
+    contentAsString(response) shouldBe expectedBody
   }
 }

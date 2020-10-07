@@ -51,22 +51,22 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   def post(
     nino: Nino,
-    periods: PostPeriods
+    postPeriods: PostPeriodsInRequest
   )(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
     monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> periods))
+        .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> postPeriods))
         .map(_.validNec)
         .recoverWith(handleUpstreamError)
     }
 
   def put(
     nino: Nino,
-    periods: PutPeriods
+    putPeriods: PutPeriodsInRequest
   )(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
     monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> periods))
+        .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> putPeriods))
         .map(_.validNec)
         .recoverWith(handleUpstreamError)
     }

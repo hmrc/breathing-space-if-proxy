@@ -70,6 +70,9 @@ abstract class BaseISpec
   def fakeRequestForUnattended(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeadersForUnattended: _*)
 
+  def verifyHeaders(method: HttpMethod, url: String): Unit =
+    verifyHeadersForAttended(method, url)
+
   def verifyHeadersForAttended(method: HttpMethod, url: String): Unit =
     verify(1, method.verifyHeaderFor(urlMatching(url))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))

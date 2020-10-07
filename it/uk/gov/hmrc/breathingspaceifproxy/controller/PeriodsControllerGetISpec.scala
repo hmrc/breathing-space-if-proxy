@@ -1,6 +1,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.syntax.option._
+import org.scalatest.Assertion
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.Helpers
@@ -18,14 +19,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
   "GET BS Periods for Nino" should {
 
     "return 200(OK) and all periods for the valid Nino provided" in {
-      val expectedBody = Json.toJson(validPeriodsResponse).toString
-      stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedBody)
-
-      val response = route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get
-      status(response) shouldBe Status.OK
-
-      verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
-      contentAsString(response) shouldBe expectedBody
+      verifyOk(attended = true)
     }
 
     "return 200(OK) and an empty list of periods for the valid Nino provided" in {
@@ -35,19 +29,16 @@ class PeriodsControllerGetISpec extends BaseISpec {
       val response = route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get
       status(response) shouldBe Status.OK
 
-      verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
+      verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
       contentAsString(response) shouldBe expectedBody
     }
 
-    "return 200(OK) for an unattended request with a valid Nino" in {
-      val expectedBody = """{"periods":[]}"""
-      stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedBody)
+    "return 200(OK) for an ATTENDED request" in {
+      verifyOk(attended = true)
+    }
 
-      val response = route(app, fakeRequestForUnattended(Helpers.GET, getPathWithValidNino)).get
-      status(response) shouldBe Status.OK
-
-      verifyHeadersForUnattended(HttpMethod.Get, periodsConnectorUrl)
-      contentAsString(response) shouldBe expectedBody
+    "return 200(OK) for an UNATTENDED request" in {
+      verifyOk(attended = false)
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
@@ -68,7 +59,25 @@ class PeriodsControllerGetISpec extends BaseISpec {
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
       val response = route(app, fakeRequest(Helpers.GET, getPathWithUnknownNino)).get
       status(response) shouldBe Status.NOT_FOUND
-      verifyHeadersForAttended(HttpMethod.Get, url)
+      verifyHeaders(HttpMethod.Get, url)
     }
+  }
+
+  private def verifyOk(attended: Boolean): Assertion = {
+    val expectedBody = Json.toJson(validPeriodsResponse).toString
+    stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedBody)
+
+    val request =
+      if (attended) fakeRequest(Helpers.GET, getPathWithValidNino)
+      else fakeRequestForUnattended(Helpers.GET, getPathWithValidNino)
+
+    val response = route(app, request).get
+    status(response) shouldBe Status.OK
+
+
+    if (attended) verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
+    else verifyHeadersForUnattended(HttpMethod.Get, periodsConnectorUrl)
+
+    contentAsString(response) shouldBe expectedBody
   }
 }

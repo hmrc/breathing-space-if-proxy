@@ -52,30 +52,34 @@ trait RequestValidation extends Logging {
   def validateNino(maybeNino: Option[String]): Validation[Nino] =
     maybeNino.fold(ErrorItem(MISSING_NINO).invalidNec[Nino])(validateNino(_))
 
-  def validateJsValue[T](json: JsValue, name: String)(implicit rds: Reads[T]): Option[T] =
+  def parseJsValue[T](json: JsValue, name: String)(implicit rds: Reads[T]): Option[T] =
     (json \ name).validate[T] match {
       case JsSuccess(value, _) => value.some
       case JsError(_) => none
     }
 
-  def validateJsObject[T](json: JsValue)(implicit rds: Reads[T]): Option[T] =
+  def parseJsObject[T](json: JsValue)(implicit rds: Reads[T]): Option[T] =
     json.validate[T] match {
       case JsSuccess(value, _) => value.some
       case JsError(_) => none
     }
 
-  def validateJsArray[T](json: JsArray, name: String, f: (T, Int) => Validation[T])(
+  def validateJsArray[T](json: JsArray, name: String, validateItem: (T, Int) => Validation[T])(
     implicit rds: Reads[T]
   ): Validation[List[T]] =
+    // MISSING_PERIODS, as error code, is a bit misleading here, since the function is
+    // generic and accordingly not thought for checking an array of Periods specifically.
+    // It should be then replaced in future with a more generic error code in case we
+    // are going to have a different array type.
     if (json.value.isEmpty) ErrorItem(MISSING_PERIODS).invalidNec[List[T]]
     else {
       json.value.zipWithIndex
         .map { jsValueAndIndex =>
-          validateJsObject[T](jsValueAndIndex._1)
+          parseJsObject[T](jsValueAndIndex._1)
             .fold {
               ErrorItem(INVALID_JSON_ITEM, s"($name ${jsValueAndIndex._2})".some).invalidNec[T]
             } {
-              f(_, jsValueAndIndex._2)
+              validateItem(_, jsValueAndIndex._2)
             }
             .map(List(_))
         }
@@ -149,8 +153,9 @@ trait RequestValidation extends Logging {
       || requestType == Attended.DS2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
       // correlationId as UUID
       headerValues._1.validNec[ErrorItem]
-    } else
+    } else {
       ErrorItem(INVALID_HEADER, s"(${Header.StaffPid}). Cannot be '$staffPid' for $requestType".some).invalidNec[UUID]
+    }
   }
 
   def retrieveCorrelationId(implicit request: Request[_]): Option[String] =

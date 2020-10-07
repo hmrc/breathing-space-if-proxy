@@ -17,7 +17,7 @@ class PeriodsConnectorISpec extends BaseISpec {
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, responsePayload)
       val response = await(connector.get(nino))
-      verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
+      verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
       assert(response.fold(_ => false, _ => true))
     }
 
@@ -26,21 +26,21 @@ class PeriodsConnectorISpec extends BaseISpec {
 
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
       val response = await(connector.get(unknownNino))
-      verifyHeadersForAttended(HttpMethod.Get, url)
+      verifyHeaders(HttpMethod.Get, url)
       response.fold(_.head.baseError shouldBe RESOURCE_NOT_FOUND, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 excluded" in {
       stubCall(HttpMethod.Get, periodsConnectorUrl, Status.BAD_REQUEST, errorResponsePayloadFromIF)
       val response = await(connector.get(nino))
-      verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
+      verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
       response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 5xx error, (500,502,503) excluded" in {
       stubCall(HttpMethod.Get, periodsConnectorUrl, Status.BAD_GATEWAY, errorResponsePayloadFromIF)
       val response = await(connector.get(nino))
-      verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
+      verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
       response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
   }
@@ -51,7 +51,7 @@ class PeriodsConnectorISpec extends BaseISpec {
       stubCall(HttpMethod.Post, periodsConnectorUrl, Status.CREATED, responsePayload)
 
       val response = await(connector.post(nino, postPeriodsRequest))
-      verifyHeadersForAttended(HttpMethod.Post, periodsConnectorUrl)
+      verifyHeaders(HttpMethod.Post, periodsConnectorUrl)
       assert(response.fold(_ => false, _ => true))
     }
   }
@@ -62,7 +62,7 @@ class PeriodsConnectorISpec extends BaseISpec {
       stubCall(HttpMethod.Put, periodsConnectorUrl, Status.OK, responsePayload)
 
       val response = await(connector.put(nino, putPeriodsRequest))
-      verifyHeadersForAttended(HttpMethod.Put, periodsConnectorUrl)
+      verifyHeaders(HttpMethod.Put, periodsConnectorUrl)
       assert(response.fold(_ => false, _ => true))
     }
   }

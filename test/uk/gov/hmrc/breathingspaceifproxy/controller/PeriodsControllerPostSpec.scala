@@ -28,10 +28,9 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.Json
 import play.api.test.Helpers
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -43,7 +42,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
   "post" should {
 
     "return 201(CREATED) when all required headers are present and the body is valid Json" in {
-      when(mockConnector.post(any[Nino], any[PostPeriods])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.post(any[Nino], any[PostPeriodsInRequest])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body")
@@ -54,11 +53,11 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 201(CREATED) when for a period the endDate is not present" in {
-      when(mockConnector.post(any[Nino], any[PostPeriods])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.post(any[Nino], any[PostPeriodsInRequest])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a Period where the endDate is missing")
-      val body = postPeriodsRequest(List(PostPeriod(LocalDate.now, None, ZonedDateTime.now)))
+      val body = postPeriodsRequest(List(PostPeriodInRequest(LocalDate.now, None, ZonedDateTime.now)))
 
       And("a request with all required headers and the Period as a valid Json body")
       val request = requestWithAllHeaders(POST).withBody(body)
@@ -85,7 +84,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when the 'periods' array is empty" in {
-      val body = Json.obj("nino" -> validNinoAsString, "periods" -> List.empty[PostPeriod]).validNec[ErrorItem]
+      val body = Json.obj("nino" -> validNinoAsString, "periods" -> List.empty[PostPeriodInRequest]).validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
