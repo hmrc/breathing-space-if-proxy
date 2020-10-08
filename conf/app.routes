@@ -5,3 +5,5 @@ GET     /debtor/:nino/details    uk.gov.hmrc.breathingspaceifproxy.controller.De
 GET     /:nino/periods           uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.get(nino)
 
 POST    /periods                 uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.post
+
+PUT     /:nino/periods           uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.put(nino)

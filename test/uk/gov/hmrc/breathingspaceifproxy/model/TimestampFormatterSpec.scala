@@ -16,14 +16,16 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.time.LocalDate
-import java.util.UUID
+import java.time.ZonedDateTime
 
-import play.api.libs.json.Json
+import org.scalatest.funsuite.AnyFunSuite
+import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-final case class ResponsePeriod(periodId: UUID, startDate: LocalDate, endDate: Option[LocalDate])
+class TimestampFormatterSpec extends AnyFunSuite with BaseSpec {
 
-object ResponsePeriod {
-
-  implicit val format = Json.format[ResponsePeriod]
+  test("timestampFormatter outputs the timestamp according to the expected ISO format") {
+    val expectedFormattedDateTime = "2020-12-31T23:59:59.999+01:00"
+    val dateTime = ZonedDateTime.parse(expectedFormattedDateTime)
+    dateTime.format(timestampFormatter) shouldBe expectedFormattedDateTime
+  }
 }

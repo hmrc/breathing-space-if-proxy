@@ -24,14 +24,18 @@ sealed abstract class BaseError(val httpCode: Int, val message: String) extends 
 
 object BaseError extends Enum[BaseError] {
 
+  case object INVALID_BODY extends BaseError(BAD_REQUEST, "Not expected a body to this endpoint")
+  case object INVALID_DATE extends BaseError(BAD_REQUEST, "Invalid date value for period ")
+  case object INVALID_DATE_RANGE extends BaseError(BAD_REQUEST, "End-date before start-date for period ")
+  case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")
+  case object INVALID_JSON extends BaseError(BAD_REQUEST, "Payload not in the expected Json format")
+  case object INVALID_JSON_ITEM extends BaseError(BAD_REQUEST, "One or more values cannot validated for the Json item")
+  case object INVALID_NINO extends BaseError(BAD_REQUEST, "Invalid Nino")
+  case object INVALID_TIMESTAMP extends BaseError(BAD_REQUEST, "Timestamp is too old for period ")
   case object MISSING_BODY extends BaseError(BAD_REQUEST, "The request must have a body")
   case object MISSING_HEADER extends BaseError(BAD_REQUEST, "Missing required header")
-  case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")
-  case object INVALID_DATE extends BaseError(BAD_REQUEST, "Invalid date value")
-  case object INVALID_DATE_RANGE extends BaseError(BAD_REQUEST, "End-date before start-date")
-  case object INVALID_TIMESTAMP extends BaseError(BAD_REQUEST, "Timestamp is too old for Period")
-  case object INVALID_JSON extends BaseError(BAD_REQUEST, "Payload not in the expected Json format")
-  case object INVALID_NINO extends BaseError(BAD_REQUEST, "Invalid Nino")
+  case object MISSING_NINO extends BaseError(BAD_REQUEST, "Payload does not contain a 'nino' value?")
+  case object MISSING_PERIODS extends BaseError(BAD_REQUEST, "Payload does not contain a 'periods' array?")
 
   case object RESOURCE_NOT_FOUND
       extends BaseError(NOT_FOUND, "The downstream service has indicated that the provided resource was not found")
@@ -45,12 +49,12 @@ object BaseError extends Enum[BaseError] {
   override val values = findValues
 }
 
-final case class Error(baseError: BaseError, details: Option[String] = None)
+final case class ErrorItem(baseError: BaseError, details: Option[String] = None)
 
-object Error {
+object ErrorItem {
 
-  implicit val writes = new Writes[Error] {
-    def writes(error: Error): JsObject =
+  implicit val writes = new Writes[ErrorItem] {
+    def writes(error: ErrorItem): JsObject =
       Json.obj(
         "code" -> error.baseError.entryName,
         "message" -> s"${error.baseError.message}${error.details.fold("")(identity)}"

@@ -16,19 +16,23 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.time.ZonedDateTime
+import java.time.LocalDate
+import java.util.UUID
 
-import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.breathingspaceifproxy.model.RequestPeriod.formatter
-import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import play.api.libs.json.Json
 
-class RequestPeriodSpec extends AnyWordSpec with BaseSpec {
+// --------------------------------------------------------------------------------
 
-  "RequestPeriod.formatter" should {
-    "writes the timestamp according to the expected ISO format" in {
-      val expectedFormattedDateTime = "2020-12-31T23:59:59.999+01:00"
-      val dateTime = ZonedDateTime.parse(expectedFormattedDateTime)
-      dateTime.format(formatter) shouldBe expectedFormattedDateTime
-    }
-  }
+final case class PeriodInResponse(periodID: UUID, startDate: LocalDate, endDate: Option[LocalDate])
+
+object PeriodInResponse {
+  implicit val format = Json.format[PeriodInResponse]
+}
+
+// --------------------------------------------------------------------------------
+
+final case class PeriodsInResponse(periods: List[PeriodInResponse])
+
+object PeriodsInResponse {
+  implicit val format = Json.format[PeriodsInResponse]
 }

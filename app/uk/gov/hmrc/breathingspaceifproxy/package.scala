@@ -19,7 +19,7 @@ package uk.gov.hmrc
 import scala.concurrent.Future
 
 import cats.data.ValidatedNec
-import uk.gov.hmrc.breathingspaceifproxy.model.{Error, RequestPeriod, ResponsePeriod}
+import uk.gov.hmrc.breathingspaceifproxy.model._
 
 package object breathingspaceifproxy {
 
@@ -27,10 +27,7 @@ package object breathingspaceifproxy {
 
   val unattendedStaffPid = "0000000"
 
-  type RequestPeriods = List[RequestPeriod]
-  type ResponsePeriods = List[ResponsePeriod]
-
-  type Validation[T] = ValidatedNec[Error, T]
+  type Validation[T] = ValidatedNec[ErrorItem, T]
   type ResponseValidation[T] = Future[Validation[T]]
 
   object Header {

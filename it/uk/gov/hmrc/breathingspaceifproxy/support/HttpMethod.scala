@@ -17,18 +17,21 @@
 package uk.gov.hmrc.breathingspaceifproxy.support
 
 import com.github.tomakehurst.wiremock.client.MappingBuilder
-import com.github.tomakehurst.wiremock.client.WireMock.{delete, get, post, put}
-import com.github.tomakehurst.wiremock.matching.UrlPattern
+import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.matching.{RequestPatternBuilder, UrlPattern}
 import enumeratum._
 
-sealed abstract class HttpMethod(val call: UrlPattern => MappingBuilder) extends EnumEntry
+sealed abstract class HttpMethod(
+  val call: UrlPattern => MappingBuilder,
+  val verifyHeaderFor: UrlPattern => RequestPatternBuilder
+) extends EnumEntry
 
 object HttpMethod extends Enum[HttpMethod] {
 
-  case object Delete extends HttpMethod(delete)
-  case object Get extends HttpMethod(get)
-  case object Post extends HttpMethod(post)
-  case object Put extends HttpMethod(put)
+  case object Delete extends HttpMethod(delete, deleteRequestedFor)
+  case object Get extends HttpMethod(get, getRequestedFor)
+  case object Post extends HttpMethod(post, postRequestedFor)
+  case object Put extends HttpMethod(put, putRequestedFor)
 
   override val values = findValues
 }

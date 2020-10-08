@@ -26,48 +26,48 @@ import play.api.libs.json.Json
 import play.api.mvc.Result
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, ErrorItem}
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, TestingErrorItem}
 
 class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
 
   test("ErrorResponse with httpErrorCode param and an 'Errors' list with 1 'Error' item") {
-    genAndTestErrorResponse(true, Nec(Error(INVALID_NINO)))
+    genAndTestErrorResponse(true, Nec(ErrorItem(INVALID_NINO)))
   }
 
   test("ErrorResponse with httpErrorCode param and an 'Errors' list with 2 'Error' items") {
-    genAndTestErrorResponse(true, Nec(Error(INVALID_NINO), Error(INVALID_DATE)))
+    genAndTestErrorResponse(true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_DATE)))
   }
 
   test("ErrorResponse with an 'Errors' list with 1 'Error' item") {
-    genAndTestErrorResponse(false, Nec(Error(SERVER_ERROR)))
+    genAndTestErrorResponse(false, Nec(ErrorItem(SERVER_ERROR)))
   }
 
   test("ErrorResponse with an 'Errors' list with 2 'Error' items") {
-    genAndTestErrorResponse(false, Nec(Error(INVALID_NINO), Error(INVALID_DATE)))
+    genAndTestErrorResponse(false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_DATE)))
   }
 
-  private def genAndTestErrorResponse(withHttpErrorCode: Boolean, errors: Nec[Error]): Assertion = {
+  private def genAndTestErrorResponse(withHttpErrorCode: Boolean, errorItems: Nec[ErrorItem]): Assertion = {
     Given("an Http Status >= 400")
-    val httpErrorCode = if (withHttpErrorCode) Status.BAD_REQUEST else errors.head.baseError.httpCode
+    val httpErrorCode = if (withHttpErrorCode) Status.BAD_REQUEST else errorItems.head.baseError.httpCode
 
-    val nrErrors = errors.length
+    val nrErrors = errorItems.length
     And(s"$nrErrors Error items")
 
     Then("the resulting ErrorResponse instance should wrap an Http response")
     val response =
-      if (withHttpErrorCode) ErrorResponse(correlationIdAsString.some, httpErrorCode, errors).value.futureValue
+      if (withHttpErrorCode) ErrorResponse(correlationIdAsString.some, httpErrorCode, errorItems).value.futureValue
       else {
         if (nrErrors == 1) {
           // Testing the 'apply' taking a single 'Error'
-          testErrorResponse(ErrorResponse(correlationId, errors.head).value.futureValue, httpErrorCode, errors)
+          testErrorResponse(ErrorResponse(correlationId, errorItems.head).value.futureValue, httpErrorCode, errorItems)
         }
-        ErrorResponse(correlationId, errors).value.futureValue
+        ErrorResponse(correlationId, errorItems).value.futureValue
       }
 
-    testErrorResponse(response, httpErrorCode, errors)
+    testErrorResponse(response, httpErrorCode, errorItems)
   }
 
-  private def testErrorResponse(response: Result, httpErrorCode: Int, errors: Nec[Error]): Assertion = {
+  private def testErrorResponse(response: Result, httpErrorCode: Int, errorItems: Nec[ErrorItem]): Assertion = {
     And("the Http response should have the Http Status provided")
     response.header.status shouldBe httpErrorCode
 
@@ -79,12 +79,12 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
     response.body.contentType shouldBe Some(MimeTypes.JSON)
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
-    val nrErrors = errors.length.toInt
+    val nrErrors = errorItems.length.toInt
     And(s"'errors' should be a list with $nrErrors Error items")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
+    val errorList = (bodyAsJson \ "errors").as[List[TestingErrorItem]]
     errorList.size shouldBe nrErrors
     assert(errorList.forall { errorItem =>
-      errors.exists { error =>
+      errorItems.exists { error =>
         errorItem.code == error.baseError.entryName
       }
     })

@@ -19,7 +19,6 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 import scala.concurrent.Future
 
 import akka.stream.Materializer
-import cats.syntax.option._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
@@ -30,11 +29,9 @@ import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.controller.BaseController
 
 trait BaseSpec
-    extends BaseController
-    with BreathingSpaceTestSupport
+    extends BreathingSpaceTestSupport
     with DefaultAwaitTimeout
     with GivenWhenThen
     with GuiceOneAppPerSuite
@@ -53,7 +50,7 @@ trait BaseSpec
     expectedStatus: Int,
     correlationId: Option[String],
     numberOfErrors: Int
-  ): List[ErrorItem] = {
+  ): List[TestingErrorItem] = {
 
     val result = future.futureValue
     Then(s"the resulting response should have as Http Status $expectedStatus")
@@ -64,7 +61,7 @@ trait BaseSpec
 
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
-      headers.get(Header.CorrelationId) shouldBe correlationId.some
+      headers.get(Header.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
       headers.size shouldBe 2
     }
 
@@ -74,7 +71,7 @@ trait BaseSpec
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 
     And(s"""contain an "errors" list with $numberOfErrors detail errors""")
-    val errorList = (bodyAsJson \ "errors").as[List[ErrorItem]]
+    val errorList = (bodyAsJson \ "errors").as[List[TestingErrorItem]]
     errorList.size shouldBe numberOfErrors
     errorList
   }

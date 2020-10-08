@@ -20,7 +20,6 @@ import java.util.UUID
 
 import scala.concurrent.Future
 
-import cats.data.NonEmptyChain
 import cats.syntax.option._
 import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
@@ -32,8 +31,6 @@ import uk.gov.hmrc.breathingspaceifproxy.Header
 case class ErrorResponse(value: Future[Result])
 
 object ErrorResponse extends Logging {
-
-  type Errors = NonEmptyChain[Error]
 
   def apply(correlationId: => Option[String], httpErrorCode: Int, errors: Errors): ErrorResponse = {
     val payload = Json.obj("errors" -> errors.toChain.toList)
@@ -47,7 +44,7 @@ object ErrorResponse extends Logging {
     apply(correlationId.toString.some, errorList.head.baseError.httpCode, payload)
   }
 
-  def apply(correlationId: UUID, error: Error): ErrorResponse = {
+  def apply(correlationId: UUID, error: ErrorItem): ErrorResponse = {
     val payload = Json.obj("errors" -> List(error))
     apply(correlationId.toString.some, error.baseError.httpCode, payload)
   }
