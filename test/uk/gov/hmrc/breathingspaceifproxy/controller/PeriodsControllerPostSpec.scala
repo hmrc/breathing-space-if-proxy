@@ -126,25 +126,12 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-31")
     }
 
-    "return 400(BAD_REQUEST) when year in startDate is before 2020" in {
-      verifyJsonItemValidation(INVALID_DATE, None, "2000-04-01")
-    }
-
     "return 400(BAD_REQUEST) when endDate is present but it is not a valid date" in {
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-01-01", "2020-02-30".some)
     }
 
     "return 400(BAD_REQUEST) when pegaRequestTimestamp is not in the expected ISO-8601 format" in {
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-01", None, LocalDateTime.now.toString)
-    }
-
-    "return 400(BAD_REQUEST) when endDate is temporally before startDate" in {
-      verifyJsonItemValidation(INVALID_DATE_RANGE, None, "2020-04-01", "2020-03-01".some)
-    }
-
-    "return 400(BAD_REQUEST) if the timestamp is not less than nn secs before the request's processing time" in {
-      val invalidTimestamp = ZonedDateTime.now.minusSeconds(controller.timestampLimit).toString
-      verifyJsonItemValidation(INVALID_TIMESTAMP, None, "2020-04-01", None, invalidTimestamp)
     }
   }
 

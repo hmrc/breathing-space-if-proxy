@@ -35,7 +35,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("ErrorResponse with httpErrorCode param and an 'Errors' list with 2 'Error' items") {
-    genAndTestErrorResponse(true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_DATE)))
+    genAndTestErrorResponse(true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
   }
 
   test("ErrorResponse with an 'Errors' list with 1 'Error' item") {
@@ -43,7 +43,7 @@ class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("ErrorResponse with an 'Errors' list with 2 'Error' items") {
-    genAndTestErrorResponse(false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_DATE)))
+    genAndTestErrorResponse(false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
   }
 
   private def genAndTestErrorResponse(withHttpErrorCode: Boolean, errorItems: Nec[ErrorItem]): Assertion = {

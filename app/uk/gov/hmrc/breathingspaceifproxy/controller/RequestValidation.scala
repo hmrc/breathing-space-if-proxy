@@ -64,7 +64,7 @@ trait RequestValidation extends Logging {
       case JsError(_) => none
     }
 
-  def validateJsArray[T](json: JsArray, name: String, validateItem: (T, Int) => Validation[T])(
+  def validateJsArray[T](json: JsArray, name: String)(
     implicit rds: Reads[T]
   ): Validation[List[T]] =
     // MISSING_PERIODS, as error code, is a bit misleading here, since the function is
@@ -76,11 +76,7 @@ trait RequestValidation extends Logging {
       json.value.zipWithIndex
         .map { jsValueAndIndex =>
           parseJsObject[T](jsValueAndIndex._1)
-            .fold {
-              ErrorItem(INVALID_JSON_ITEM, s"($name ${jsValueAndIndex._2})".some).invalidNec[T]
-            } {
-              validateItem(_, jsValueAndIndex._2)
-            }
+            .fold(ErrorItem(INVALID_JSON_ITEM, s"($name ${jsValueAndIndex._2})".some).invalidNec[T])(_.validNec)
             .map(List(_))
         }
         .reduceLeft(_.combine(_))

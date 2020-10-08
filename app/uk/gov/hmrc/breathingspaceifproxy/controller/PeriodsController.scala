@@ -16,12 +16,9 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.syntax.apply._
-import cats.syntax.option._
 import cats.syntax.validated._
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsArray, JsValue}
@@ -101,51 +98,13 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       validateNino(parseJsValue[String](json, "nino")),
       parseJsValue[JsArray](json, "periods")
         .fold(ErrorItem(MISSING_PERIODS).invalidNec[PostPeriodsInRequest]) {
-          validateJsArray[PostPeriodInRequest](_, "period", validatePeriod)
+          validateJsArray[PostPeriodInRequest](_, "period")
         }
     ).mapN((nino, periods) => (nino, periods))
 
   private def validateBodyOfPut(json: JsValue): Validation[PutPeriodsInRequest] =
     parseJsValue[JsArray](json, "periods")
       .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriodsInRequest]) {
-        validateJsArray[PutPeriodInRequest](_, "period", validatePeriod)
+        validateJsArray[PutPeriodInRequest](_, "period")
       }
-
-  private def validatePeriod[T <: PeriodInRequest](period: T, itemIndex: Int): Validation[T] =
-    period.endDate.fold {
-      (
-        validateDate(period.startDate, itemIndex),
-        validateDateTime(period.pegaRequestTimestamp, itemIndex)
-      ).mapN((_, _) => period)
-    } { endDate =>
-      (
-        validateDate(period.startDate, itemIndex),
-        validateDate(endDate, itemIndex),
-        validateDateRange(period.startDate, endDate, itemIndex),
-        validateDateTime(period.pegaRequestTimestamp, itemIndex)
-      ).mapN((_, _, _, _) => period)
-    }
-
-  private val BreathingSpaceProgramStartingYear = 2020
-
-  private def validateDate(date: LocalDate, itemIndex: Int): Validation[LocalDate] =
-    if (date.getYear >= BreathingSpaceProgramStartingYear) date.validNec
-    else {
-      val details = s"$itemIndex. Year(${date.getYear}) is before $BreathingSpaceProgramStartingYear"
-      ErrorItem(INVALID_DATE, details.some).invalidNec
-    }
-
-  val timestampLimit = 60
-
-  private def validateDateTime(requestDateTime: ZonedDateTime, itemIndex: Int): Validation[Unit] =
-    if (requestDateTime.toLocalDateTime.isBefore(LocalDateTime.now.minusSeconds(timestampLimit))) {
-      val details = s"$itemIndex. Request timestamp is too old (more than $timestampLimit seconds)"
-      ErrorItem(INVALID_TIMESTAMP, details.some).invalidNec
-    } else unit.validNec
-
-  private def validateDateRange(startDate: LocalDate, endDate: LocalDate, itemIndex: Int): Validation[Unit] =
-    if (endDate.isBefore(startDate)) {
-      val details = s"$itemIndex. startDate($startDate) is after endDate($endDate)"
-      ErrorItem(INVALID_DATE_RANGE, details.some).invalidNec
-    } else unit.validNec
 }
