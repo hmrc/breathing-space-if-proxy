@@ -25,11 +25,12 @@ import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.config.{AppConfig, HeaderMapping}
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.HeaderCarrierConverter
 
 abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerComponents)
     extends BackendController(cc)
@@ -73,19 +74,24 @@ abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerCompon
   }
 
   override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
-    val headers = requestFromClient.headers.headers
-    // Presence of the headers in "headerMapping" was already validated in RequestValidation
-    val extraHeaders = appConfig.headerMapping
-      .map { headerMapping =>
-        val headerValue = headers
-          .filter(headerFromClient => headerFromClient._1.toLowerCase == headerMapping.nameToMap.toLowerCase)
-          .head
-          ._2
+    val headers = requestFromClient.headers
+      .replace(List(Header.Authorization -> appConfig.integrationframeworkAuthToken): _*)
 
-        headerMapping.nameMapped -> headerValue
-      }
-      .filter(header => header._1 != appConfig.staffPidMapped || header._2 != unattendedStaffPid)
+    // Presence of the headers to map (by using "appConfig.headerMapping") was already validated in RequestValidation
+    // The mapping only takes place on the header's name, not on the value.
+    val extraHeaders =
+      (Header.Environment -> appConfig.integrationFrameworkEnvironment) +: appConfig.headerMapping
+        .map(mapAndReturnHeader(_, headers.headers))
+        .filter(header => header._1 != appConfig.staffPidMapped || header._2 != unattendedStaffPid)
 
-    super.hc.withExtraHeaders(extraHeaders: _*)
+    HeaderCarrierConverter
+      .fromHeadersAndSessionAndRequest(headers, request = Some(requestFromClient))
+      .withExtraHeaders(extraHeaders: _*)
+  }
+
+  private def mapAndReturnHeader(hdrMapping: HeaderMapping, hdrs: Seq[(String, String)]): (String, String) = {
+    val hdrValue =
+      hdrs.filter(hdrFromClient => hdrFromClient._1.toLowerCase == hdrMapping.nameToMap.toLowerCase).head._2
+    hdrMapping.nameMapped -> hdrValue
   }
 }
