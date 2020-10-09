@@ -47,7 +47,7 @@ class PeriodsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfter
     "correctly compose a url to the IF" in {
       Given("a valid Nino ")
       val expectedUrl =
-        s"http://localhost:9601/breathing-space/api/v1/${nino.value}/periods"
+        s"http://localhost:9601/breathing-space-stateless/api/v1/${nino.value}/periods"
 
       Then(s"then the composed url should equal $expectedUrl")
       PeriodsConnector.url(nino) shouldBe expectedUrl
