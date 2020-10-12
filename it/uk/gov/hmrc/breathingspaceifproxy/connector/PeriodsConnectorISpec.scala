@@ -46,6 +46,15 @@ class PeriodsConnectorISpec extends BaseISpec {
       response.fold(_.head.baseError shouldBe RESOURCE_NOT_FOUND, _ => notAnErrorInstance)
     }
 
+    "return CONFLICTING_REQUEST in case of duplicated requests" in {
+      val url = PeriodsConnector.path(nino)
+
+      stubCall(HttpMethod.Get, url, Status.CONFLICT, errorResponsePayloadFromIF)
+      val response = await(connector.get(nino))
+      verifyHeaders(HttpMethod.Get, url)
+      response.fold(_.head.baseError shouldBe CONFLICTING_REQUEST, _ => notAnErrorInstance)
+    }
+
     "return SERVER_ERROR for any 4xx error, 404 excluded" in {
       stubCall(HttpMethod.Get, periodsConnectorUrl, Status.BAD_REQUEST, errorResponsePayloadFromIF)
       val response = await(connector.get(nino))

@@ -31,6 +31,9 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
     case UpstreamErrorResponse.Upstream4xxResponse(response) if response.statusCode == 404 =>
       logErrorAndGenUpstreamResponse(response, RESOURCE_NOT_FOUND)
 
+    case UpstreamErrorResponse.Upstream4xxResponse(response) if response.statusCode == 409 =>
+      logErrorAndGenUpstreamResponse(response, CONFLICTING_REQUEST)
+
     case UpstreamErrorResponse.Upstream4xxResponse(response) =>
       logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 

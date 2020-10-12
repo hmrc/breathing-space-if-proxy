@@ -24,6 +24,12 @@ sealed abstract class BaseError(val httpCode: Int, val message: String) extends 
 
 object BaseError extends Enum[BaseError] {
 
+  case object CONFLICTING_REQUEST
+      extends BaseError(
+        CONFLICT,
+        "The downstream service has indicated that the request is conflicting. Maybe a duplicate POST?"
+      )
+
   case object INVALID_BODY extends BaseError(BAD_REQUEST, "Not expected a body to this endpoint")
   case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")
   case object INVALID_JSON extends BaseError(BAD_REQUEST, "Payload not in the expected Json format")
