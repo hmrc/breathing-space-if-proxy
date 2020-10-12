@@ -75,6 +75,8 @@ abstract class BaseISpec
 
   def verifyHeadersForAttended(method: HttpMethod, url: String): Unit =
     verify(1, method.verifyHeaderFor(urlMatching(url))
+      .withHeader(Header.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
+      .withHeader(Header.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
       .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
@@ -82,6 +84,8 @@ abstract class BaseISpec
 
   def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
     verify(1, method.verifyHeaderFor(urlMatching(url))
+      .withHeader(Header.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
+      .withHeader(Header.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
       .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_UNATTENDED.entryName))
       .withoutHeader(retrieveHeaderMapping(Header.StaffPid))

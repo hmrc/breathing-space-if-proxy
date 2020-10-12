@@ -29,7 +29,6 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HeaderCarrier
 
 final case class PostPeriodsRequest(nino: String, periods: PostPeriodsInRequest)
 
@@ -71,15 +70,6 @@ trait BreathingSpaceTestSupport {
     Header.CorrelationId -> correlationIdAsString,
     Header.RequestType -> Attended.DS2_BS_UNATTENDED.toString,
     Header.StaffPid -> unattendedStaffPid
-  )
-
-  implicit lazy val headerCarrierForIF = HeaderCarrier(
-    extraHeaders = List(
-      CONTENT_TYPE -> MimeTypes.JSON,
-      retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
-      retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,
-      retrieveHeaderMapping(Header.StaffPid) -> attendedStaffPid
-    )
   )
 
   lazy val validPostPeriod = PostPeriodInRequest(

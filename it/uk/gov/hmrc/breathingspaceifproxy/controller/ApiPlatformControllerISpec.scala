@@ -17,34 +17,32 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import play.api.http.Status
-import play.api.libs.ws.WSClient
+import play.api.test.Helpers
 import play.api.test.Helpers._
+import uk.gov.hmrc.breathingspaceifproxy.controller.routes.ApiPlatformController.{conf, getDefinition}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 
 class ApiPlatformControllerISpec extends BaseISpec {
 
-  lazy val wsClient: WSClient = inject[WSClient]
-
-  val testServerAddress = s"http://localhost:$port"
-
   s"GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {
-      val connectorUrl = "/api/definition"
-      val appId = appConfig.v1WhitelistedApplicationIds.head
+      val url = getDefinition.url
+      val response = route(app, fakeRequest(Helpers.GET, url)).get
 
-      val response = await(wsClient.url(s"${testServerAddress}${connectorUrl}").get())
-      response.status shouldBe Status.OK
-      response.body should include(s""""whitelistedApplicationIds": ["${appId}"""")
+      status(response) shouldBe Status.OK
+
+      val appId = appConfig.v1WhitelistedApplicationIds.head
+      contentAsString(response) should include(s""""whitelistedApplicationIds": ["${appId}"""")
     }
   }
 
   s"GET /api/conf/1.0/application.raml" should {
     "return 200(OK) and the application.raml content" in {
-      val connectorUrl = "/api/conf/1.0/application.raml"
+      val url = conf("1.0", "application.raml").url
+      val response = route(app, fakeRequest(Helpers.GET, url)).get
 
-      val response = await(wsClient.url(s"${testServerAddress}${connectorUrl}").get())
-      response.status shouldBe Status.OK
-      response.body should include("title: Breathing Space")
+      status(response) shouldBe Status.OK
+      contentAsString(response) should include("title: Breathing Space")
     }
   }
 }

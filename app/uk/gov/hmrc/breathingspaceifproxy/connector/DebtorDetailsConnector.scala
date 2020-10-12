@@ -51,11 +51,9 @@ class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
 object DebtorDetailsConnector {
 
-  private val partial = "/api/v1/details/"
-
   def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}$partial${nino.value}"
+    s"/${appConfig.integrationFrameworkContext}/api/v1/details/${nino.value}"
 
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"${appConfig.integrationFrameworkUrl}$partial${nino.value}"
+    s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"
 }

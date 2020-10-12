@@ -15,7 +15,7 @@
  */
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 
 import controllers.Assets
 import play.api.Logging
@@ -25,11 +25,12 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.views
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+@Singleton
 class ApiPlatformController @Inject()(appConfig: AppConfig, cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 
-  def getDefinition(): Action[AnyContent] = Action {
+  val getDefinition: Action[AnyContent] = Action {
     logger.debug(s"ApiPlatformController definition endpoint has been called")
     Ok(views.txt.definition(appConfig.v1WhitelistedApplicationIds)).as(MimeTypes.JSON)
   }

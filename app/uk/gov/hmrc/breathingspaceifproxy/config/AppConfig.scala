@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.config
 
-import java.net.URL
 import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
@@ -33,17 +32,25 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
-  val integrationFrameworkContext: String = config.get[String]("microservice.services.integration-framework.context")
-  val integrationFrameworkUrl = new URL(s"$integrationFrameworkBaseUrl/$integrationFrameworkContext").toString
 
-  lazy val v1WhitelistedApplicationIds =
-    config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
+  val integrationFrameworkContext: String =
+    config.get[String]("microservice.services.integration-framework.context")
 
-  lazy val staffPidMapped = servicesConfig.getString("headers.mapping.staff-pid")
+  val integrationFrameworkEnvironment: String =
+    config.get[String]("microservice.services.integration-framework.environment")
 
-  lazy val headerMapping = List[HeaderMapping](
+  val integrationframeworkAuthToken =
+    s"""Bearer ${config.get[String]("microservice.services.integration-framework.auth-token")}"""
+
+  val staffPidMapped = servicesConfig.getString("headers.mapping.staff-pid")
+
+  val headerMapping = List[HeaderMapping](
     HeaderMapping(Header.CorrelationId, servicesConfig.getString("headers.mapping.correlation-id")),
     HeaderMapping(Header.RequestType, servicesConfig.getString("headers.mapping.request-type")),
     HeaderMapping(Header.StaffPid, staffPidMapped)
   )
+
+  // Must be 'lazy'
+  lazy val v1WhitelistedApplicationIds =
+    config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
 }

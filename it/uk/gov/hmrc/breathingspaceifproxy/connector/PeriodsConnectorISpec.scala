@@ -1,14 +1,30 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import play.api.http.Status
+import cats.syntax.option._
+import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
+import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.logging.Authorization
 
 class PeriodsConnectorISpec extends BaseISpec {
 
-  val connector = fakeApplication.injector.instanceOf[PeriodsConnector]
+    implicit lazy val headerCarrierForIF = HeaderCarrier(
+      authorization = Authorization(appConfig.integrationframeworkAuthToken).some,
+      extraHeaders = List(
+        CONTENT_TYPE -> MimeTypes.JSON,
+        Header.Environment -> appConfig.integrationFrameworkEnvironment,
+        retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
+        retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,
+        retrieveHeaderMapping(Header.StaffPid) -> attendedStaffPid
+      )
+    )
+
+  val connector = inject[PeriodsConnector]
 
   lazy val notAnErrorInstance = assert(false, "Not even an Error instance?")
 
