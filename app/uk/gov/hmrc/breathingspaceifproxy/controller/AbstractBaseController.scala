@@ -29,8 +29,8 @@ import uk.gov.hmrc.breathingspaceifproxy.config.{AppConfig, HeaderMapping}
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerComponents)
     extends BackendController(cc)
@@ -77,8 +77,8 @@ abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerCompon
     val headers = requestFromClient.headers
       .replace(List(Header.Authorization -> appConfig.integrationframeworkAuthToken): _*)
 
-    // Presence of the headers to map (by using "appConfig.headerMapping") was already validated in RequestValidation
-    // The mapping only takes place on the header's name, not on the value.
+    // Presence of the headers to map (by using "appConfig.headerMapping") was already validated
+    // in RequestValidation. The mapping only takes place on the header's name, not on the value.
     val extraHeaders =
       (Header.Environment -> appConfig.integrationFrameworkEnvironment) +: appConfig.headerMapping
         .map(mapAndReturnHeader(_, headers.headers))
