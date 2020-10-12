@@ -1,2 +1,0 @@
-GET  /api/definition            uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.getDefinition()
-GET  /api/conf/:version/*file   uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.conf(version, file)

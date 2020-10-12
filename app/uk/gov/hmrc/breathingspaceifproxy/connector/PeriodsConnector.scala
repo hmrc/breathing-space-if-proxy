@@ -75,8 +75,8 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 object PeriodsConnector {
 
   def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/api/v1/${nino.value}/periods"
+    s"/${appConfig.integrationFrameworkContext}/NINO/${nino.value}/periods"
 
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"${appConfig.integrationFrameworkUrl}/api/v1/${nino.value}/periods"
+    s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"
 }

@@ -70,7 +70,7 @@ trait RequestValidation extends Logging {
     // MISSING_PERIODS, as error code, is a bit misleading here, since the function is
     // generic and accordingly not thought for checking an array of Periods specifically.
     // It should be then replaced in future with a more generic error code in case we
-    // are going to have a different array type.
+    // are going to have another array type in addition to Periods.
     if (json.value.isEmpty) ErrorItem(MISSING_PERIODS).invalidNec[List[T]]
     else {
       json.value.zipWithIndex
