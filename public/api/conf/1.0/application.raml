@@ -111,6 +111,81 @@ documentation:
         (annotations.scope): "read:breathing-space-periods"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-periods" ] } ]
         headers:
+          Correlation-Id:
+            description: A unique UUID for this request
+            type: string
+            required: true
+            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          Request-Type:
+            description: |
+              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+              The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+            type: string
+            required: true
+            example: DA2_BS_ATTENDED
+          Pid:
+            description: |
+              The Staff identifier associated with the human attending the operation that generated this request.
+
+              Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
+                - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
+                - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
+
+              Must be a 7 digit numeric value
+            type: string
+            required: true
+            example: "1234567"
+        responses:
+          200:
+            headers:
+              Correlation-Id:
+                description: A unique UUID for this request
+                type: string
+                required: true
+                example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+            body:
+              application/json:
+                type: !include schemas/CommonBsPeriodsResponse.json
+                examples:
+                  examples-1:
+                    description: Multiple periods returned
+                    value: !include examples/GetBsPeriodsResponse.json
+
+          400:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  missingHeader:
+                    description: One or more of the required headers are missing
+                    value:
+                      code: MISSING_HEADER
+                  invalidHeader:
+                    description: One or more of the header values are invalid
+                    value:
+                      code: INVALID_HEADER
+                  invalidNino:
+                    description: Invalid NINO format
+                    value:
+                      code: INVALID_NINO
+
+          404:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  resourceNotFound:
+                    description: The supplied NINO was not found
+                    value:
+                      code: RESOURCE_NOT_FOUND
+
+      put:
+        displayName: Update all Breathing Space periods for a NINO
+        description: Update all Breathing Space periods for the given NINO.
+        (annotations.scope): "write:breathing-space-periods"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
+        headers:
           Content-Type:
             description: Specifies the content type of the request payload. Must be same as the example given.
             type: string
@@ -174,6 +249,26 @@ documentation:
                     description: Invalid NINO format
                     value:
                       code: INVALID_NINO
+                  invalidJson:
+                    description: Payload not in the expected Json format
+                    value:
+                      code: INVALID_JSON
+                  invalidJsonItem:
+                    description: One or more values cannot validated for the Json item
+                    value:
+                      code: INVALID_JSON_ITEM
+                  missingBody:
+                    description: The request must have a body
+                    value:
+                      code: MISSING_BODY
+                  missingNino:
+                    description: Payload does not contain a 'nino' value
+                    value:
+                      code: MISSING_NINO
+                  missingPeriods:
+                    description: Payload does not contain a period
+                    value:
+                      code: MISSING_PERIODS
 
           404:
             body:
