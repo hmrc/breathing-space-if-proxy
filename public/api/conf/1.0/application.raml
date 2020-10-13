@@ -5,7 +5,8 @@ title: Breathing Space
 version: 1.0
 protocols: [ HTTPS ]
 baseUri: https://api.service.hmrc.gov.uk/
-mediaType: application/xml
+mediaType: application/json
+(annotations.deprecationMessage): This version of the API is now deprecated and will be retired soon
 
 uses:
   sec: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/securitySchemes.raml
@@ -15,6 +16,18 @@ uses:
 documentation:
   - title: Overview
     content: !include docs/overview.md
+  - title: Data availability
+    content: !include docs/dataavailability.md
+  - title: Data quality
+    content: !include docs/dataquality.md
+  - title: Authorisation
+    content: !include docs/authorisation.md
+  - title: Versioning
+    content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/versioning.md
+  - title: Errors
+    content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/errors.md
+  - title: Testing
+    content: !include docs/testing.md
 
 /individuals/breathing-space:
 #  /debtor:
@@ -165,6 +178,10 @@ documentation:
                     description: One or more of the header values are invalid
                     value:
                       code: INVALID_HEADER
+                  invalidBody:
+                    description: Not expected a body to this endpoint
+                    value:
+                      code: INVALID_BODY
                   invalidNino:
                     description: Invalid NINO format
                     value:
@@ -241,6 +258,18 @@ documentation:
                     description: One or more of the required headers are missing
                     value:
                       code: MISSING_HEADER
+                  missingBody:
+                    description: The request must have a body
+                    value:
+                      code: MISSING_BODY
+                  missingNino:
+                    description: Payload does not contain a 'nino' value
+                    value:
+                      code: MISSING_NINO
+                  missingPeriods:
+                    description: Payload does not contain a period
+                    value:
+                      code: MISSING_PERIODS
                   invalidHeader:
                     description: One or more of the header values are invalid
                     value:
@@ -257,18 +286,6 @@ documentation:
                     description: One or more values cannot validated for the Json item
                     value:
                       code: INVALID_JSON_ITEM
-                  missingBody:
-                    description: The request must have a body
-                    value:
-                      code: MISSING_BODY
-                  missingNino:
-                    description: Payload does not contain a 'nino' value
-                    value:
-                      code: MISSING_NINO
-                  missingPeriods:
-                    description: Payload does not contain a period
-                    value:
-                      code: MISSING_PERIODS
 
           404:
             body:
@@ -349,30 +366,34 @@ documentation:
                   description: Missing Header
                   value:
                     code: MISSING_HEADER
-                invalidHeader:
-                  description: Invalid Header
-                  value:
-                    code: INVALID_HEADER
                 missingBody:
                   description: Missing Body
                   value:
                     code: MISSING_BODY
+                missingNino:
+                  description: Payload does not contain a 'nino' value
+                  value:
+                    code: MISSING_NINO
+                missingPeriods:
+                  description: Payload does not contain a 'periods' array
+                  value:
+                    code: MISSING_PERIODS
+                invalidHeader:
+                  description: Invalid Header
+                  value:
+                    code: INVALID_HEADER
+                invalidNino:
+                  description: Invalid NINO format
+                  value:
+                    code: INVALID_NINO
                 invalidJson:
                   description: Invalid Json
                   value:
                     code: INVALID_JSON
-                invalidNino:
-                  description: Missing Nino
+                invalidJsonItem:
+                  description: One or more values cannot validated for the Json item
                   value:
-                    code: INVALID_NINO
-                invalidDate:
-                  description: Invalid Date
-                  value:
-                    code: INVALID_DATE
-                invalidDateRange:
-                  description: Invalid Date Range
-                  value:
-                    code: INVALID_DATE_RANGE
+                    code: INVALID_JSON_ITEM
 
         404:
           body:
