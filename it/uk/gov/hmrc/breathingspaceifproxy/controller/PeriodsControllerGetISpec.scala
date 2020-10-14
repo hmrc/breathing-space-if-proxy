@@ -13,13 +13,32 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerGetISpec extends BaseISpec {
 
-  val getPathWithValidNino = get(validNinoAsString).url
-  val getPathWithUnknownNino = get(unknownNino.value).url
+  val nino = genNino
+  val getPathWithValidNino = get(nino.value).url
+  val periodsConnectorUrl = PeriodsConnector.path(nino)
 
   "GET BS Periods for Nino" should {
 
     "return 200(OK) and all periods for the valid Nino provided" in {
       verifyOk(attended = true)
+    }
+
+    "return 200(OK) even for a valid Nino with a trailing blank" in {
+      val ninoWithoutSuffix = genNino
+      val controllerUrl = get(s"${ninoWithoutSuffix.value} ").url
+      val connectorUrl =
+        PeriodsConnector
+          .path(ninoWithoutSuffix)
+          .replace(ninoWithoutSuffix.value, s"${ninoWithoutSuffix.value}%20")
+
+      val expectedBody = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Get, connectorUrl, Status.OK, expectedBody)
+
+      val response = route(app, fakeRequest(Helpers.GET, controllerUrl)).get
+
+      status(response) shouldBe Status.OK
+      verifyHeaders(HttpMethod.Get, connectorUrl)
+      contentAsString(response) shouldBe expectedBody
     }
 
     "return 200(OK) and an empty list of periods for the valid Nino provided" in {
@@ -55,9 +74,10 @@ class PeriodsControllerGetISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
+      val unknownNino = genNino
       val url = PeriodsConnector.path(unknownNino)
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
-      val response = route(app, fakeRequest(Helpers.GET, getPathWithUnknownNino)).get
+      val response = route(app, fakeRequest(Helpers.GET, get(unknownNino.value).url)).get
       status(response) shouldBe Status.NOT_FOUND
       verifyHeaders(HttpMethod.Get, url)
     }
@@ -73,7 +93,6 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK
-
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
     else verifyHeadersForUnattended(HttpMethod.Get, periodsConnectorUrl)

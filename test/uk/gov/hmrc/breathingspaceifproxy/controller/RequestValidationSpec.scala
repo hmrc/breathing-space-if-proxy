@@ -25,16 +25,24 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValidation {
 
   "RequestValidation.validateNino" should {
-    "capture empty Nino value is invalid" in {
+    "assert that an empty Nino value is invalid" in {
       assert(validateNino("").isInvalid)
     }
 
-    "capture invalid Nino value is invalid" in {
+    "assert that an invalid Nino value is invalid" in {
       assert(validateNino("werr").isInvalid)
     }
 
-    "assert a valid Nino value is valid" in {
-      assert(validateNino(validNinoAsString).isValid)
+    "assert that a valid Nino value, without suffix, is valid" in {
+      assert(validateNino(genNinoString).isValid)
+    }
+
+    "assert that a valid Nino value, with suffix, is valid" in {
+      assert(validateNino(genNinoWithSuffix.value).isValid)
+    }
+
+    "assert that a valid Nino value, with a blank in suffix position, is valid" in {
+      assert(validateNino(s"${genNino.value} ").isValid)
     }
   }
 

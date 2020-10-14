@@ -22,8 +22,8 @@ import org.mockito.scalatest.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.mvc.Result
-import play.api.test.Helpers._
 import play.api.test._
+import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
@@ -36,22 +36,22 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar 
 
   test(s"Response should be 400(BAD_REQUEST) when the $CorrelationId header is missing") {
     verifyHeaderIsMissing(
-      controller.get(validNinoAsString)(requestFilteredOutOneHeader(CorrelationId)).run,
+      controller.get(genNinoString)(requestFilteredOutOneHeader(CorrelationId)).run,
       CorrelationId
     )
   }
 
   test(s"return 400(BAD_REQUEST) when the $RequestType header is missing") {
-    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(RequestType)).run, RequestType)
+    verifyHeaderIsMissing(controller.get(genNinoString)(requestFilteredOutOneHeader(RequestType)).run, RequestType)
   }
 
   test(s"return 400(BAD_REQUEST) when the $StaffPid header is missing") {
-    verifyHeaderIsMissing(controller.get(validNinoAsString)(requestFilteredOutOneHeader(StaffPid)).run, StaffPid)
+    verifyHeaderIsMissing(controller.get(genNinoString)(requestFilteredOutOneHeader(StaffPid)).run, StaffPid)
   }
 
   test("return 400(BAD_REQUEST) for a GET when all required headers are missing") {
     Given("a GET request without any of the requested headers")
-    val response = controller.get(validNinoAsString)(FakeRequest()).run
+    val response = controller.get(genNinoString)(FakeRequest()).run
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, None, 3)
 

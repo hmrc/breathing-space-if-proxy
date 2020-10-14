@@ -9,7 +9,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.post
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod, PostPeriodsRequest}
 
 class PeriodsControllerPostISpec extends BaseISpec {
 
@@ -42,7 +42,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
-      val body = s"""{nino":"$nino","periods":[${Json.toJson(validPostPeriod).toString}]}"""
+      val body = s"""{nino":"${genNinoString}","periods":[${Json.toJson(validPostPeriod).toString}]}"""
       val request = fakeRequest(Helpers.POST, postPath).withBody(body)
 
       val response = await(route(app, request).get)
@@ -55,6 +55,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
+      val unknownNino = genNino
       val url = PeriodsConnector.path(unknownNino)
       stubCall(HttpMethod.Post, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
 
@@ -69,19 +70,23 @@ class PeriodsControllerPostISpec extends BaseISpec {
   }
 
   private def verifyCreated(attended: Boolean): Assertion = {
+    val nino = genNino
+    val url = PeriodsConnector.path(nino)
     val expectedBody = Json.toJson(validPeriodsResponse).toString
-    stubCall(HttpMethod.Post, periodsConnectorUrl, Status.CREATED, expectedBody)
+    stubCall(HttpMethod.Post, url, Status.CREATED, expectedBody)
+
+    val body = Json.toJson(PostPeriodsRequest(nino.value, postPeriodsRequest))
 
     val request =
       (if (attended) fakeRequest(Helpers.POST, postPath)
       else fakeRequestForUnattended(Helpers.POST, postPath))
-        .withBody(postPeriodsRequestAsJson(postPeriodsRequest))
+        .withBody(body)
 
     val response = route(app, request).get
     status(response) shouldBe Status.CREATED
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Post, periodsConnectorUrl)
-    else verifyHeadersForUnattended(HttpMethod.Post, periodsConnectorUrl)
+    if (attended) verifyHeadersForAttended(HttpMethod.Post, url)
+    else verifyHeadersForUnattended(HttpMethod.Post, url)
 
     contentAsString(response) shouldBe expectedBody
   }

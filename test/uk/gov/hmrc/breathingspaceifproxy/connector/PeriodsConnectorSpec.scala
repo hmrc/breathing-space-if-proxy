@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import java.util
-
 import scala.concurrent._
 
 import com.codahale.metrics.{MetricRegistry, Timer}
 import com.kenshoo.play.metrics.Metrics
+import java.util
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
@@ -46,10 +45,11 @@ class PeriodsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfter
   "PeriodsConnector.url" should {
     "correctly compose a url to the IF" in {
       Given("a valid Nino ")
+      val nino = genNino
       val expectedUrl =
         s"http://localhost:9601/${appConfig.integrationFrameworkContext}/NINO/${nino.value}/periods"
 
-      Then(s"then the composed url should equal $expectedUrl")
+      Then(s"then the composed url should be equal to $expectedUrl")
       PeriodsConnector.url(nino) shouldBe expectedUrl
     }
   }

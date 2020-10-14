@@ -31,7 +31,6 @@ import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
 abstract class BaseISpec
@@ -61,8 +60,6 @@ abstract class BaseISpec
   implicit val materializer = inject[Materializer]
 
   implicit val appConfig: AppConfig = inject[AppConfig]
-
-  val periodsConnectorUrl = PeriodsConnector.path(nino)
 
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeaders: _*)

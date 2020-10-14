@@ -12,7 +12,7 @@ lazy val microservice = Project(appName, file("."))
     majorVersion := 0,
     scalaVersion := "2.12.12",
     PlayKeys.playDefaultPort := 9501,
-    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    libraryDependencies ++= Dependencies.compile ++ Dependencies.test,
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions ++= List("-P:silencer:pathFilters=routes", "-Ypartial-unification"),

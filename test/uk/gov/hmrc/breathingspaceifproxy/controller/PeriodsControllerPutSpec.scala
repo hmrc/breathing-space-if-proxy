@@ -49,7 +49,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       Given("a request with all required headers and a valid Json body")
       val request = requestWithAllHeaders(PUT).withBody(putPeriodsRequest(putPeriodsRequest))
 
-      val response = controller.put(validNinoAsString)(request)
+      val response = controller.put(genNinoString)(request)
       status(response) shouldBe OK
     }
 
@@ -63,7 +63,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       And("a request with all required headers and the Period as a valid Json body")
       val request = requestWithAllHeaders(PUT).withBody(body)
 
-      val response = controller.put(validNinoAsString)(request)
+      val response = controller.put(genNinoString)(request)
       status(response) shouldBe OK
     }
 
@@ -84,7 +84,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val body = Json.obj("periods" -> List.empty[PutPeriodInRequest]).validNec[ErrorItem]
       val request = requestWithAllHeaders(PUT).withBody(body)
 
-      val response = controller.put(validNinoAsString)(request)
+      val response = controller.put(genNinoString)(request)
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -97,7 +97,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val body = Json.obj("periods" -> validPutPeriod).validNec[ErrorItem]
       val request = requestWithAllHeaders(PUT).withBody(body)
 
-      val response = controller.put(validNinoAsString)(request)
+      val response = controller.put(genNinoString)(request)
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -133,7 +133,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     val body = putPeriodsRequest(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
     val request = requestWithAllHeaders(PUT).withBody(body)
 
-    val response = controller.put(validNinoAsString)(request)
+    val response = controller.put(genNinoString)(request)
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 

@@ -19,6 +19,8 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
+import scala.util.Random
+
 import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.http.HeaderNames.CONTENT_TYPE
@@ -29,6 +31,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
 
 final case class PostPeriodsRequest(nino: String, periods: PostPeriodsInRequest)
 
@@ -40,9 +43,6 @@ trait BreathingSpaceTestSupport {
 
   def appConfig: AppConfig
 
-  val validNinoAsString = "MZ006526C"
-  val nino = Nino(validNinoAsString)
-  val unknownNino = Nino("MZ005527C")
   val invalidNino = "MG34567"
 
   val randomUUID = UUID.randomUUID
@@ -112,6 +112,23 @@ trait BreathingSpaceTestSupport {
 
   lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
 
+  lazy val random: Random = new Random
+
+  def genNino: Nino = {
+    val prefix = validPrefixes(random.nextInt(validPrefixes.length))
+    val number = random.nextInt(1000000)
+    Nino(f"$prefix$number%06d")
+  }
+
+  def genNinoString: String = genNino.value
+
+  def genNinoWithSuffix: Nino = {
+    val prefix = validPrefixes(random.nextInt(validPrefixes.length))
+    val number = random.nextInt(1000000)
+    val suffix = validSuffixes(random.nextInt(validSuffixes.length))
+    Nino(f"$prefix$number%06d$suffix")
+  }
+
   def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
     if (withCorrelationId) correlationIdAsString.some else None
 
@@ -127,7 +144,7 @@ trait BreathingSpaceTestSupport {
     )
 
   def postPeriodsRequestAsJson(postPeriods: PostPeriodsInRequest): JsValue =
-    Json.toJson(PostPeriodsRequest(validNinoAsString, postPeriods))
+    Json.toJson(PostPeriodsRequest(genNinoString, postPeriods))
 
   def postPeriodsRequestAsJson(nino: String, postPeriods: PostPeriodsInRequest): JsValue =
     Json.toJson(PostPeriodsRequest(nino, postPeriods))
