@@ -84,7 +84,13 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when the 'periods' array is empty" in {
-      val body = Json.obj("nino" -> validNinoAsString, "periods" -> List.empty[PostPeriodInRequest]).validNec[ErrorItem]
+      val body = Json
+        .obj(
+          "nino" -> genNinoString,
+          "periods" -> List.empty[PostPeriodInRequest]
+        )
+        .validNec[ErrorItem]
+
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -97,7 +103,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when the 'periods' array is not provided" in {
-      val body = Json.obj("nino" -> validNinoAsString).validNec[ErrorItem]
+      val body = Json.obj("nino" -> genNinoString).validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -110,7 +116,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when 'periods' is not an array" in {
-      val body = Json.obj("nino" -> validNinoAsString, "periods" -> validPostPeriod).validNec[ErrorItem]
+      val body = Json.obj("nino" -> genNinoString, "periods" -> validPostPeriod).validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -142,7 +148,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     endDate: Option[String] = None,
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
-    val body = postPeriodsRequest(nino.fold(validNinoAsString)(identity), startDate, endDate, timestamp)
+    val body = postPeriodsRequest(nino.fold(genNinoString)(identity), startDate, endDate, timestamp)
     val request = requestWithAllHeaders(POST).withBody(body)
 
     val response = controller.post(request)

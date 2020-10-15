@@ -30,7 +30,6 @@ import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.domain.{Nino => DomainNino}
 
 trait RequestValidation extends Logging {
 
@@ -46,8 +45,9 @@ trait RequestValidation extends Logging {
   }
 
   def validateNino(maybeNino: String): Validation[Nino] =
-    if (DomainNino.isValid(maybeNino)) Nino(maybeNino).validNec
-    else ErrorItem(INVALID_NINO, s"($maybeNino)".some).invalidNec
+    Nino
+      .fromString(maybeNino)
+      .fold(ErrorItem(INVALID_NINO, s"($maybeNino)".some).invalidNec[Nino])(_.validNec[ErrorItem])
 
   def validateNino(maybeNino: Option[String]): Validation[Nino] =
     maybeNino.fold(ErrorItem(MISSING_NINO).invalidNec[Nino])(validateNino(_))

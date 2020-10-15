@@ -13,13 +13,31 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerPutISpec extends BaseISpec {
 
-  val putPathWithValidNino = put(validNinoAsString).url
-  val putPathWithUnknownNino = put(unknownNino.value).url
+  val putPath = put(genNinoString).url
 
   "PUT BS Periods for Nino" should {
 
     "return 200(OK) and all periods for the valid Nino provided" in {
       verifyOk(attended = true)
+    }
+
+    "return 200(OK) even for a valid Nino with a trailing blank" in {
+      val ninoWithoutSuffix = genNino
+      val controllerUrl = put(s"${ninoWithoutSuffix.value} ").url
+      val connectorUrl =
+        PeriodsConnector
+          .path(ninoWithoutSuffix)
+          .replace(ninoWithoutSuffix.value, s"${ninoWithoutSuffix.value}%20")
+
+      val expectedBody = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedBody)
+
+      val request = fakeRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
+      val response = route(app, request).get
+
+      status(response) shouldBe Status.OK
+      verifyHeaders(HttpMethod.Put, connectorUrl)
+      contentAsString(response) shouldBe expectedBody
     }
 
     "return 200(OK) for an ATTENDED request" in {
@@ -31,7 +49,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when no body is provided" in {
-      val request = fakeRequest(Helpers.PUT, putPathWithValidNino)
+      val request = fakeRequest(Helpers.PUT, putPath)
 
       val response = await(route(app, request).get)
 
@@ -43,8 +61,8 @@ class PeriodsControllerPutISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
-      val body = s"""{periods":[${Json.toJson(validPostPeriod).toString}]}"""
-      val request = fakeRequest(Helpers.PUT, putPathWithValidNino).withBody(body)
+      val body = s"""{periods":[${Json.toJson(validPutPeriod).toString}]}"""
+      val request = fakeRequest(Helpers.PUT, putPath).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -56,33 +74,39 @@ class PeriodsControllerPutISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
-      val url = PeriodsConnector.path(unknownNino)
-      stubCall(HttpMethod.Put, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
+      val unknownNino = genNino
+      val connectorUrl = PeriodsConnector.path(unknownNino)
+      stubCall(HttpMethod.Put, connectorUrl, Status.NOT_FOUND, errorResponsePayloadFromIF)
 
-      val request = fakeRequest(Helpers.PUT, putPathWithUnknownNino)
+      val controllerUrl = put(unknownNino.value).url
+      val request = fakeRequest(Helpers.PUT, controllerUrl)
         .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
       val response = route(app, request).get
-      status(response) shouldBe Status.NOT_FOUND
 
-      verifyHeaders(HttpMethod.Put, url)
+      status(response) shouldBe Status.NOT_FOUND
+      verifyHeaders(HttpMethod.Put, connectorUrl)
     }
   }
 
   private def verifyOk(attended: Boolean): Assertion = {
+    val nino = genNino
+    val connectorUrl = PeriodsConnector.path(nino)
     val expectedBody = Json.toJson(validPeriodsResponse).toString
-    stubCall(HttpMethod.Put, periodsConnectorUrl, Status.OK, expectedBody)
+    stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedBody)
+
+    val controllerUrl = put(nino.value).url
 
     val request =
-      (if (attended) fakeRequest(Helpers.PUT, putPathWithValidNino)
-      else fakeRequestForUnattended(Helpers.PUT, putPathWithValidNino))
+      (if (attended) fakeRequest(Helpers.PUT, controllerUrl)
+      else fakeRequestForUnattended(Helpers.PUT, controllerUrl))
         .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Put, periodsConnectorUrl)
-    else verifyHeadersForUnattended(HttpMethod.Put, periodsConnectorUrl)
+    if (attended) verifyHeadersForAttended(HttpMethod.Put, connectorUrl)
+    else verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
 
     contentAsString(response) shouldBe expectedBody
   }
