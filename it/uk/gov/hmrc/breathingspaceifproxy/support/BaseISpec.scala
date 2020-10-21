@@ -75,7 +75,7 @@ abstract class BaseISpec
       .withHeader(Header.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
       .withHeader(Header.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
-      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_ATTENDED.entryName))
+      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DA2_BS_ATTENDED.entryName))
       .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
     )
 
@@ -84,7 +84,7 @@ abstract class BaseISpec
       .withHeader(Header.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
       .withHeader(Header.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
-      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DS2_BS_UNATTENDED.entryName))
+      .withHeader(retrieveHeaderMapping(Header.RequestType), equalTo(Attended.DA2_BS_UNATTENDED.entryName))
       .withoutHeader(retrieveHeaderMapping(Header.StaffPid))
     )
 

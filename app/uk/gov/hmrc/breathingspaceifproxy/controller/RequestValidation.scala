@@ -145,8 +145,8 @@ trait RequestValidation extends Logging {
   private def validateStaffPidForRequestType(headerValues: (UUID, Attended, String)): Validation[UUID] = {
     val requestType = headerValues._2
     val staffPid = headerValues._3
-    if (requestType == Attended.DS2_BS_ATTENDED && staffPid != unattendedStaffPid
-      || requestType == Attended.DS2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
+    if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
+      || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
       // correlationId as UUID
       headerValues._1.validNec[ErrorItem]
     } else {

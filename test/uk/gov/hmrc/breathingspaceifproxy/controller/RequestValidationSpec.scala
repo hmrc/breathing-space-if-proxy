@@ -107,7 +107,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
 
     "assert a RequestType value of UNATTENDED is valid" in {
       val mockRequest = fakeGetRequest.withHeaders(
-        (Header.RequestType, Attended.DS2_BS_UNATTENDED.toString),
+        (Header.RequestType, Attended.DA2_BS_UNATTENDED.toString),
         (Header.StaffPid, unattendedStaffPid)
       )
 
@@ -189,7 +189,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
 
     "capture invalid value for the StaffPid header when RequestType value is UNATTENDED" in {
       val mockRequest = fakeGetRequest.withHeaders(
-        (Header.RequestType, Attended.DS2_BS_UNATTENDED.toString),
+        (Header.RequestType, Attended.DA2_BS_UNATTENDED.toString),
         (Header.StaffPid, attendedStaffPid)
       )
 
@@ -204,7 +204,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
 
     "assert a StaffPid value is valid when RequestType value is UNATTENDED" in {
       val mockRequest = fakeGetRequest.withHeaders(
-        (Header.RequestType, Attended.DS2_BS_UNATTENDED.toString),
+        (Header.RequestType, Attended.DA2_BS_UNATTENDED.toString),
         (Header.StaffPid, unattendedStaffPid)
       )
 
