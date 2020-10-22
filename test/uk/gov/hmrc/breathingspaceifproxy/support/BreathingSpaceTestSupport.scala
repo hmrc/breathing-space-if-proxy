@@ -61,14 +61,14 @@ trait BreathingSpaceTestSupport {
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationIdAsString,
-    Header.RequestType -> Attended.DS2_BS_ATTENDED.toString,
+    Header.RequestType -> Attended.DA2_BS_ATTENDED.toString,
     Header.StaffPid -> attendedStaffPid
   )
 
   lazy val requestHeadersForUnattended = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationIdAsString,
-    Header.RequestType -> Attended.DS2_BS_UNATTENDED.toString,
+    Header.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
     Header.StaffPid -> unattendedStaffPid
   )
 

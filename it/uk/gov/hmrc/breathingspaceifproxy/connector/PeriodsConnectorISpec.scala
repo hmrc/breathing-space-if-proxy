@@ -19,7 +19,7 @@ class PeriodsConnectorISpec extends BaseISpec {
         CONTENT_TYPE -> MimeTypes.JSON,
         Header.Environment -> appConfig.integrationFrameworkEnvironment,
         retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
-        retrieveHeaderMapping(Header.RequestType) -> Attended.DS2_BS_ATTENDED.entryName,
+        retrieveHeaderMapping(Header.RequestType) -> Attended.DA2_BS_ATTENDED.entryName,
         retrieveHeaderMapping(Header.StaffPid) -> attendedStaffPid
       )
     )

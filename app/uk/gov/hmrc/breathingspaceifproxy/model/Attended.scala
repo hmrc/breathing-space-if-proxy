@@ -22,8 +22,8 @@ sealed trait Attended extends EnumEntry
 
 object Attended extends Enum[Attended] {
 
-  case object DS2_BS_ATTENDED extends Attended
-  case object DS2_BS_UNATTENDED extends Attended
+  case object DA2_BS_ATTENDED extends Attended
+  case object DA2_BS_UNATTENDED extends Attended
 
   override val values = findValues
 }
