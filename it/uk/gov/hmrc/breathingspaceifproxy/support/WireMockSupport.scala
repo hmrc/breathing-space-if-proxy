@@ -18,10 +18,13 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 
 import java.net.URL
 
+import scala.collection.JavaConverters._
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
+import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 import play.api.http.HeaderNames
@@ -54,8 +57,10 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
     WireMock.reset()
   }
 
-  def stubCall(httpMethod: HttpMethod, url: String, status: Integer, body: String): StubMapping = {
-    val call = httpMethod.call(urlPathMatching(url))
+  def stubCall(
+    httpMethod: HttpMethod, url: String, status: Integer, body: String, queryParams: Map[String, String] = Map.empty
+  ): StubMapping = {
+    val call = httpMethod.call(urlPathMatching(url)).withQueryParams(mapQueryParams(queryParams))
     removeStub(call)
     stubFor {
       val response = aResponse()
@@ -66,4 +71,7 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
       call.willReturn(response)
     }
   }
+
+  private def mapQueryParams(queryParams: Map[String, String]): java.util.Map[String, StringValuePattern] =
+    queryParams.map { case (k, v) => k -> equalTo(v) }.asJava
 }

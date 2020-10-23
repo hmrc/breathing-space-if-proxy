@@ -6,7 +6,7 @@ resolvers += "HMRC Releases" at "https://dl.bintray.com/hmrc/releases"
 resolvers += Resolver.typesafeRepo("releases")
 
 addSbtPlugin("uk.gov.hmrc" % "sbt-artifactory" % "1.5.0")
-addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "2.9.0")
+addSbtPlugin("uk.gov.hmrc" % "sbt-auto-build" % "2.10.0")
 addSbtPlugin("uk.gov.hmrc" % "sbt-distributables" % "2.0.0")
 addSbtPlugin("uk.gov.hmrc" % "sbt-git-versioning" % "2.1.0")
 
@@ -16,4 +16,4 @@ addSbtPlugin("org.scalastyle" % "scalastyle-sbt-plugin" % "1.0.0")
 addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
 
-disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
+disablePlugins(JUnitXmlReportPlugin) // Required to prevent https://github.com/scalatest/scalatest/issues/1427

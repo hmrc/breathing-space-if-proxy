@@ -25,40 +25,42 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.StaffPid
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 
-class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
+class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockConnector: DebtorDetailsConnector = mock[DebtorDetailsConnector]
-  val controller = new DebtorDetailsController(appConfig, Helpers.stubControllerComponents(), mockConnector)
+  val mockConnector: IndividualDetailsConnector = mock[IndividualDetailsConnector]
+  val controller = new IndividualDetailsController(appConfig, Helpers.stubControllerComponents(), mockConnector)
 
-  "get" should {
+  "getMinimalPopulation" should {
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       Given(s"a GET request with a valid Nino and all required headers")
-      when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(HttpResponse(OK, "").validNec))
+      val nino = genNinoString
+      when(mockConnector.getMinimalPopulation(any[Nino])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(individualDetailsMinimalResponse(nino).validNec))
 
-      val response = controller.get(genNinoString)(fakeGetRequest)
+      val response = controller.getMinimalPopulation(nino)(fakeGetRequest)
       status(response) shouldBe OK
     }
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
+      val nino = genNinoString
       Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
-      when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(HttpResponse(OK, "").validNec))
+      when(mockConnector.getMinimalPopulation(any[Nino])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(individualDetailsMinimalResponse(nino).validNec))
 
-      val response = controller.get(genNinoString)(requestFilteredOutOneHeader(CONTENT_TYPE))
+      val response = controller.getMinimalPopulation(nino)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"a GET request with an invalid Nino")
-      val response = controller.get("HT1234B")(fakeGetRequest).run
+      val response = controller.getMinimalPopulation("HT1234B")(fakeGetRequest).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -69,7 +71,7 @@ class DebtorDetailsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
       Given(s"a GET request with an invalid Nino and without the $StaffPid request header")
-      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(StaffPid)).run
+      val response = controller.getMinimalPopulation("HT1234B")(requestFilteredOutOneHeader(StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 

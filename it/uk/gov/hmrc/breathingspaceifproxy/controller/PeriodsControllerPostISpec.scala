@@ -72,8 +72,8 @@ class PeriodsControllerPostISpec extends BaseISpec {
   private def verifyCreated(attended: Boolean): Assertion = {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
-    val expectedBody = Json.toJson(validPeriodsResponse).toString
-    stubCall(HttpMethod.Post, url, Status.CREATED, expectedBody)
+    val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
+    stubCall(HttpMethod.Post, url, Status.CREATED, expectedResponseBody)
 
     val body = Json.toJson(PostPeriodsRequest(nino.value, postPeriodsRequest))
 
@@ -88,6 +88,6 @@ class PeriodsControllerPostISpec extends BaseISpec {
     if (attended) verifyHeadersForAttended(HttpMethod.Post, url)
     else verifyHeadersForUnattended(HttpMethod.Post, url)
 
-    contentAsString(response) shouldBe expectedBody
+    contentAsString(response) shouldBe expectedResponseBody
   }
 }

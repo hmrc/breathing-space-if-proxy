@@ -84,8 +84,8 @@ class PeriodsControllerGetISpec extends BaseISpec {
   }
 
   private def verifyOk(attended: Boolean): Assertion = {
-    val expectedBody = Json.toJson(validPeriodsResponse).toString
-    stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedBody)
+    val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
+    stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedResponseBody)
 
     val request =
       if (attended) fakeRequest(Helpers.GET, getPathWithValidNino)
@@ -97,6 +97,6 @@ class PeriodsControllerGetISpec extends BaseISpec {
     if (attended) verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
     else verifyHeadersForUnattended(HttpMethod.Get, periodsConnectorUrl)
 
-    contentAsString(response) shouldBe expectedBody
+    contentAsString(response) shouldBe expectedResponseBody
   }
 }
