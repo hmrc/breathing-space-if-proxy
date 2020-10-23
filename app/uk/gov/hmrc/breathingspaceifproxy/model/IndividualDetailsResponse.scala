@@ -16,16 +16,16 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import enumeratum._
+import java.time.LocalDate
 
-sealed trait EndpointId extends EnumEntry
+import play.api.libs.json.Json
 
-object EndpointId extends Enum[EndpointId] {
+// --------------------------------------------------------------------------------
 
-  case object Breathing_Space_Individual_Details_GET extends EndpointId
-  case object Breathing_Space_Periods_GET extends EndpointId
-  case object Breathing_Space_Periods_POST extends EndpointId
-  case object Breathing_Space_Periods_PUT extends EndpointId
+final case class MinimalPopulation(nino: String, dateOfBirth: LocalDate, crnIndicator: Int)
 
-  override val values = findValues
+object MinimalPopulation {
+  implicit val format = Json.format[MinimalPopulation]
 }
+
+// --------------------------------------------------------------------------------

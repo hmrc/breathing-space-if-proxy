@@ -28,7 +28,7 @@ import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.{AppConfig, HeaderMapping}
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
@@ -56,9 +56,6 @@ abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerCompon
 
   def composeResponse[T](status: Int, body: T)(implicit requestId: RequestId, writes: Writes[T]): Future[Result] =
     logAndAddHeaders(Status(status)(Json.toJson(body)))
-
-  def composeResponse(status: Int, response: HttpResponse)(implicit requestId: RequestId): Future[Result] =
-    logAndAddHeaders(Status(status)(response.body))
 
   private def logAndAddHeaders(result: Result)(implicit requestId: RequestId): Future[Result] = {
 

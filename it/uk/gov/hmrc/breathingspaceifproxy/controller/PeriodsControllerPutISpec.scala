@@ -92,8 +92,8 @@ class PeriodsControllerPutISpec extends BaseISpec {
   private def verifyOk(attended: Boolean): Assertion = {
     val nino = genNino
     val connectorUrl = PeriodsConnector.path(nino)
-    val expectedBody = Json.toJson(validPeriodsResponse).toString
-    stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedBody)
+    val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
+    stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedResponseBody)
 
     val controllerUrl = put(nino.value).url
 
@@ -108,6 +108,6 @@ class PeriodsControllerPutISpec extends BaseISpec {
     if (attended) verifyHeadersForAttended(HttpMethod.Put, connectorUrl)
     else verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
 
-    contentAsString(response) shouldBe expectedBody
+    contentAsString(response) shouldBe expectedResponseBody
   }
 }

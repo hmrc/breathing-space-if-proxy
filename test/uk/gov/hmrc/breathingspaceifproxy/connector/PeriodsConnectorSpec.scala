@@ -16,53 +16,22 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import scala.concurrent._
-
-import com.codahale.metrics.{MetricRegistry, Timer}
-import com.kenshoo.play.metrics.Metrics
-import java.util
-import org.mockito.ArgumentMatchers.anyString
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{JsValue, Writes}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http._
 
 class PeriodsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach with MockitoSugar {
-
-  private val mockHttpClient = mock[HttpClient]
-  private val mockMetrics = mock[Metrics]
-  private val mockMetricRegistry = mock[MetricRegistry]
-
-  override protected def beforeEach() = {
-    reset(mockHttpClient, mockMetrics, mockMetricRegistry)
-    when(mockMetrics.defaultRegistry).thenReturn(mockMetricRegistry)
-    when(mockMetricRegistry.getTimers).thenReturn(new util.TreeMap())
-    when(mockMetricRegistry.timer(anyString)).thenReturn(new Timer())
-  }
 
   "PeriodsConnector.url" should {
     "correctly compose a url to the IF" in {
       Given("a valid Nino ")
       val nino = genNino
       val expectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/NINO/${nino.value}/periods"
+        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/periods"
 
       Then(s"then the composed url should be equal to $expectedUrl")
       PeriodsConnector.url(nino) shouldBe expectedUrl
     }
   }
-
-  type SeqOfHeader = List[(String, String)]
-
-  def returnResponseFromIF[T](eventualResponse: T): Unit =
-    when(
-      mockHttpClient.POST[JsValue, T](anyString, any[JsValue], any[SeqOfHeader])(
-        any[Writes[JsValue]],
-        any[HttpReads[T]],
-        any[HeaderCarrier],
-        any[ExecutionContext]
-      )
-    ).thenReturn(Future.successful(eventualResponse))
 }

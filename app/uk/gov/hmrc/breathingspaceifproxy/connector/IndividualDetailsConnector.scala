@@ -16,44 +16,50 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.ExecutionContext
 
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
-class DebtorDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
+class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
   ec: ExecutionContext
 ) extends ConnectorHelper
     with HttpAPIMonitor {
 
-  import DebtorDetailsConnector._
+  import IndividualDetailsConnector._
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  /* Using HttpResponse as resulting value is just a provisional solution. To replace with a proper case class */
-  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[HttpResponse] =
+  def getMinimalPopulation(nino: Nino)(
+    implicit requestId: RequestId,
+    hc: HeaderCarrier
+  ): ResponseValidation[MinimalPopulation] =
     monitor(s"ConsumedAPI-${requestId.endpointId}") {
       http
-        .GET(Url(url(nino)).value)
+        .GET[MinimalPopulation](Url(url(nino, minimalPopulation)).value)
         .map(_.validNec)
         .recoverWith(handleUpstreamError)
     }
 }
 
-object DebtorDetailsConnector {
+object IndividualDetailsConnector {
 
-  def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/api/v1/details/${nino.value}"
+  lazy val minimalPopulation = "?fields=details(nino,dateOfBirth,cnrIndicator)"
 
-  def url(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"
+  def path(nino: Nino, queryParams: String)(implicit appConfig: AppConfig): String =
+    s"/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}${queryParams}"
+
+  def url(nino: Nino, queryParams: String)(implicit appConfig: AppConfig): String =
+    s"${appConfig.integrationFrameworkBaseUrl}${path(nino, queryParams)}"
 }

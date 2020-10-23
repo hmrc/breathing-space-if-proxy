@@ -185,14 +185,7 @@ trait BreathingSpaceTestSupport {
     Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
-  def debtorDetails(nino: Nino): String =
-    s"""
-       |{"nino" : "${nino.value}",
-       | "firstName" : "John",
-       | "lastName" : "Smith",
-       | "dateOfBirth" : "1990-01-01",
-       |}
-     """.stripMargin
+  def individualDetailsMinimalResponse(nino: String): MinimalPopulation = MinimalPopulation(nino, LocalDate.now, 0)
 
   def retrieveHeaderMapping(header: String): String =
     appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped

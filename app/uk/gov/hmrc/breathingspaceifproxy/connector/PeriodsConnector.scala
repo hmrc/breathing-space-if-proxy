@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.ExecutionContext
 
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -75,7 +76,7 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 object PeriodsConnector {
 
   def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/NINO/${nino.value}/periods"
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/periods"
 
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"

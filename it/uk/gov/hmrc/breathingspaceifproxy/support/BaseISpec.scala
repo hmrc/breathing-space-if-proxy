@@ -18,6 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 
 import akka.stream.Materializer
 import com.github.tomakehurst.wiremock.client.WireMock._
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
@@ -31,6 +32,7 @@ import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
 abstract class BaseISpec
@@ -61,6 +63,12 @@ abstract class BaseISpec
 
   implicit val appConfig: AppConfig = inject[AppConfig]
 
+  val minimalPopulation = IndividualDetailsConnector.minimalPopulation
+    .split("\\?|=").tail.grouped(2)
+    .foldLeft(Map.empty[String, String]) { (map, pair) => map + (pair(0) -> pair(1)) }
+
+  def urlWithoutQuery(url: String): String = url.split("\\?").head
+
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeaders: _*)
 
@@ -70,8 +78,33 @@ abstract class BaseISpec
   def verifyHeaders(method: HttpMethod, url: String): Unit =
     verifyHeadersForAttended(method, url)
 
+  def verifyHeaders(method: HttpMethod, url: String, queryParam: (String, String)): Unit =
+    verifyHeadersForAttended(method, url, queryParam)
+
   def verifyHeadersForAttended(method: HttpMethod, url: String): Unit =
-    verify(1, method.verifyHeaderFor(urlMatching(url))
+    verifyHeadersForAttended(
+      method.verifyHeaderFor(urlPathMatching(url))
+    )
+
+  def verifyHeadersForAttended(method: HttpMethod, url: String, queryParam: (String, String)): Unit =
+    verifyHeadersForAttended(
+      method.verifyHeaderFor(urlPathMatching(url))
+        .withQueryParam(queryParam._1, equalTo(queryParam._2))
+    )
+
+  def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
+    verifyHeadersForUnattended(
+      method.verifyHeaderFor(urlPathMatching(url))
+    )
+
+  def verifyHeadersForUnattended(method: HttpMethod, url: String, queryParam: (String, String)): Unit =
+    verifyHeadersForUnattended(
+      method.verifyHeaderFor(urlPathMatching(url))
+        .withQueryParam(queryParam._1, equalTo(queryParam._2))
+    )
+
+  private def verifyHeadersForAttended(requestPatternBuilder: RequestPatternBuilder): Unit =
+    verify(1, requestPatternBuilder
       .withHeader(Header.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
       .withHeader(Header.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))
@@ -79,8 +112,8 @@ abstract class BaseISpec
       .withHeader(retrieveHeaderMapping(Header.StaffPid), equalTo(attendedStaffPid))
     )
 
-  def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
-    verify(1, method.verifyHeaderFor(urlMatching(url))
+  private def verifyHeadersForUnattended(requestPatternBuilder: RequestPatternBuilder): Unit =
+    verify(1, requestPatternBuilder
       .withHeader(Header.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
       .withHeader(Header.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(retrieveHeaderMapping(Header.CorrelationId), equalTo(correlationIdAsString))

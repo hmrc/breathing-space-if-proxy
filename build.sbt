@@ -11,8 +11,9 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     majorVersion := 0,
     scalaVersion := "2.12.12",
-    PlayKeys.playDefaultPort := 9501,
     libraryDependencies ++= Dependencies.compile ++ Dependencies.test,
+    PlayKeys.playDefaultPort := 9501,
+    TwirlKeys.templateImports := Seq(),
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions ++= List("-P:silencer:pathFilters=routes", "-Ypartial-unification"),
@@ -28,9 +29,7 @@ lazy val microservice = Project(appName, file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     scoverageSettings,
-    scalafmtOnCompile in Compile := true,
-    scalafmtOnCompile in Test := true,
-    scalafmtOnCompile in IntegrationTest := true
+    scalafmtOnCompile in ThisBuild := true
   )
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"

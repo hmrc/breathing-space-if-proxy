@@ -24,32 +24,33 @@ import cats.syntax.apply._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtorDetailsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, RequestId}
-import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.Breathing_Space_Debtor_Details_GET
+import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.Breathing_Space_Individual_Details_GET
 
 @Singleton()
-class DebtorDetailsController @Inject()(
+class IndividualDetailsController @Inject()(
   appConfig: AppConfig,
   cc: ControllerComponents,
-  debtorDetailsConnector: DebtorDetailsConnector
+  individualDetailsConnector: IndividualDetailsConnector
 ) extends AbstractBaseController(appConfig, cc) {
 
-  def get(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
-    (
-      validateHeadersForNPS,
-      validateNino(maybeNino),
-      request.body
-    ).mapN((correlationId, nino, _) => (RequestId(Breathing_Space_Debtor_Details_GET, correlationId), nino))
-      .fold(
-        ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
-        validationTuple => {
-          implicit val (requestId, nino) = validationTuple
-          logger.debug(s"$requestId for Nino(${nino.value})")
-          debtorDetailsConnector.get(nino).flatMap {
-            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+  def getMinimalPopulation(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) {
+    implicit request =>
+      (
+        validateHeadersForNPS,
+        validateNino(maybeNino),
+        request.body
+      ).mapN((correlationId, nino, _) => (RequestId(Breathing_Space_Individual_Details_GET, correlationId), nino))
+        .fold(
+          ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+          validationTuple => {
+            implicit val (requestId, nino) = validationTuple
+            logger.debug(s"$requestId for Nino(${nino.value})")
+            individualDetailsConnector.getMinimalPopulation(nino).flatMap {
+              _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+            }
           }
-        }
-      )
+        )
   }
 }
