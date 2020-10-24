@@ -21,5 +21,5 @@ import play.api.libs.json.Json
 final case class TestingErrorItem(code: String, message: String)
 
 object TestingErrorItem {
-  implicit val reads = Json.reads[TestingErrorItem]
+  implicit val format = Json.format[TestingErrorItem]
 }

@@ -1,8 +1,10 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import org.scalatest.Assertion
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
@@ -24,47 +26,19 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
-      val unknownNino = genNino
-      val url = PeriodsConnector.path(unknownNino)
-      stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
-
-      val response = await(connector.get(unknownNino))
-
-      verifyHeaders(HttpMethod.Get, url)
-      response.fold(_.head.baseError shouldBe RESOURCE_NOT_FOUND, _ => notAnErrorInstance)
+      verifyGetResponse(Status.NOT_FOUND, RESOURCE_NOT_FOUND)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
-      val nino = genNino
-      val url = PeriodsConnector.path(nino)
-      stubCall(HttpMethod.Get, url, Status.CONFLICT, errorResponsePayloadFromIF)
-
-      val response = await(connector.get(nino))
-
-      verifyHeaders(HttpMethod.Get, url)
-      response.fold(_.head.baseError shouldBe CONFLICTING_REQUEST, _ => notAnErrorInstance)
+      verifyGetResponse(Status.CONFLICT, CONFLICTING_REQUEST)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      val nino = genNino
-      val url = PeriodsConnector.path(nino)
-      stubCall(HttpMethod.Get, url, Status.BAD_REQUEST, errorResponsePayloadFromIF)
-
-      val response = await(connector.get(nino))
-
-      verifyHeaders(HttpMethod.Get, url)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+      verifyGetResponse(Status.BAD_REQUEST, SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error" in {
-      val nino = genNino
-      val url = PeriodsConnector.path(nino)
-      stubCall(HttpMethod.Get, url, Status.BAD_GATEWAY, errorResponsePayloadFromIF)
-
-      val response = await(connector.get(nino))
-
-      verifyHeaders(HttpMethod.Get, url)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+      verifyGetResponse(Status.BAD_GATEWAY, SERVER_ERROR)
     }
   }
 
@@ -92,5 +66,16 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       verifyHeaders(HttpMethod.Put, url)
       assert(response.fold(_ => false, _ => true))
     }
+  }
+
+  private def verifyGetResponse(status: Int, baseError: BaseError): Assertion = {
+    val nino = genNino
+    val url = PeriodsConnector.path(nino)
+    stubCall(HttpMethod.Get, url, status, errorResponsePayloadFromIF)
+
+    val response = await(connector.get(nino))
+
+    verifyHeaders(HttpMethod.Get, url)
+    response.fold(_.head.baseError shouldBe baseError, _ => notAnErrorInstance)
   }
 }

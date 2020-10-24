@@ -1,8 +1,10 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import org.scalatest.Assertion
 import play.api.http.Status
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import play.api.test.Helpers.await
+import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
@@ -10,61 +12,73 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
 
   val connector = inject[IndividualDetailsConnector]
 
-  "getMinimalPopulation" should {
-    "return a MinimalPopulation instance when it receives a 200(OK) response" in {
+  "get" should {
+    "return a Detail0 instance when it receives the relative \"fields\" query parameter" in {
       val nino = genNino
-      val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, IndividualDetailsConnector.minimalPopulation))
-      val responsePayload = Json.toJson(individualDetailsMinimalResponse(nino.value)).toString
-      stubCall(HttpMethod.Get, url, Status.OK, responsePayload, minimalPopulation)
+      verifyResponse(nino, DetailData0, detail0(nino))
+    }
 
-      val response = await(connector.getMinimalPopulation(nino))
-
-      verifyHeaders(HttpMethod.Get, url, minimalPopulation.head)
-      assert(response.fold(_ => false, _ => true))
+    "return a Detail1 instance when it receives the relative \"fields\" query parameter" in {
+      val nino = genNino
+      verifyResponse(nino, DetailData1, detail1(nino))
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
-      val unknownNino = genNino
-      val url = urlWithoutQuery(IndividualDetailsConnector.path(unknownNino, IndividualDetailsConnector.minimalPopulation))
-      stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF, minimalPopulation)
-
-      val response = await(connector.getMinimalPopulation(unknownNino))
-
-      verifyHeaders(HttpMethod.Get, url, minimalPopulation.head)
-      response.fold(_.head.baseError shouldBe RESOURCE_NOT_FOUND, _ => notAnErrorInstance)
+      verifyErrorResponse(genNino, Status.NOT_FOUND, RESOURCE_NOT_FOUND)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
+      verifyErrorResponse(genNino, Status.CONFLICT, CONFLICTING_REQUEST)
+    }
+
+    "return SERVER_ERROR if the returned payload is unexpected" in {
       val nino = genNino
-      val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, IndividualDetailsConnector.minimalPopulation))
-      stubCall(HttpMethod.Get, url, Status.CONFLICT, errorResponsePayloadFromIF, minimalPopulation)
 
-      val response = await(connector.getMinimalPopulation(nino))
+      val urlForDetail0 = urlWithoutQuery(IndividualDetailsConnector.path(nino, DetailData0.fields))
+      val queryParamsForDetail0 = detailQueryParams(DetailData0.fields)
 
-      verifyHeaders(HttpMethod.Get, url, minimalPopulation.head)
-      response.fold(_.head.baseError shouldBe CONFLICTING_REQUEST, _ => notAnErrorInstance)
+      implicit val formatForDetail1: OFormat[Detail1] = DetailData1.format
+      val unexpectedPayload = Json.toJson(detail1(nino)).toString
+
+      stubCall(HttpMethod.Get, urlForDetail0, Status.OK, unexpectedPayload, queryParamsForDetail0)
+
+      val response = await(connector.get[Detail0](nino, DetailData0))
+
+      verifyHeaders(HttpMethod.Get, urlForDetail0, queryParamsForDetail0.head)
+      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      val nino = genNino
-      val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, IndividualDetailsConnector.minimalPopulation))
-      stubCall(HttpMethod.Get, url, Status.BAD_REQUEST, errorResponsePayloadFromIF, minimalPopulation)
-
-      val response = await(connector.getMinimalPopulation(nino))
-
-      verifyHeaders(HttpMethod.Get, url, minimalPopulation.head)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+      verifyErrorResponse(genNino, Status.BAD_REQUEST, SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error" in {
-      val nino = genNino
-      val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, IndividualDetailsConnector.minimalPopulation))
-      stubCall(HttpMethod.Get, url, Status.BAD_GATEWAY, errorResponsePayloadFromIF, minimalPopulation)
-
-      val response = await(connector.getMinimalPopulation(nino))
-
-      verifyHeaders(HttpMethod.Get, url, minimalPopulation.head)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+      verifyErrorResponse(genNino, Status.BAD_GATEWAY, SERVER_ERROR)
     }
+  }
+
+  private def verifyResponse[T <: Detail](nino: Nino, detailData: DetailData[T], detail: T): Assertion = {
+    implicit val format: OFormat[T] = detailData.format
+
+    val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, detailData.fields))
+    val queryParams = detailQueryParams(detailData.fields)
+
+    stubCall(HttpMethod.Get, url, Status.OK, Json.toJson(detail).toString, queryParams)
+
+    val response = await(connector.get[T](nino, detailData))
+
+    verifyHeaders(HttpMethod.Get, url, queryParams.head)
+    assert(response.fold(_ => false, _ => true))
+  }
+
+  private def verifyErrorResponse(nino: Nino, status: Int, baseError: BaseError): Assertion = {
+    val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, DetailData0.fields))
+    val queryParams = detailQueryParams(DetailData0.fields)
+    stubCall(HttpMethod.Get, url, status, errorResponsePayloadFromIF, queryParams)
+
+    val response = await(connector.get[Detail0](nino, DetailData0))
+
+    verifyHeaders(HttpMethod.Get, url, queryParams.head)
+    response.fold(_.head.baseError shouldBe baseError, _ => notAnErrorInstance)
   }
 }

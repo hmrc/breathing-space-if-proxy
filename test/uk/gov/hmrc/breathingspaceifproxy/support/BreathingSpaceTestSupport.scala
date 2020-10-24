@@ -185,7 +185,21 @@ trait BreathingSpaceTestSupport {
     Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
-  def individualDetailsMinimalResponse(nino: String): MinimalPopulation = MinimalPopulation(nino, LocalDate.now, 0)
+  def detail0(nino: Nino): Detail0 = Detail0(nino.value, LocalDate.now, 0)
+  def detail1(nino: Nino): Detail1 = Detail1(
+    nino.value,
+    LocalDate.now,
+    NameListForDetail1(List(NameDataForDetail1("Mickey".some, "Mouse".some)))
+  )
+
+  def detailQueryParams(fields: String): Map[String, String] =
+    fields
+      .split("\\?|=")
+      .tail
+      .grouped(2)
+      .foldLeft(Map.empty[String, String]) { (map, pair) =>
+        map + (pair(0) -> pair(1))
+      }
 
   def retrieveHeaderMapping(header: String): String =
     appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped

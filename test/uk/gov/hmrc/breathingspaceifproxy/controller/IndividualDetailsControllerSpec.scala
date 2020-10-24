@@ -21,7 +21,10 @@ import scala.concurrent.Future
 import cats.syntax.option._
 import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
+import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.libs.json.{Json, OFormat}
+import play.api.mvc.{Request, Result}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.StaffPid
@@ -39,43 +42,37 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
   "getMinimalPopulation" should {
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
-      Given(s"a GET request with a valid Nino and all required headers")
-      val nino = genNinoString
-      when(mockConnector.getMinimalPopulation(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(individualDetailsMinimalResponse(nino).validNec))
-
-      val response = controller.getMinimalPopulation(nino)(fakeGetRequest)
-      status(response) shouldBe OK
+      val nino = genNino
+      verifyResponse[Detail0](nino, DetailData0, detail0(nino), 0, fakeGetRequest)
     }
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
-      val nino = genNinoString
-      Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
-      when(mockConnector.getMinimalPopulation(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(individualDetailsMinimalResponse(nino).validNec))
+      val nino = genNino
+      verifyResponse[Detail0](nino, DetailData0, detail0(nino), 0, requestFilteredOutOneHeader(CONTENT_TYPE))
+    }
 
-      val response = controller.getMinimalPopulation(nino)(requestFilteredOutOneHeader(CONTENT_TYPE))
-      status(response) shouldBe OK
+    "return 200(OK) and the expected individual details when detailId is equal to 1" in {
+      val nino = genNino
+      verifyResponse[Detail1](nino, DetailData1, detail1(nino), 1, fakeGetRequest)
+    }
+
+    "return 400(BAD_REQUEST) when the detailId provided is invalid" in {
+      Given(s"a GET request with a valid Nino and an invalid detailId")
+      verifyBadRequest(controller.get(genNinoString, 10000)(fakeGetRequest).run, INVALID_DETAIL_ID)
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
-      Given(s"a GET request with an invalid Nino")
-      val response = controller.getMinimalPopulation("HT1234B")(fakeGetRequest).run
-
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
-
-      And(s"the error code should be $INVALID_NINO")
-      errorList.head.code shouldBe INVALID_NINO.entryName
-      assert(errorList.head.message.startsWith(INVALID_NINO.message))
+      Given(s"a GET request with an invalid Nino and a valid detailId")
+      verifyBadRequest(controller.get("HT1234B", 0)(fakeGetRequest).run, INVALID_NINO)
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
       Given(s"a GET request with an invalid Nino and without the $StaffPid request header")
-      val response = controller.getMinimalPopulation("HT1234B")(requestFilteredOutOneHeader(StaffPid)).run
+      val response = controller.get("HT1234B", 0)(requestFilteredOutOneHeader(StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 
-      And(s"the 1st error code should be $MISSING_HEADER")
+      Then(s"the 1st error code should be $MISSING_HEADER")
       errorList.head.code shouldBe MISSING_HEADER.entryName
       assert(errorList.head.message.startsWith(MISSING_HEADER.message))
 
@@ -83,5 +80,30 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
       errorList.last.code shouldBe INVALID_NINO.entryName
       assert(errorList.last.message.startsWith(INVALID_NINO.message))
     }
+  }
+
+  private def verifyResponse[T <: Detail](
+    nino: Nino,
+    detailData: DetailData[T],
+    detail: T,
+    detailId: Int,
+    request: Request[_]
+  ): Assertion = {
+    implicit val format: OFormat[T] = detailData.format
+
+    when(mockConnector.get[T](any[Nino], any[DetailData[T]])(any[RequestId], any[HeaderCarrier]))
+      .thenReturn(Future.successful(detail.validNec[ErrorItem]))
+
+    val response = controller.get(nino.value, detailId)(request)
+    status(response) shouldBe OK
+    contentAsString(response) shouldBe Json.toJson(detail).toString
+  }
+
+  private def verifyBadRequest(response: Future[Result], baseError: BaseError): Assertion = {
+    val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+    Then(s"the error code should be ${baseError.entryName}")
+    errorList.head.code shouldBe baseError.entryName
+    assert(errorList.head.message.startsWith(baseError.message))
   }
 }

@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 
 class ApiPlatformControllerISpec extends BaseISpec {
 
-  s"GET /api/definition" should {
+  "GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {
       val url = getDefinition.url
       val response = route(app, fakeRequest(Helpers.GET, url)).get
@@ -36,7 +36,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
     }
   }
 
-  s"GET /api/conf/1.0/application.raml" should {
+  "GET /api/conf/1.0/application.raml" should {
     "return 200(OK) and the application.raml content" in {
       val url = conf("1.0", "application.raml").url
       val response = route(app, fakeRequest(Helpers.GET, url)).get

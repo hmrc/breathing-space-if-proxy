@@ -32,7 +32,6 @@ import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.Attended
 
 abstract class BaseISpec
@@ -62,10 +61,6 @@ abstract class BaseISpec
   implicit val materializer = inject[Materializer]
 
   implicit val appConfig: AppConfig = inject[AppConfig]
-
-  val minimalPopulation = IndividualDetailsConnector.minimalPopulation
-    .split("\\?|=").tail.grouped(2)
-    .foldLeft(Map.empty[String, String]) { (map, pair) => map + (pair(0) -> pair(1)) }
 
   def urlWithoutQuery(url: String): String = url.split("\\?").head
 

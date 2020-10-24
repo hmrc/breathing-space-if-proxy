@@ -18,15 +18,20 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
 
+import scala.annotation.switch
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 import cats.syntax.apply._
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.breathingspaceifproxy.Validation
+import cats.syntax.option._
+import cats.syntax.validated._
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import uk.gov.hmrc.breathingspaceifproxy.{ResponseValidation, Validation}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorResponse, RequestId}
-import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.Breathing_Space_Individual_Details_GET
+import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.INVALID_DETAIL_ID
+import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId._
 
 @Singleton()
 class IndividualDetailsController @Inject()(
@@ -35,22 +40,45 @@ class IndividualDetailsController @Inject()(
   individualDetailsConnector: IndividualDetailsConnector
 ) extends AbstractBaseController(appConfig, cc) {
 
-  def getMinimalPopulation(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) {
+  val lastDetailId = 1
+
+  def get(maybeNino: String, detailId: Int): Action[Validation[AnyContent]] = Action.async(withoutBody) {
     implicit request =>
       (
         validateHeadersForNPS,
         validateNino(maybeNino),
+        validateDetailId(detailId),
         request.body
-      ).mapN((correlationId, nino, _) => (RequestId(Breathing_Space_Individual_Details_GET, correlationId), nino))
+      ).mapN((correlationId, nino, endpointId, _) => (RequestId(endpointId, correlationId), nino))
         .fold(
           ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
           validationTuple => {
             implicit val (requestId, nino) = validationTuple
-            logger.debug(s"$requestId for Nino(${nino.value})")
-            individualDetailsConnector.getMinimalPopulation(nino).flatMap {
-              _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+            logger.debug(s"$requestId for Nino(${nino.value}) with detailId($detailId)")
+            (detailId: @switch) match {
+              case 0 => evalResponse[Detail0](individualDetailsConnector.get[Detail0](nino, DetailData0), DetailData0)
+              case 1 => evalResponse[Detail1](individualDetailsConnector.get[Detail1](nino, DetailData1), DetailData1)
             }
           }
         )
   }
+
+  private def evalResponse[T <: Detail](response: ResponseValidation[T], detailData: DetailData[T])(
+    implicit requestId: RequestId
+  ): Future[Result] =
+    response.flatMap {
+      implicit val format = detailData.format
+      _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+    }
+
+  private def validateDetailId(detailId: Int): Validation[EndpointId] =
+    (detailId: @switch) match {
+      case 0 => Breathing_Space_Detail0_GET.validNec[ErrorItem]
+      case 1 => Breathing_Space_Detail1_GET.validNec[ErrorItem]
+      // Shouldn't happen as detailId was already parsed by the Play router.
+      case _ => invalidDetailId(detailId).invalidNec[EndpointId]
+    }
+
+  private def invalidDetailId(detailId: Int): ErrorItem =
+    ErrorItem(INVALID_DETAIL_ID, s"$lastDetailId but it was ($detailId)".some)
 }
