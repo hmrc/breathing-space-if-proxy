@@ -58,7 +58,7 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
 
     "return 400(BAD_REQUEST) when the detailId provided is invalid" in {
       Given(s"a GET request with a valid Nino and an invalid detailId")
-      verifyBadRequest(controller.get(genNinoString, 10000)(fakeGetRequest).run, INVALID_DETAIL_ID)
+      verifyBadRequest(controller.get(genNinoString, 10000)(fakeGetRequest).run, INVALID_DETAIL_INDEX)
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {

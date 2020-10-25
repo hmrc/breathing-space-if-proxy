@@ -30,7 +30,7 @@ import uk.gov.hmrc.breathingspaceifproxy.{ResponseValidation, Validation}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.INVALID_DETAIL_ID
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.INVALID_DETAIL_INDEX
 import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId._
 
 @Singleton()
@@ -58,6 +58,8 @@ class IndividualDetailsController @Inject()(
             (detailId: @switch) match {
               case 0 => evalResponse[Detail0](individualDetailsConnector.get[Detail0](nino, DetailData0), DetailData0)
               case 1 => evalResponse[Detail1](individualDetailsConnector.get[Detail1](nino, DetailData1), DetailData1)
+              // Shouldn't happen as detailId was already validated.
+              case _ => ErrorResponse(requestId.correlationId, invalidDetailId(detailId)).value
             }
           }
         )
@@ -75,10 +77,9 @@ class IndividualDetailsController @Inject()(
     (detailId: @switch) match {
       case 0 => Breathing_Space_Detail0_GET.validNec[ErrorItem]
       case 1 => Breathing_Space_Detail1_GET.validNec[ErrorItem]
-      // Shouldn't happen as detailId was already parsed by the Play router.
       case _ => invalidDetailId(detailId).invalidNec[EndpointId]
     }
 
   private def invalidDetailId(detailId: Int): ErrorItem =
-    ErrorItem(INVALID_DETAIL_ID, s"$lastDetailId but it was ($detailId)".some)
+    ErrorItem(INVALID_DETAIL_INDEX, s"$lastDetailId but it was ($detailId)".some)
 }

@@ -23,12 +23,12 @@ import scala.concurrent.Future
 
 import cats.data.{NonEmptyChain => Nec}
 import play.api._
-import play.api.http.Status.INTERNAL_SERVER_ERROR
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, NOT_FOUND}
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{RequestHeader, Result}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.SERVER_ERROR
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
@@ -43,9 +43,12 @@ class ErrorHandler @Inject()(
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     val correlationId = request.headers.get(Header.CorrelationId)
     val endpoint = s"${request.method} ${request.path} has status($statusCode)"
-    logger.error(s"(Correlation-id: ${logCorrelationId(request)}) $endpoint. $message}")
-    val payload = Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message)))
-    ErrorResponse(correlationId, statusCode, payload).value
+    logger.error(s"(Correlation-id: ${logCorrelationId(request)}) $endpoint. Client error was: $message}")
+    if (statusCode == NOT_FOUND) ErrorResponse(correlationId, NOT_FOUND, Nec(ErrorItem(INVALID_ENDPOINT))).value
+    else {
+      val payload = Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message)))
+      ErrorResponse(correlationId, statusCode, payload).value
+    }
   }
 
   override def onServerError(request: RequestHeader, throwable: Throwable): Future[Result] = {
