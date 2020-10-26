@@ -48,7 +48,6 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
   private def logErrorAndGenUpstreamResponse[T](response: UpstreamErrorResponse, baseError: BaseError)(
     implicit requestId: RequestId
   ): ResponseValidation[T] = {
-
     logger.error(s"Error(${response.statusCode}) for $requestId. ${response.message}")
     Future.successful(ErrorItem(baseError).invalidNec)
   }

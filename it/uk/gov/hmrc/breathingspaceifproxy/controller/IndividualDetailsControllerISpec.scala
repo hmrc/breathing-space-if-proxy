@@ -3,38 +3,40 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.http.Status
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
-import uk.gov.hmrc.breathingspaceifproxy.controller.routes.IndividualDetailsController.getMinimalPopulation
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.INVALID_BODY
-import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
+import uk.gov.hmrc.breathingspaceifproxy.controller.routes.IndividualDetailsController.get
+import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod, TestingErrorItem}
 
 class IndividualDetailsControllerISpec extends BaseISpec {
 
   val nino = genNino
-  val getPathWithValidNino = getMinimalPopulation(nino.value).url
-  val connector = inject[IndividualDetailsConnector]
-  val connectorUrl = urlWithoutQuery(IndividualDetailsConnector.path(nino, IndividualDetailsConnector.minimalPopulation))
 
-  "GET Individual's minimal details for the provided Nino" should {
+  "GET Individual's details for the provided Nino" should {
 
-    "return 200(OK) and the individual's minimal details for the valid Nino provided" in {
-      verifyOk(attended = true, genNinoString)
+    "return 200(OK) and the expected individual details when detailId is equal to 0" in {
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0)
+    }
+
+    "return 200(OK) and the expected individual details when detailId is equal to 1" in {
+      verifyResponse(attended = true, nino, DetailData1, detail1(nino), 1)
     }
 
     "return 200(OK) for an ATTENDED request" in {
-      verifyOk(attended = true, genNinoString)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0)
     }
 
     "return 200(OK) for an UNATTENDED request" in {
-      verifyOk(attended = false, genNinoString)
+      verifyResponse(attended = false, nino, DetailData0, detail0(nino), 0)
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body = Json.obj("aName" -> "aValue")
-      val request = fakeRequest(Helpers.GET, getPathWithValidNino).withBody(body)
+      val request = fakeRequest(Helpers.GET, get(nino.value, 0).url).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -46,28 +48,41 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
-      val unknownNino = genNino
-      val url = urlWithoutQuery(IndividualDetailsConnector.path(unknownNino, IndividualDetailsConnector.minimalPopulation))
-      stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF, minimalPopulation)
-      val response = route(app, fakeRequest(Helpers.GET, getMinimalPopulation(unknownNino.value).url)).get
-      status(response) shouldBe Status.NOT_FOUND
-      verifyHeaders(HttpMethod.Get, url, minimalPopulation.head)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0, RESOURCE_NOT_FOUND.some)
+    }
+
+    "return 409(CONFLICT) in case of duplicated requests" in {
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0, CONFLICTING_REQUEST.some)
     }
   }
 
-  private def verifyOk(attended: Boolean, nino: String): Assertion = {
-    val expectedResponseBody = Json.toJson(individualDetailsMinimalResponse(nino)).toString
-    stubCall(HttpMethod.Get, connectorUrl, Status.OK, expectedResponseBody, minimalPopulation)
+  private def verifyResponse[T <: Detail](
+    attended: Boolean, nino: Nino, detailData: DetailData[T], detail: T, detailId: Int, error: Option[BaseError] = none
+  ): Assertion = {
+    implicit val format: OFormat[T] = detailData.format
+
+    val connectorUrl = urlWithoutQuery(IndividualDetailsConnector.path(nino, detailData.fields))
+
+    val expectedStatus = error.fold(Status.OK)(_.httpCode)
+    val expectedResponseBody =
+      if (expectedStatus == Status.OK) Json.toJson(detail).toString
+      else Json.obj("errors" -> List(TestingErrorItem(error.get.entryName, error.get.message))).toString
+
+    val queryParams = detailQueryParams(detailData.fields)
+
+    stubCall(HttpMethod.Get, connectorUrl, new Integer(expectedStatus), expectedResponseBody, queryParams)
+
+    val path = get(nino.value, detailId).url
 
     val request =
-      if (attended) fakeRequest(Helpers.GET, getPathWithValidNino)
-      else fakeRequestForUnattended(Helpers.GET, getPathWithValidNino)
+      if (attended) fakeRequest(Helpers.GET, path)
+      else fakeRequestForUnattended(Helpers.GET, path)
 
     val response = route(app, request).get
-    status(response) shouldBe Status.OK
+    status(response) shouldBe expectedStatus
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Get, connectorUrl, minimalPopulation.head)
-    else verifyHeadersForUnattended(HttpMethod.Get, connectorUrl, minimalPopulation.head)
+    if (attended) verifyHeadersForAttended(HttpMethod.Get, connectorUrl, queryParams.head)
+    else verifyHeadersForUnattended(HttpMethod.Get, connectorUrl, queryParams.head)
 
     contentAsString(response) shouldBe expectedResponseBody
   }

@@ -22,7 +22,8 @@ sealed trait EndpointId extends EnumEntry
 
 object EndpointId extends Enum[EndpointId] {
 
-  case object Breathing_Space_Individual_Details_GET extends EndpointId
+  case object Breathing_Space_Detail0_GET extends EndpointId
+  case object Breathing_Space_Detail1_GET extends EndpointId
   case object Breathing_Space_Periods_GET extends EndpointId
   case object Breathing_Space_Periods_POST extends EndpointId
   case object Breathing_Space_Periods_PUT extends EndpointId

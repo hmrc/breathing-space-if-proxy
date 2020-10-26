@@ -16,13 +16,16 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.config
 
+import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.SERVER_ERROR
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
+
+  val errorHandler = inject[ErrorHandler]
 
   "onClientError" should {
     "return an error message as response's body according to the expected format (a list of errors)" in {
@@ -30,11 +33,11 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
       val expectedMessage = "Invalid Json."
       val request = requestFilteredOutOneHeader(Header.CorrelationId)
 
-      val response = inject[ErrorHandler].onClientError(request, statusCode, expectedMessage)
+      val response = errorHandler.onClientError(request, statusCode, expectedMessage)
 
       val expectedBody = s"""{"errors":[{"code":"BAD_REQUEST","message":"$expectedMessage"}]}"""
 
-      status(response) shouldBe BAD_REQUEST
+      status(response) shouldBe statusCode
       contentAsString(response) shouldBe expectedBody
     }
 
@@ -49,8 +52,18 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
 
       val expectedBody = s"""{"errors":[{"code":"BAD_REQUEST","message":"$expectedMessage"}]}"""
 
-      status(response) shouldBe BAD_REQUEST
+      status(response) shouldBe statusCode
       contentAsString(response) shouldBe expectedBody
+    }
+
+    "return INVALID_ENDPOINT as code when receiving a 404(NOT_FOUND)" in {
+      val response = errorHandler.onClientError(fakeGetRequest, NOT_FOUND, "Invalid endpoint")
+
+      val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_ENDPOINT")
+      errorList.head.code shouldBe INVALID_ENDPOINT.entryName
+      assert(errorList.head.message.startsWith(INVALID_ENDPOINT.message))
     }
   }
 

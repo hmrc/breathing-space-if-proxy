@@ -5,7 +5,7 @@ GET   /api/conf/:version/*file   uk.gov.hmrc.breathingspaceifproxy.controller.Ap
 
 # Microservice specific routes
 # ============================
-GET   /:nino/individual-details/minimal  uk.gov.hmrc.breathingspaceifproxy.controller.IndividualDetailsController.getMinimalPopulation(nino)
-GET   /:nino/periods                     uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.get(nino)
-POST  /periods                           uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.post
-PUT   /:nino/periods                     uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.put(nino)
+GET   /:nino/individual/detail:index uk.gov.hmrc.breathingspaceifproxy.controller.IndividualDetailsController.get(nino, index: Int)
+GET   /:nino/periods                 uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.get(nino)
+POST  /periods                       uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.post
+PUT   /:nino/periods                 uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.put(nino)

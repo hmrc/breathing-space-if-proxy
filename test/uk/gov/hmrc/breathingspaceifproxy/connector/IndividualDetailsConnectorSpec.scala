@@ -19,6 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.wordspec.AnyWordSpec
+import uk.gov.hmrc.breathingspaceifproxy.model.DetailData1
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach with MockitoSugar {
@@ -38,14 +39,14 @@ class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec with Befo
       Given("another valid Nino")
       val anotherNino = genNino
 
-      And("query parameters")
-      val queryParams = IndividualDetailsConnector.minimalPopulation
+      And("and a \"fields\" query parameter")
+      val fields = DetailData1.fields
 
       val anotherExpectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/details/NINO/${anotherNino.value}${queryParams}"
+        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/details/NINO/${anotherNino.value}${fields}"
 
       Then(s"the composed url should be equal to $anotherExpectedUrl")
-      IndividualDetailsConnector.url(anotherNino, queryParams) shouldBe anotherExpectedUrl
+      IndividualDetailsConnector.url(anotherNino, fields) shouldBe anotherExpectedUrl
     }
   }
 }
