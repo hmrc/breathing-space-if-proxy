@@ -1,3 +1,3 @@
-This API allows for the creation and administration of breathing space periods for debtors.
+This API allows for the creation and administration of "Breathing Space"periods for individuals.
 
-It also facilitates the retrieval of certain types of debtor information. 
+It also facilitates the retrieval of certain types of individual information.
