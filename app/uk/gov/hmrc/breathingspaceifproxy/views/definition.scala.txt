@@ -5,24 +5,24 @@
 {
   "scopes": [
     {
-      "key": "read:breathing-space-debtor",
-      "name": "Breathing Space - Read Debtor",
-      "description": "Return information about a debtor who has sought help on the breathing space program"
+      "key": "read:breathing-space-individual",
+      "name": "Breathing Space - Read Individual",
+      "description": "Return information about an individual who has sought help on the Breathing Space Program"
     },
     {
       "key": "read:breathing-space-periods",
       "name": "Breathing Space - Read Periods",
-      "description": "Return details of existing breathing space periods"
+      "description": "Return details of existing Breathing Space Periods"
     },
     {
       "key": "write:breathing-space-periods",
       "name": "Breathing Space - Modify Periods",
-      "description": "Create new or modify existing breathing space periods"
+      "description": "Create new or modify existing Breathing Space Periods"
     }
   ],
   "api": {
     "name": "Breathing Space",
-    "description": "Allows for the administration of breathing space periods for an individual and related activities",
+    "description": "Allows for the administration of Breathing Space Periods for an individual and related activities",
     "context": "individuals/breathing-space",
     "categories": ["OTHER"],
     "versions": [

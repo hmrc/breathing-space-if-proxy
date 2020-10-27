@@ -46,8 +46,8 @@ documentation:
       get:
         displayName: Retrieve individual details for a NINO
         description: Retrieve, for the given NINO, individual details shaped according to the indicated identifier, here Detail0.
-        (annotations.scope): "read:breathing-space-individual-details"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual-details" ] } ]
+        (annotations.scope): "read:breathing-space-individual"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
         headers:
           Correlation-Id:
             description: A unique UUID for this request
@@ -125,8 +125,8 @@ documentation:
       get:
         displayName: Retrieve individual details for a NINO
         description: Retrieve, for the given NINO, individual details shaped according to the indicated identifier, here Detail1.
-        (annotations.scope): "read:breathing-space-individual-details"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual-details" ] } ]
+        (annotations.scope): "read:breathing-space-individual"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
         headers:
           Correlation-Id:
             description: A unique UUID for this request
