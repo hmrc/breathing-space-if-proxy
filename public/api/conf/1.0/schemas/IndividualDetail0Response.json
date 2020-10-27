@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Individual's Details",
+  "description": "Schema of GET Individual's Details (filter #0)",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "nino": {
+      "type": "string"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date"
+    },
+    "crnIndicator": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "nino",
+    "dateOfBirth",
+    "crnIndicator"
+  ]
+}
