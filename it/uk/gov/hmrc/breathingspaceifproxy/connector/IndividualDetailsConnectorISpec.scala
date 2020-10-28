@@ -37,8 +37,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       val urlForDetail0 = urlWithoutQuery(IndividualDetailsConnector.path(nino, DetailData0.fields))
       val queryParamsForDetail0 = detailQueryParams(DetailData0.fields)
 
-      implicit val formatForDetail1: OFormat[Detail1] = DetailData1.format
-      val unexpectedPayload = Json.toJson(detail1(nino)).toString
+      val unexpectedPayload = Json.parse("""{"dateOfRegistration":"2020-01-01","sex":"M"}""").toString
 
       stubCall(HttpMethod.Get, urlForDetail0, Status.OK, unexpectedPayload, queryParamsForDetail0)
 
