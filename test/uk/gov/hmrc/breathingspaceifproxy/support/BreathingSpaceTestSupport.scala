@@ -185,11 +185,11 @@ trait BreathingSpaceTestSupport {
     Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
-  def detail0(nino: Nino): Detail0 = Detail0(nino.value, LocalDate.now, 0)
+  def detail0(nino: Nino): Detail0 = Detail0(nino.value, LocalDate.now.some, 0.some)
   def detail1(nino: Nino): Detail1 = Detail1(
     nino.value,
-    LocalDate.now,
-    NameListForDetail1(List(NameDataForDetail1("Mickey".some, "Mouse".some)))
+    LocalDate.now.some,
+    NameListForDetail1(List(NameDataForDetail1("Mickey".some, "Mouse".some))).some
   )
 
   def detailQueryParams(fields: String): Map[String, String] =

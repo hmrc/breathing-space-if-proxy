@@ -29,7 +29,7 @@ abstract class DetailData[T <: Detail] {
 
 // Detail0 --------------------------------------------------------------------------------
 
-final case class Detail0(nino: String, dateOfBirth: LocalDate, crnIndicator: Int) extends Detail
+final case class Detail0(nino: String, dateOfBirth: Option[LocalDate], crnIndicator: Option[Int]) extends Detail
 object DetailData0 extends DetailData[Detail0] {
   val fields = "?fields=details(nino,dateOfBirth,cnrIndicator)"
   val format = Json.format[Detail0]
@@ -47,7 +47,11 @@ object NameDataForDetail1 { implicit val format: OFormat[NameDataForDetail1] = J
 final case class NameListForDetail1(name: List[NameDataForDetail1])
 object NameListForDetail1 { implicit val format = Json.format[NameListForDetail1] }
 
-final case class Detail1(nino: String, dateOfBirth: LocalDate, nameList: NameListForDetail1) extends Detail
+final case class Detail1(
+  nino: String,
+  dateOfBirth: Option[LocalDate],
+  nameList: Option[NameListForDetail1]
+) extends Detail
 object DetailData1 extends DetailData[Detail1] {
   val fields = "?fields=details(nino,dateOfBirth),namelist(name(firstForename,secondForename,surname))"
   val format = Json.format[Detail1]
