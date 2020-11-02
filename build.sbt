@@ -39,6 +39,8 @@ unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
     "<empty>",
+    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.connector\\.test\\..*",
+    "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.controller\\.test\\..*",
     "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.metrics\\..*",
     "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.views\\..*",
     ".*(Reverse|AuthService|BuildInfo|Routes).*"

@@ -54,9 +54,9 @@ trait BreathingSpaceTestSupport {
 
   val attendedStaffPid = "1234567"
 
-  val errorResponsePayloadFromIF = """{"failures":[{"code":"AN_ERROR","message":"An error message"}]}"""
+  val errorResponsePayloadFromIF = """{"failures":[{"code":"AN_ERROR","reason":"An error message"}]}"""
 
-  implicit val genericRequestId = RequestId(EndpointId.Breathing_Space_Periods_POST, correlationId)
+  implicit val genericRequestId = RequestId(EndpointId.BS_Periods_POST, correlationId)
 
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,

@@ -56,10 +56,10 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
       contentAsString(response) shouldBe expectedBody
     }
 
-    "return INVALID_ENDPOINT as code when receiving a 404(NOT_FOUND)" in {
+    "return 400(BAD_REQUEST) and INVALID_ENDPOINT as code when receiving a 404(NOT_FOUND)" in {
       val response = errorHandler.onClientError(fakeGetRequest, NOT_FOUND, "Invalid endpoint")
 
-      val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
       And(s"the error code should be $INVALID_ENDPOINT")
       errorList.head.code shouldBe INVALID_ENDPOINT.entryName

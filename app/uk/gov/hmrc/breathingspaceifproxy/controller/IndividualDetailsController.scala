@@ -51,7 +51,7 @@ class IndividualDetailsController @Inject()(
         request.body
       ).mapN((correlationId, nino, endpointId, _) => (RequestId(endpointId, correlationId), nino))
         .fold(
-          ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+          HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
           validationTuple => {
             implicit val (requestId, nino) = validationTuple
             logger.debug(s"$requestId for Nino(${nino.value}) with detailId($detailId)")
@@ -59,7 +59,7 @@ class IndividualDetailsController @Inject()(
               case 0 => evalResponse[Detail0](individualDetailsConnector.get[Detail0](nino, DetailData0), DetailData0)
               case 1 => evalResponse[Detail1](individualDetailsConnector.get[Detail1](nino, DetailData1), DetailData1)
               // Shouldn't happen as detailId was already validated.
-              case _ => ErrorResponse(requestId.correlationId, invalidDetailId(detailId)).value
+              case _ => HttpError(requestId.correlationId.toString.some, invalidDetailId(detailId)).send
             }
           }
         )
@@ -70,13 +70,13 @@ class IndividualDetailsController @Inject()(
   ): Future[Result] =
     response.flatMap {
       implicit val format = detailData.format
-      _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+      _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
     }
 
   private def validateDetailId(detailId: Int): Validation[EndpointId] =
     (detailId: @switch) match {
-      case 0 => Breathing_Space_Detail0_GET.validNec[ErrorItem]
-      case 1 => Breathing_Space_Detail1_GET.validNec[ErrorItem]
+      case 0 => BS_Detail0_GET.validNec[ErrorItem]
+      case 1 => BS_Detail1_GET.validNec[ErrorItem]
       case _ => invalidDetailId(detailId).invalidNec[EndpointId]
     }
 
