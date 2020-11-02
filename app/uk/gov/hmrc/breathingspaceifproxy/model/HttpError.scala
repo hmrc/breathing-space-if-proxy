@@ -21,43 +21,44 @@ import java.util.UUID
 import scala.concurrent.Future
 
 import cats.syntax.option._
-import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
 import uk.gov.hmrc.breathingspaceifproxy.Header
 
-case class ErrorResponse(value: Future[Result])
+case class HttpError(value: Result) {
+  lazy val send = Future.successful(value)
+}
 
-object ErrorResponse extends Logging {
+object HttpError {
 
-  def apply(correlationId: => Option[String], httpErrorCode: Int, errors: Errors): ErrorResponse = {
+  def apply(correlationId: => Option[String], httpErrorCode: Int, errors: Errors): HttpError = {
     val payload = Json.obj("errors" -> errors.toChain.toList)
     apply(correlationId, httpErrorCode, payload)
   }
 
-  def apply(correlationId: UUID, errors: Errors): ErrorResponse = {
+  def apply(correlationId: UUID, errors: Errors): HttpError = {
     val errorList = errors.toChain.toList
     val payload = Json.obj("errors" -> errorList)
     // The HTTP error code is provided by the 1st error item
     apply(correlationId.toString.some, errorList.head.baseError.httpCode, payload)
   }
 
-  def apply(correlationId: UUID, error: ErrorItem): ErrorResponse = {
+  def apply(correlationId: Option[String], error: ErrorItem): HttpError = {
     val payload = Json.obj("errors" -> List(error))
-    apply(correlationId.toString.some, error.baseError.httpCode, payload)
+    apply(correlationId, error.baseError.httpCode, payload)
   }
 
-  def apply(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): ErrorResponse = {
+  def apply(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): HttpError = {
     val headers = List(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
-    new ErrorResponse(Future.successful {
+    new HttpError(
       Status(httpErrorCode)(payload)
         .withHeaders(
           correlationId.fold(headers) { corrId =>
             headers :+ (Header.CorrelationId -> corrId)
           }: _*
         )
-    })
+    )
   }
 }

@@ -28,46 +28,46 @@ import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, TestingErrorItem}
 
-class ErrorResponseSpec extends AnyFunSuite with BaseSpec {
+class HttpErrorSpec extends AnyFunSuite with BaseSpec {
 
-  test("ErrorResponse with httpErrorCode param and an 'Errors' list with 1 'Error' item") {
-    genAndTestErrorResponse(true, Nec(ErrorItem(INVALID_NINO)))
+  test("HttpError with httpErrorCode param and an 'Errors' list with 1 'Error' item") {
+    genAndTestHttpError(true, Nec(ErrorItem(INVALID_NINO)))
   }
 
-  test("ErrorResponse with httpErrorCode param and an 'Errors' list with 2 'Error' items") {
-    genAndTestErrorResponse(true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
+  test("HttpError with httpErrorCode param and an 'Errors' list with 2 'Error' items") {
+    genAndTestHttpError(true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
   }
 
-  test("ErrorResponse with an 'Errors' list with 1 'Error' item") {
-    genAndTestErrorResponse(false, Nec(ErrorItem(SERVER_ERROR)))
+  test("HttpError with an 'Errors' list with 1 'Error' item") {
+    genAndTestHttpError(false, Nec(ErrorItem(SERVER_ERROR)))
   }
 
-  test("ErrorResponse with an 'Errors' list with 2 'Error' items") {
-    genAndTestErrorResponse(false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
+  test("HttpError with an 'Errors' list with 2 'Error' items") {
+    genAndTestHttpError(false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
   }
 
-  private def genAndTestErrorResponse(withHttpErrorCode: Boolean, errorItems: Nec[ErrorItem]): Assertion = {
+  private def genAndTestHttpError(withHttpErrorCode: Boolean, errorItems: Nec[ErrorItem]): Assertion = {
     Given("an Http Status >= 400")
     val httpErrorCode = if (withHttpErrorCode) Status.BAD_REQUEST else errorItems.head.baseError.httpCode
 
     val nrErrors = errorItems.length
     And(s"$nrErrors Error items")
 
-    Then("the resulting ErrorResponse instance should wrap an Http response")
+    Then("the resulting HttpError instance should wrap an Http response")
     val response =
-      if (withHttpErrorCode) ErrorResponse(correlationIdAsString.some, httpErrorCode, errorItems).value.futureValue
+      if (withHttpErrorCode) HttpError(correlationIdAsString.some, httpErrorCode, errorItems).value
       else {
         if (nrErrors == 1) {
           // Testing the 'apply' taking a single 'Error'
-          testErrorResponse(ErrorResponse(correlationId, errorItems.head).value.futureValue, httpErrorCode, errorItems)
+          testHttpError(HttpError(correlationIdAsString.some, errorItems.head).value, httpErrorCode, errorItems)
         }
-        ErrorResponse(correlationId, errorItems).value.futureValue
+        HttpError(correlationId, errorItems).value
       }
 
-    testErrorResponse(response, httpErrorCode, errorItems)
+    testHttpError(response, httpErrorCode, errorItems)
   }
 
-  private def testErrorResponse(response: Result, httpErrorCode: Int, errorItems: Nec[ErrorItem]): Assertion = {
+  private def testHttpError(response: Result, httpErrorCode: Int, errorItems: Nec[ErrorItem]): Assertion = {
     And("the Http response should have the Http Status provided")
     response.header.status shouldBe httpErrorCode
 

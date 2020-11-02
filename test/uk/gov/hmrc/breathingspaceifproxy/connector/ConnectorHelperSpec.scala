@@ -22,12 +22,12 @@ import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.funsuite.AnyFunSuite
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.SERVER_ERROR
-import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.Breathing_Space_Periods_GET
+import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.BS_Periods_GET
 
 class ConnectorHelperSpec extends AnyFunSuite with ConnectorHelper {
 
   test("handleUpstreamError should return SERVER_ERROR for any Throwable caught while sending downstream a request") {
-    val requestId = RequestId(Breathing_Space_Periods_GET, UUID.randomUUID)
+    val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
     val throwable = new IllegalArgumentException("Some illegal argument")
 
     val result = handleUpstreamError[Unit](requestId).apply(throwable).futureValue

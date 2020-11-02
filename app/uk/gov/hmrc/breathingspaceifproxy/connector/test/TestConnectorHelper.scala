@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
+package uk.gov.hmrc.breathingspaceifproxy.connector.test
 
-import enumeratum._
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
-sealed trait EndpointId extends EnumEntry
+trait TestConnectorHelper {
 
-object EndpointId extends Enum[EndpointId] {
-
-  case object BS_Detail0_GET extends EndpointId
-  case object BS_Detail1_GET extends EndpointId
-  case object BS_Periods_GET extends EndpointId
-  case object BS_Periods_POST extends EndpointId
-  case object BS_Periods_PUT extends EndpointId
-
-  override val values = findValues
+  def url(path: String)(implicit appConfig: AppConfig): String =
+    s"${appConfig.integrationFrameworkBaseUrl}/individuals$path"
 }

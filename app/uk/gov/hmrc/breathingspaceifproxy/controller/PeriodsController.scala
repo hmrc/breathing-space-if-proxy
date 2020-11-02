@@ -39,14 +39,14 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       validateHeadersForNPS,
       validateNino(maybeNino),
       request.body
-    ).mapN((correlationId, nino, _) => (RequestId(Breathing_Space_Periods_GET, correlationId), nino))
+    ).mapN((correlationId, nino, _) => (RequestId(BS_Periods_GET, correlationId), nino))
       .fold(
-        ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+        HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
           implicit val (requestId, nino) = validationTuple
           logger.debug(s"$requestId for Nino(${nino.value})")
           periodsConnector.get(nino).flatMap {
-            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+            _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
           }
         }
       )
@@ -58,15 +58,15 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       request.body.andThen(validateBodyOfPost)
     ).mapN(
         (correlationId, ninoAndPostPeriods) =>
-          (RequestId(Breathing_Space_Periods_POST, correlationId), ninoAndPostPeriods._1, ninoAndPostPeriods._2)
+          (RequestId(BS_Periods_POST, correlationId), ninoAndPostPeriods._1, ninoAndPostPeriods._2)
       )
       .fold(
-        ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+        HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
           implicit val (requestId, nino, postPeriodsInRequest) = validationTuple
           logger.debug(s"$requestId with $postPeriodsInRequest for Nino(${nino.value})")
           periodsConnector.post(nino, postPeriodsInRequest).flatMap {
-            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(CREATED, _))
+            _.fold(HttpError(requestId.correlationId, _).send, composeResponse(CREATED, _))
           }
         }
       )
@@ -79,15 +79,15 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
       request.body.andThen(validateBodyOfPut)
     ).mapN(
         (correlationId, nino, putPeriodsInRequest) =>
-          (RequestId(Breathing_Space_Periods_POST, correlationId), nino, putPeriodsInRequest)
+          (RequestId(BS_Periods_POST, correlationId), nino, putPeriodsInRequest)
       )
       .fold(
-        ErrorResponse(retrieveCorrelationId, BAD_REQUEST, _).value,
+        HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
           implicit val (requestId, nino, putPeriodsInRequest) = validationTuple
           logger.debug(s"$requestId with $putPeriodsInRequest for Nino(${nino.value})")
           periodsConnector.put(nino, putPeriodsInRequest).flatMap {
-            _.fold(ErrorResponse(requestId.correlationId, _).value, composeResponse(OK, _))
+            _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
           }
         }
       )

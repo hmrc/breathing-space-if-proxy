@@ -21,9 +21,8 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-import cats.data.{NonEmptyChain => Nec}
 import play.api._
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, NOT_FOUND}
+import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{RequestHeader, Result}
 import uk.gov.hmrc.breathingspaceifproxy.Header
@@ -43,23 +42,23 @@ class ErrorHandler @Inject()(
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     val correlationId = request.headers.get(Header.CorrelationId)
     val endpoint = s"${request.method} ${request.path} has status($statusCode)"
-    logger.error(s"(Correlation-id: ${logCorrelationId(request)}) $endpoint. Client error was: $message}")
-    if (statusCode == NOT_FOUND) ErrorResponse(correlationId, NOT_FOUND, Nec(ErrorItem(INVALID_ENDPOINT))).value
+    logger.error(s"${logCorrelationId(correlationId)} $endpoint. Client error was: $message}")
+    if (statusCode == NOT_FOUND) HttpError(correlationId, ErrorItem(INVALID_ENDPOINT)).send
     else {
       val payload = Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message)))
-      ErrorResponse(correlationId, statusCode, payload).value
+      HttpError(correlationId, statusCode, payload).send
     }
   }
 
   override def onServerError(request: RequestHeader, throwable: Throwable): Future[Result] = {
     val correlationId = request.headers.get(Header.CorrelationId)
     val endpoint = s"${request.method} ${request.path}"
-    logger.error(s"(Correlation-id: ${logCorrelationId(request)}) $endpoint", throwable)
-    ErrorResponse(correlationId, INTERNAL_SERVER_ERROR, Nec(ErrorItem(SERVER_ERROR))).value
+    logger.error(s"${logCorrelationId(correlationId)} $endpoint", throwable)
+    HttpError(correlationId, ErrorItem(SERVER_ERROR)).send
   }
 
-  private def logCorrelationId(request: RequestHeader): String =
-    request.headers.get(Header.CorrelationId).fold("")(identity)
+  private def logCorrelationId(correlationId: Option[String]): String =
+    s"(Correlation-id: ${correlationId.fold("not-provided")(identity)})"
 
   private def removeCodeDetailIfAny(message: String): String = {
     val ix = message.indexOf("\n")
