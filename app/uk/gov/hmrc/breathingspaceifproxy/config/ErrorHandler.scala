@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.config
 
-import javax.inject.Inject
+import javax.inject.{Inject, Provider}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -25,6 +25,7 @@ import play.api._
 import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{RequestHeader, Result}
+import play.api.routing.Router
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
@@ -33,6 +34,7 @@ import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 
 class ErrorHandler @Inject()(
+  routerProvider: Provider[Router],
   auditConnector: AuditConnector,
   httpAuditEvent: HttpAuditEvent,
   configuration: Configuration
@@ -41,10 +43,10 @@ class ErrorHandler @Inject()(
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     val correlationId = request.headers.get(Header.CorrelationId)
-    val endpoint = s"${request.method} ${request.path} has status($statusCode)"
-    logger.error(s"${logCorrelationId(correlationId)} $endpoint. Client error was: $message}")
-    if (statusCode == NOT_FOUND) HttpError(correlationId, ErrorItem(INVALID_ENDPOINT)).send
+    val endpoint = s"${request.method} ${request.path} has status code"
+    if (statusCode == NOT_FOUND) sendInvalidEndpoint(correlationId, endpoint)
     else {
+      logger.error(s"""${logCorrelationId(correlationId)} $endpoint($statusCode). Client error was: "$message"""")
       val payload = Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message)))
       HttpError(correlationId, statusCode, payload).send
     }
@@ -63,6 +65,18 @@ class ErrorHandler @Inject()(
   private def removeCodeDetailIfAny(message: String): String = {
     val ix = message.indexOf("\n")
     message.substring(0, if (ix == -1) message.length else ix)
+  }
+
+  private def sendInvalidEndpoint(correlationId: Option[String], endpoint: String): Future[Result] = {
+    val endpoints = routerProvider.get.documentation.map { route =>
+      val method = route._1
+      val path = route._2.replace("/$", "/:")
+      s"\t$method\t$path\n"
+    }.mkString
+
+    val error = s"${logCorrelationId(correlationId)} $endpoint(INVALID_ENDPOINT). Available endpoints are: \n$endpoints"
+    logger.error(error)
+    HttpError(correlationId, ErrorItem(INVALID_ENDPOINT)).send
   }
 
   private def listWithOneError(statusCode: Int, message: String): JsArray =
