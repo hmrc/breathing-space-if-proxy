@@ -21,5 +21,5 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 trait TestConnectorHelper {
 
   def url(path: String)(implicit appConfig: AppConfig): String =
-    s"${appConfig.integrationFrameworkBaseUrl}/individuals$path"
+    s"${appConfig.integrationFrameworkBaseUrl}/${appConfig.integrationFrameworkContext}$path"
 }
