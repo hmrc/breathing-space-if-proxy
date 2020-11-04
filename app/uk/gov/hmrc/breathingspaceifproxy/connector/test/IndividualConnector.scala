@@ -39,7 +39,7 @@ class IndividualConnector @Inject()(http: HttpClient)(
     http.DELETE[HttpResponse](Url(url(s"/${nino.value}")).value)
 
   def deleteAll(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.DELETE[HttpResponse](Url(url("/")).value)
+    http.DELETE[HttpResponse](Url(url("/wipe-all")).value)
 
   def exists(nino: Nino)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     http.GET[HttpResponse](Url(url(s"/${nino.value}")).value)
@@ -48,7 +48,7 @@ class IndividualConnector @Inject()(http: HttpClient)(
     http.GET[HttpResponse](Url(url("/ninos")).value)
 
   def postIndividual(payload: JsValue)(implicit hc: HeaderCarrier): Future[HttpResponse] =
-    http.POST[JsValue, HttpResponse](Url(url("/")).value, payload)
+    http.POST[JsValue, HttpResponse](Url(url("/single")).value, payload)
 
   def postIndividuals(payload: JsValue)(implicit hc: HeaderCarrier): Future[HttpResponse] =
     http.POST[JsValue, HttpResponse](Url(url("/bulk")).value, payload)

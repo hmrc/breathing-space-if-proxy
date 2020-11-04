@@ -485,67 +485,6 @@ documentation:
                     code: RESOURCE_NOT_FOUND
 
   /test-only:
-    delete:
-      displayName: Remove all Breathing Space Individual documents
-      description: Remove all Breathing Space Individual documents.
-      (annotations.scope): "write:breathing-space-individual"
-      securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-      responses:
-        200:
-          body:
-            application/json:
-              type: !include schemas/test/DELETE-All-Individuals-Response.json
-              examples:
-                examples-1:
-                  description: How many Individual documents were removed, if any.
-                  value: !include examples/test/DELETE-All-Individuals-Response.json
-
-    post:
-      displayName: Add a new Breathing Space Individual document
-      description: Add a new Breathing Space Individual document given a non-existing Nino.
-      (annotations.scope): "write:breathing-space-individual"
-      securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-      headers:
-        Content-Type:
-          description: Specifies the content type of the request payload. Must be same as the example given.
-          type: string
-          required: true
-          example: application/json
-      body:
-        application/json:
-          type: !include schemas/test/POST-Individual-Request.json
-      responses:
-        201:
-          description: Created
-
-        400:
-          body:
-            application/json:
-              type: types.errorResponse
-              examples:
-                invalidJson:
-                  description: Invalid Json
-                  value:
-                    code: INVALID_JSON
-                invalidNino:
-                  description: Invalid Nino
-                  value:
-                    code: INVALID_NINO
-                missingBody:
-                  description: Missing Body
-                  value:
-                    code: MISSING_BODY
-
-        409:
-          body:
-            application/json:
-              type: types.errorResponse
-              examples:
-                duplicatedKey:
-                  description: The provided Nino is already existing
-                  value:
-                    code: CONFLICTING_REQUEST
-
     /bulk:
       post:
         displayName: Add one or more new Breathing Space Individual documents
@@ -618,6 +557,69 @@ documentation:
                 examples:
                   examples-1:
                     value: !include examples/test/GET-List-Individual-Ninos-Response.json
+
+    /single:
+      post:
+        displayName: Add a new Breathing Space Individual document
+        description: Add a new Breathing Space Individual document given a non-existing Nino.
+        (annotations.scope): "write:breathing-space-individual"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
+        headers:
+          Content-Type:
+            description: Specifies the content type of the request payload. Must be same as the example given.
+            type: string
+            required: true
+            example: application/json
+        body:
+          application/json:
+            type: !include schemas/test/POST-Individual-Request.json
+        responses:
+          201:
+            description: Created
+
+          400:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  invalidJson:
+                    description: Invalid Json
+                    value:
+                      code: INVALID_JSON
+                  invalidNino:
+                    description: Invalid Nino
+                    value:
+                      code: INVALID_NINO
+                  missingBody:
+                    description: Missing Body
+                    value:
+                      code: MISSING_BODY
+
+          409:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  duplicatedKey:
+                    description: The provided Nino is already existing
+                    value:
+                      code: CONFLICTING_REQUEST
+
+    /wipe-all:
+      delete:
+        displayName: Remove all Breathing Space Individual documents
+        description: Remove all Breathing Space Individual documents.
+        (annotations.scope): "write:breathing-space-individual"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
+        responses:
+          200:
+            body:
+              application/json:
+                type: !include schemas/test/DELETE-All-Individuals-Response.json
+                examples:
+                  examples-1:
+                    description: How many Individual documents were removed, if any.
+                    value: !include examples/test/DELETE-All-Individuals-Response.json
 
     /{nino}:
       uriParameters:
