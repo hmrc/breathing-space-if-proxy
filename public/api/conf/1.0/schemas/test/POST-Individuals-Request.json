@@ -1,0 +1,88 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Breathing Space Individual Documents",
+  "description": "Schema of POST Individual documents request",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "individuals": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "additionalItems": false,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "nino": {
+            "description": "National Insurance Number",
+            "type": "string",
+            "pattern": "^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$",
+            "example": "MZ006526C, MZ006526"
+          },
+          "individualDetails": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "dateOfBirth": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$",
+                "example": "1980-12-31"
+              },
+              "crnIndicator": {
+                "type": "integer"
+              },
+              "nameList": {
+                "$ref": "#/definitions/uk.gov.hmrc.breathingspaceifstub.model.NameList"
+              }
+            },
+            "required": [
+
+            ]
+          }
+        },
+        "required": [
+          "nino"
+        ]
+      }
+    }
+  },
+  "required": [
+    "individuals"
+  ],
+  "definitions": {
+    "uk.gov.hmrc.breathingspaceifstub.model.NameList": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "additionalItems": false,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "firstForename": {
+                "type": "string"
+              },
+              "surname": {
+                "type": "string"
+              },
+              "secondForename": {
+                "type": "string"
+              }
+            },
+            "required": [
+
+            ]
+          }
+        }
+      },
+      "required": [
+        "name"
+      ]
+    }
+  }
+}

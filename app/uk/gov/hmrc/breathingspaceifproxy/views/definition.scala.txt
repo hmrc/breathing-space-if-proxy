@@ -10,6 +10,11 @@
       "description": "Return information about an individual who has sought help on the Breathing Space Program"
     },
     {
+      "key": "write:breathing-space-individual",
+      "name": "Breathing Space - Modify Individual",
+      "description": "Create new or modify existing individual who has sought help on the Breathing Space Program"
+    },
+    {
       "key": "read:breathing-space-periods",
       "name": "Breathing Space - Read Periods",
       "description": "Return details of existing Breathing Space Periods"

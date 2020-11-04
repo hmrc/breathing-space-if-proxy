@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Schema of POST Individual documents response",
+  "title": "Breathing Space Individual Documents",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "successful": {
+      "type": "integer"
+    },
+    "duplicates": {
+      "type": "integer"
+    },
+    "errors": {
+      "type": "integer"
+    }
+  },
+  "required": [
+    "successful",
+    "duplicates",
+    "errors"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "individuals": [
+    {
+      "nino": "AS000001"
+    },
+    {
+      "nino": "AS000002",
+      "individualDetails": {
+        "dateOfBirth": "1980-01-01"
+      }
+    }
+  ]
+}

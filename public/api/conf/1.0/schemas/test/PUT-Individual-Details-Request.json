@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Schema of PUT Individual Details document request",
+  "title": "Breathing Space Individual Documents",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "dateOfBirth": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$",
+      "example": "1980-12-31"
+    },
+    "crnIndicator": {
+      "type": "integer"
+    },
+    "nameList": {
+      "$ref": "#/definitions/uk.gov.hmrc.breathingspaceifstub.model.NameList"
+    }
+  },
+  "required": [
+
+  ],
+  "definitions": {
+    "uk.gov.hmrc.breathingspaceifstub.model.NameList": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "additionalItems": false,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "firstForename": {
+                "type": "string"
+              },
+              "surname": {
+                "type": "string"
+              },
+              "secondForename": {
+                "type": "string"
+              }
+            },
+            "required": [
+
+            ]
+          }
+        }
+      },
+      "required": [
+        "name"
+      ]
+    }
+  }
+}

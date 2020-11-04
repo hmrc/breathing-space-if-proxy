@@ -1,0 +1,30 @@
+{
+  "individuals": [
+    {
+      "nino": "AS000007A",
+      "individualDetails": {
+        "nameList": {
+          "name": [
+            {
+              "firstForename": "Peter",
+              "surname": "Erskine"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "nino": "AS000007",
+      "individualDetails": {
+        "dateOfBirth": "1990-12-31",
+        "nameList": {
+          "name": [
+            {
+              "firstForename": "Jaco"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
