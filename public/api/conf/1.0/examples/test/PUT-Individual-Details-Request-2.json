@@ -1,0 +1,17 @@
+{
+  "dateOfBirth": "1976-12-11",
+  "crnIndicator": 0,
+  "nameList": {
+    "name": [
+      {
+        "firstForename": "Joe",
+        "secondForename": "Keyboards",
+        "surname": "Zawinul"
+      },
+      {
+        "firstForename": "Weather",
+        "surname": "Report"
+      }
+    ]
+  }
+}

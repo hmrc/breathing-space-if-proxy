@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy.controller.RequestValidation
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, HttpError}
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.SERVER_ERROR
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{RESOURCE_NOT_FOUND, SERVER_ERROR}
 import uk.gov.hmrc.breathingspaceifproxy.model.test.Failures
 import uk.gov.hmrc.http.{HttpErrorFunctions, HttpResponse, UpstreamErrorResponse}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -31,13 +31,15 @@ abstract class TestBaseController(cc: ControllerComponents)
     with HttpErrorFunctions
     with RequestValidation {
 
-  def composeResponse(response: HttpResponse): Result = {
-    val body =
-      if (HttpErrorFunctions.is2xx(response.status)) response.body
-      else Json.stringify(Json.toJson(Json.parse(response.body).as[Failures]))
+  def composeResponse(response: HttpResponse)(implicit request: Request[_]): Result =
+    if (response.status == NOT_FOUND) HttpError(retrieveCorrelationId, ErrorItem(RESOURCE_NOT_FOUND)).value
+    else {
+      val body =
+        if (HttpErrorFunctions.is2xx(response.status)) response.body
+        else Json.stringify(Json.toJson(Json.parse(response.body).as[Failures]))
 
-    Status(response.status)(body).as(MimeTypes.JSON)
-  }
+      Status(response.status)(body).as(MimeTypes.JSON)
+    }
 
   def handleErrorResponse(implicit request: Request[_]): PartialFunction[Throwable, Result] = {
     case UpstreamErrorResponse(message, status, _, _) =>

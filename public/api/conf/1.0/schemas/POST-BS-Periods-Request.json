@@ -5,7 +5,6 @@
   "type": "object",
   "properties": {
     "nino": {
-      "description": "Start date of a breathing space period",
       "$ref": "Nino.json"
     },
     "periods": {

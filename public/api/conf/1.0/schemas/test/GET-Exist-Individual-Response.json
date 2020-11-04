@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Breathing Space Individual Documents",
+  "description": "Schema of Count of all existing Individual Documents response",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "exists": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "exists"
+  ]
+}

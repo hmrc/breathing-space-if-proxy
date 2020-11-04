@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Schema of List of Ninos of all existing Individual Documents response",
+  "title": "Breathing Space Individual Documents",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "ninos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "ninos"
+  ]
+}
