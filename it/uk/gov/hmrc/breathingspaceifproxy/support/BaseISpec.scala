@@ -73,7 +73,7 @@ abstract class BaseISpec
   def verifyHeaders(method: HttpMethod, url: String): Unit =
     verifyHeadersForAttended(method, url)
 
-  def verifyHeaders(method: HttpMethod, url: String, queryParam: (String, String)): Unit =
+  def verifyHeaders(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
     verifyHeadersForAttended(method, url, queryParam)
 
   def verifyHeadersForAttended(method: HttpMethod, url: String): Unit =
@@ -81,10 +81,10 @@ abstract class BaseISpec
       method.verifyHeaderFor(urlPathMatching(url))
     )
 
-  def verifyHeadersForAttended(method: HttpMethod, url: String, queryParam: (String, String)): Unit =
-    verifyHeadersForAttended(
-      method.verifyHeaderFor(urlPathMatching(url))
-        .withQueryParam(queryParam._1, equalTo(queryParam._2))
+  def verifyHeadersForAttended(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
+    if (queryParam.isEmpty) verifyHeadersForAttended(method, url)
+    else verifyHeadersForAttended(
+      method.verifyHeaderFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
     )
 
   def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
@@ -92,10 +92,10 @@ abstract class BaseISpec
       method.verifyHeaderFor(urlPathMatching(url))
     )
 
-  def verifyHeadersForUnattended(method: HttpMethod, url: String, queryParam: (String, String)): Unit =
-    verifyHeadersForUnattended(
-      method.verifyHeaderFor(urlPathMatching(url))
-        .withQueryParam(queryParam._1, equalTo(queryParam._2))
+  def verifyHeadersForUnattended(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
+    if (queryParam.isEmpty) verifyHeadersForUnattended(method, url)
+    else verifyHeadersForUnattended(
+      method.verifyHeaderFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
     )
 
   private def verifyHeadersForAttended(requestPatternBuilder: RequestPatternBuilder): Unit =

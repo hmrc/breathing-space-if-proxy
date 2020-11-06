@@ -31,8 +31,7 @@ object BaseError extends Enum[BaseError] {
       )
 
   case object INVALID_BODY extends BaseError(BAD_REQUEST, "Not expected a body to this endpoint")
-  case object INVALID_DETAIL_INDEX
-      extends BaseError(BAD_REQUEST, "Invalid detail index. Must be a number between 0 and ")
+  case object INVALID_DETAIL_INDEX extends BaseError(BAD_REQUEST, "Invalid detail index. Must be one of [0,1,s]")
   case object INVALID_ENDPOINT extends BaseError(BAD_REQUEST, "Not a valid endpoint")
   case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")
   case object INVALID_JSON extends BaseError(BAD_REQUEST, "Payload not in the expected Json format")

@@ -43,7 +43,7 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get[T <: Detail](nino: Nino, detailData: DetailData[T])(
+  def get[T <: Detail](nino: Nino, detailData: DetailsData[T])(
     implicit requestId: RequestId,
     hc: HeaderCarrier
   ): ResponseValidation[T] =

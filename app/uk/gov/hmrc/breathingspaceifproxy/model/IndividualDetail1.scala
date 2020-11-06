@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import enumeratum._
+import java.time.LocalDate
 
-sealed trait EndpointId extends EnumEntry
+import play.api.libs.json.Json
 
-object EndpointId extends Enum[EndpointId] {
+final case class Detail1(
+  nino: String,
+  dateOfBirth: Option[LocalDate],
+  nameList: Option[NameList]
+) extends Detail
 
-  case object BS_Detail0_GET extends EndpointId
-  case object BS_Detail1_GET extends EndpointId
-  case object BS_Details_GET extends EndpointId
-  case object BS_Periods_GET extends EndpointId
-  case object BS_Periods_POST extends EndpointId
-  case object BS_Periods_PUT extends EndpointId
-
-  override val values = findValues
+object DetailData1 extends DetailsData[Detail1] {
+  val fields = "?fields=details(nino,dateOfBirth),namelist(name(firstForename,secondForename,surname))"
+  val format = Json.format[Detail1]
 }

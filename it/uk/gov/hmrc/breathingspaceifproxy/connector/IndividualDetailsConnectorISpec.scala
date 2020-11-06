@@ -23,6 +23,11 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       verifyResponse(nino, DetailData1, detail1(nino))
     }
 
+    "return a IndividualDetails instance when the \"fields\" query parameter is not provided (full population)" in {
+      val nino = genNino
+      verifyResponse(nino, FullDetails, details(nino))
+    }
+
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
       verifyErrorResponse(genNino, Status.NOT_FOUND, RESOURCE_NOT_FOUND)
     }
@@ -43,7 +48,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
 
       val response = await(connector.get[Detail0](nino, DetailData0))
 
-      verifyHeaders(HttpMethod.Get, urlForDetail0, queryParamsForDetail0.head)
+      verifyHeaders(HttpMethod.Get, urlForDetail0, queryParamsForDetail0)
       response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
 
@@ -56,7 +61,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
     }
   }
 
-  private def verifyResponse[T <: Detail](nino: Nino, detailData: DetailData[T], detail: T): Assertion = {
+  private def verifyResponse[T <: Detail](nino: Nino, detailData: DetailsData[T], detail: T): Assertion = {
     implicit val format: OFormat[T] = detailData.format
 
     val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, detailData.fields))
@@ -66,7 +71,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
 
     val response = await(connector.get[T](nino, detailData))
 
-    verifyHeaders(HttpMethod.Get, url, queryParams.head)
+    verifyHeaders(HttpMethod.Get, url, queryParams)
     assert(response.fold(_ => false, _ => true))
   }
 
@@ -77,7 +82,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
 
     val response = await(connector.get[Detail0](nino, DetailData0))
 
-    verifyHeaders(HttpMethod.Get, url, queryParams.head)
+    verifyHeaders(HttpMethod.Get, url, queryParams)
     response.fold(_.head.baseError shouldBe baseError, _ => notAnErrorInstance)
   }
 }
