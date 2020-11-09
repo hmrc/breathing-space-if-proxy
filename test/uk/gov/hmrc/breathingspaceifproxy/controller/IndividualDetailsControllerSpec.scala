@@ -43,32 +43,37 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       val nino = genNino
-      verifyResponse[Detail0](nino, DetailData0, detail0(nino), 0, fakeGetRequest)
+      verifyResponse[Detail0](nino, DetailData0, detail0(nino), '0', fakeGetRequest)
     }
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
       val nino = genNino
-      verifyResponse[Detail0](nino, DetailData0, detail0(nino), 0, requestFilteredOutOneHeader(CONTENT_TYPE))
+      verifyResponse[Detail0](nino, DetailData0, detail0(nino), '0', requestFilteredOutOneHeader(CONTENT_TYPE))
     }
 
-    "return 200(OK) and the expected individual details when detailId is equal to 1" in {
+    "return 200(OK) and the expected individual details when detailId is equal to '1'" in {
       val nino = genNino
-      verifyResponse[Detail1](nino, DetailData1, detail1(nino), 1, fakeGetRequest)
+      verifyResponse[Detail1](nino, DetailData1, detail1(nino), '1', fakeGetRequest)
+    }
+
+    "return 200(OK) and the expected individual details when detailId is equal to 's' (full population)" in {
+      val nino = genNino
+      verifyResponse[IndividualDetails](nino, FullDetails, details(nino), 's', fakeGetRequest)
     }
 
     "return 400(BAD_REQUEST) when the detailId provided is invalid" in {
       Given(s"a GET request with a valid Nino and an invalid detailId")
-      verifyBadRequest(controller.get(genNinoString, 10000)(fakeGetRequest).run, INVALID_DETAIL_INDEX)
+      verifyBadRequest(controller.get(genNinoString, 'Z')(fakeGetRequest).run, INVALID_DETAIL_INDEX)
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"a GET request with an invalid Nino and a valid detailId")
-      verifyBadRequest(controller.get("HT1234B", 0)(fakeGetRequest).run, INVALID_NINO)
+      verifyBadRequest(controller.get("HT1234B", '0')(fakeGetRequest).run, INVALID_NINO)
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
       Given(s"a GET request with an invalid Nino and without the $StaffPid request header")
-      val response = controller.get("HT1234B", 0)(requestFilteredOutOneHeader(StaffPid)).run
+      val response = controller.get("HT1234B", '0')(requestFilteredOutOneHeader(StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 
@@ -84,14 +89,14 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
 
   private def verifyResponse[T <: Detail](
     nino: Nino,
-    detailData: DetailData[T],
+    detailData: DetailsData[T],
     detail: T,
-    detailId: Int,
+    detailId: Char,
     request: Request[_]
   ): Assertion = {
     implicit val format: OFormat[T] = detailData.format
 
-    when(mockConnector.get[T](any[Nino], any[DetailData[T]])(any[RequestId], any[HeaderCarrier]))
+    when(mockConnector.get[T](any[Nino], any[DetailsData[T]])(any[RequestId], any[HeaderCarrier]))
       .thenReturn(Future.successful(detail.validNec[ErrorItem]))
 
     val response = controller.get(nino.value, detailId)(request)

@@ -7,7 +7,8 @@ object Dependencies {
     "uk.gov.hmrc"   %% "bootstrap-backend-play-27" % "2.25.0",
     "org.typelevel" %% "cats-core"                 % "2.2.0",
     "com.beachape"  %% "enumeratum"                % "1.6.1",
-    "com.kenshoo"   %% "metrics-play"              % "2.7.3_0.8.2"
+    "com.kenshoo"   %% "metrics-play"              % "2.7.3_0.8.2",
+    "ai.x"          %% "play-json-extensions"      % "0.42.0"
   )
 
   val test = Seq(

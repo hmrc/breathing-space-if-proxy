@@ -18,25 +18,29 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
   "GET Individual's details for the provided Nino" should {
 
-    "return 200(OK) and the expected individual details when detailId is equal to 0" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0)
+    "return 200(OK) and the expected individual details when detailId is equal to '0'" in {
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0')
     }
 
-    "return 200(OK) and the expected individual details when detailId is equal to 1" in {
-      verifyResponse(attended = true, nino, DetailData1, detail1(nino), 1)
+    "return 200(OK) and the expected individual details when detailId is equal to '1'" in {
+      verifyResponse(attended = true, nino, DetailData1, detail1(nino), '1')
+    }
+
+    "return 200(OK) and the expected individual details when detailId is equal to 's'" in {
+      verifyResponse(attended = true, nino, FullDetails, details(nino), 's')
     }
 
     "return 200(OK) for an ATTENDED request" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0')
     }
 
     "return 200(OK) for an UNATTENDED request" in {
-      verifyResponse(attended = false, nino, DetailData0, detail0(nino), 0)
+      verifyResponse(attended = false, nino, DetailData0, detail0(nino), '0')
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body = Json.obj("aName" -> "aValue")
-      val request = fakeRequest(Helpers.GET, get(nino.value, 0).url).withBody(body)
+      val request = fakeRequest(Helpers.GET, get(nino.value, '0').url).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -48,16 +52,16 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0, RESOURCE_NOT_FOUND.some)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0', RESOURCE_NOT_FOUND.some)
     }
 
     "return 409(CONFLICT) in case of duplicated requests" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), 0, CONFLICTING_REQUEST.some)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0', CONFLICTING_REQUEST.some)
     }
   }
 
   private def verifyResponse[T <: Detail](
-    attended: Boolean, nino: Nino, detailData: DetailData[T], detail: T, detailId: Int, error: Option[BaseError] = none
+    attended: Boolean, nino: Nino, detailData: DetailsData[T], detail: T, detailId: Char, error: Option[BaseError] = none
   ): Assertion = {
     implicit val format: OFormat[T] = detailData.format
 
@@ -81,9 +85,11 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     val response = route(app, request).get
     status(response) shouldBe expectedStatus
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Get, connectorUrl, queryParams.head)
-    else verifyHeadersForUnattended(HttpMethod.Get, connectorUrl, queryParams.head)
+    if (attended) verifyHeadersForAttended(HttpMethod.Get, connectorUrl, queryParams)
+    else verifyHeadersForUnattended(HttpMethod.Get, connectorUrl, queryParams)
 
-    contentAsString(response) shouldBe expectedResponseBody
+    val test = contentAsString(response)
+    test shouldBe expectedResponseBody
+//    contentAsString(response) shouldBe expectedResponseBody
   }
 }

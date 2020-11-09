@@ -189,7 +189,35 @@ trait BreathingSpaceTestSupport {
   def detail1(nino: Nino): Detail1 = Detail1(
     nino.value,
     LocalDate.now.some,
-    NameListForDetail1(List(NameDataForDetail1("Mickey".some, "Mouse".some))).some
+    NameList(
+      List(
+        NameData(
+          firstForename = "Mickey".some,
+          surname = "Mouse".some
+        )
+      )
+    ).some
+  )
+
+  def details(nino: Nino): IndividualDetails = IndividualDetails(
+    nino = nino.value,
+    dateOfBirth = LocalDate.now.some,
+    nameList = NameList(
+      List(
+        NameData(
+          firstForename = "Mickey".some,
+          surname = "Mouse".some
+        )
+      )
+    ).some,
+    addressList = AddressList(
+      List(
+        AddressData(
+          addressType = 1.some,
+          addressPostcode = "E14".some
+        )
+      )
+    ).some
   )
 
   def detailQueryParams(fields: String): Map[String, String] =
