@@ -10,6 +10,7 @@ mediaType: application/json
 
 uses:
   sec: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/securitySchemes.raml
+  headers: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/headers.raml
   annotations: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/annotations.raml
   types: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/types.raml
 
@@ -28,6 +29,35 @@ documentation:
     content: !include https://developer.service.hmrc.gov.uk/api-documentation/assets/common/docs/errors.md
   - title: Testing
     content: !include docs/testing.md
+
+traits:
+  applicationHeaders:
+    headers:
+      Correlation-Id:
+        description: A unique UUID for this request
+        type: string
+        required: true
+        example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      Request-Type:
+        description: |
+          Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+          The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+        type: string
+        required: true
+        example: DA2_BS_ATTENDED
+      Pid:
+        description: |
+          The Staff identifier associated with the human attending the operation that generated this request.
+
+          Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
+            - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
+            - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
+
+          Must be a 7 digit numeric value
+        type: string
+        required: true
+        example: "1234567"
 
 /individuals/breathing-space:
   /{nino}:
@@ -48,32 +78,7 @@ documentation:
         description: Retrieve, for the given Nino, individual details shaped according to the indicated identifier, here Detail0.
         (annotations.scope): "read:breathing-space-individual"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
-        headers:
-          Correlation-Id:
-            description: A unique UUID for this request
-            type: string
-            required: true
-            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-          Request-Type:
-            description: |
-              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
-
-              The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
-            type: string
-            required: true
-            example: DA2_BS_ATTENDED
-          Pid:
-            description: |
-              The Staff identifier associated with the human attending the operation that generated this request.
-
-              Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
-                - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
-                - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
-
-              Must be a 7 digit numeric value
-            type: string
-            required: true
-            example: "1234567"
+        is: [applicationHeaders]
         responses:
           200:
             headers:
@@ -127,32 +132,7 @@ documentation:
         description: Retrieve, for the given Nino, individual details shaped according to the indicated identifier, here Detail1.
         (annotations.scope): "read:breathing-space-individual"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
-        headers:
-          Correlation-Id:
-            description: A unique UUID for this request
-            type: string
-            required: true
-            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-          Request-Type:
-            description: |
-              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
-
-              The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
-            type: string
-            required: true
-            example: DA2_BS_ATTENDED
-          Pid:
-            description: |
-              The Staff identifier associated with the human attending the operation that generated this request.
-
-              Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
-                - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
-                - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
-
-              Must be a 7 digit numeric value
-            type: string
-            required: true
-            example: "1234567"
+        is: [applicationHeaders]
         responses:
           200:
             headers:
@@ -206,32 +186,7 @@ documentation:
         description: Retrieve all Breathing Space periods for the given Nino.
         (annotations.scope): "read:breathing-space-periods"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-periods" ] } ]
-        headers:
-          Correlation-Id:
-            description: A unique UUID for this request
-            type: string
-            required: true
-            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-          Request-Type:
-            description: |
-              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
-
-              The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
-            type: string
-            required: true
-            example: DA2_BS_ATTENDED
-          Pid:
-            description: |
-              The Staff identifier associated with the human attending the operation that generated this request.
-
-              Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
-                - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
-                - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
-
-              Must be a 7 digit numeric value
-            type: string
-            required: true
-            example: "1234567"
+        is: [applicationHeaders]
         responses:
           200:
             headers:
@@ -285,37 +240,7 @@ documentation:
         description: Update all Breathing Space periods for the given Nino.
         (annotations.scope): "write:breathing-space-periods"
         securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
-        headers:
-          Content-Type:
-            description: Specifies the content type of the request payload. Must be same as the example given.
-            type: string
-            required: true
-            example: application/json
-          Correlation-Id:
-            description: A unique UUID for this request
-            type: string
-            required: true
-            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-          Request-Type:
-            description: |
-              Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
-
-              The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
-            type: string
-            required: true
-            example: DA2_BS_ATTENDED
-          Pid:
-            description: |
-              The Staff identifier associated with the human attending the operation that generated this request.
-
-              Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
-                - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
-                - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
-
-              Must be a 7 digit numeric value
-            type: string
-            required: true
-            example: "1234567"
+        is: [headers.contentHeader, applicationHeaders]
         responses:
           200:
             headers:
@@ -382,37 +307,7 @@ documentation:
       description: Create new Breathing Space periods for a given Nino.
       (annotations.scope): "write:breathing-space-periods"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
-      headers:
-        Content-Type:
-          description: Specifies the content type of the request payload. Must be same as the example given.
-          type: string
-          required: true
-          example: application/json
-        Correlation-Id:
-          description: A unique UUID for this request
-          type: string
-          required: true
-          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-        Request-Type:
-          description: |
-            Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
-
-            The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
-          type: string
-          required: true
-          example: DA2_BS_ATTENDED
-        Pid:
-          description: |
-            The Staff identifier associated with the human attending the operation that generated this request.
-
-            Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
-             - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
-             - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
-
-            Must be a 7 digit numeric value
-          type: string
-          required: true
-          example: "1234567"
+      is: [headers.contentHeader, applicationHeaders]
       body:
         application/json:
           type: !include schemas/POST-BS-Periods-Request.json
@@ -483,401 +378,3 @@ documentation:
                   description: Resource specified by the provided Nino was not found
                   value:
                     code: RESOURCE_NOT_FOUND
-
-  /test-only:
-    /bulk:
-      post:
-        displayName: Add one or more new Breathing Space Individual documents
-        description: Add one or more new Breathing Space Individual documents.
-        (annotations.scope): "write:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-        headers:
-          Content-Type:
-            description: Specifies the content type of the request payload. Must be same as the example given.
-            type: string
-            required: true
-            example: application/json
-        body:
-          application/json:
-            type: !include schemas/test/POST-Individuals-Request.json
-        responses:
-          200:
-            body:
-              application/json:
-                type: !include schemas/test/POST-Individuals-Response.json
-                examples:
-                  examples-1:
-                    value: !include examples/test/POST-Individuals-Response.json
-
-          400:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  invalidJson:
-                    description: Invalid Json
-                    value:
-                      code: INVALID_JSON
-                  invalidNino:
-                    description: Invalid Nino
-                    value:
-                      code: INVALID_NINO
-                  missingBody:
-                    description: Missing Body
-                    value:
-                      code: MISSING_BODY
-
-    /count:
-      get:
-        displayName: Count of the existing Breathing Space Individual documents
-        description: Count of the existing Breathing Space Individual documents.
-        (annotations.scope): "read:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
-        responses:
-          200:
-            body:
-              application/json:
-                type: !include schemas/test/GET-Count-Individuals-Response.json
-                examples:
-                  examples-1:
-                    description: How many Individual documents were removed, if any.
-                    value: !include examples/test/GET-Count-Individuals-Response.json
-
-    /ninos:
-      get:
-        displayName: List of Ninos of all existing Breathing Space Individual documents
-        description: List of Ninos of all existing Breathing Space Individual documents.
-        (annotations.scope): "read:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
-        responses:
-          200:
-            body:
-              application/json:
-                type: !include schemas/test/GET-List-Individual-Ninos-Response.json
-                examples:
-                  examples-1:
-                    value: !include examples/test/GET-List-Individual-Ninos-Response.json
-
-    /single:
-      post:
-        displayName: Add a new Breathing Space Individual document
-        description: Add a new Breathing Space Individual document given a non-existing Nino.
-        (annotations.scope): "write:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-        headers:
-          Content-Type:
-            description: Specifies the content type of the request payload. Must be same as the example given.
-            type: string
-            required: true
-            example: application/json
-        body:
-          application/json:
-            type: !include schemas/test/POST-Individual-Request.json
-        responses:
-          201:
-            description: Created
-
-          400:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  invalidJson:
-                    description: Invalid Json
-                    value:
-                      code: INVALID_JSON
-                  invalidNino:
-                    description: Invalid Nino
-                    value:
-                      code: INVALID_NINO
-                  missingBody:
-                    description: Missing Body
-                    value:
-                      code: MISSING_BODY
-
-          409:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  duplicatedKey:
-                    description: The provided Nino is already existing
-                    value:
-                      code: CONFLICTING_REQUEST
-
-    /wipe-all:
-      delete:
-        displayName: Remove all Breathing Space Individual documents
-        description: Remove all Breathing Space Individual documents.
-        (annotations.scope): "write:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-        responses:
-          200:
-            body:
-              application/json:
-                type: !include schemas/test/DELETE-All-Individuals-Response.json
-                examples:
-                  examples-1:
-                    description: How many Individual documents were removed, if any.
-                    value: !include examples/test/DELETE-All-Individuals-Response.json
-
-    /{nino}:
-      uriParameters:
-        nino:
-          description: |
-            National Insurance Number.
-
-            Must conform to the regular expression
-
-            <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
-          type: string
-          example: "MZ006526C, MZ006526"
-
-      delete:
-        displayName: Remove the Breathing Space Individual document of the provided Nino
-        description: Remove the Breathing Space Individual document of the provided Nino.
-        (annotations.scope): "write:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-        responses:
-          204:
-            description: No Content
-
-          400:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  invalidNino:
-                    description: Invalid Nino
-                    value:
-                      code: INVALID_NINO
-
-          404:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  resourceNotFound:
-                    description: The provided Nino was not found
-                    value:
-                      code: RESOURCE_NOT_FOUND
-
-      get:
-        displayName: Determines if a Breathing Space Individual document exists for the provided Nino
-        description: Determines if a Breathing Space Individual document exists for the provided Nino.
-        (annotations.scope): "read:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
-        responses:
-          200:
-            body:
-              application/json:
-                type: !include schemas/test/GET-Exist-Individual-Response.json
-                examples:
-                  examples-1:
-                    value: !include examples/test/GET-Exist-Individual-Response.json
-
-          400:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  invalidNino:
-                    description: Invalid Nino
-                    value:
-                      code: INVALID_NINO
-
-          404:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  resourceNotFound:
-                    description: The provided Nino was not found
-                    value:
-                      code: RESOURCE_NOT_FOUND
-
-      put:
-        displayName: Replace the Individual details for the provided Nino
-        description: Replace the Individual details for the provided Nino.
-        (annotations.scope): "write:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-individual" ] } ]
-        headers:
-          Content-Type:
-            description: Specifies the content type of the request payload. Must be same as the example given.
-            type: string
-            required: true
-            example: application/json
-        body:
-          application/json:
-            type: !include schemas/test/PUT-Individual-Details-Request.json
-        responses:
-          204:
-            description: No Content
-
-          400:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  invalidJson:
-                    description: Invalid Json
-                    value:
-                      code: INVALID_JSON
-                  invalidNino:
-                    description: Invalid Nino
-                    value:
-                      code: INVALID_NINO
-                  missingBody:
-                    description: Missing Body
-                    value:
-                      code: MISSING_BODY
-
-          404:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  resourceNotFound:
-                    description: The provided Nino was not found
-                    value:
-                      code: RESOURCE_NOT_FOUND
-
-    /error:
-      /{code}:
-        uriParameters:
-          code:
-            description: |
-              Error Code Identifier.
-
-              One of the following values:
-              BAD_GATEWAY, CONFLICTING_REQUEST, HEADERS_PRECONDITION_NOT_MET, IDENTIFIER_NOT_FOUND, INVALID_BODY,
-              INVALID_ENDPOINT, INVALID_FIELDS, INVALID_IDENTIFIERS, INVALID_JSON, INVALID_NINO, MISSING_BODY,
-              MISSING_JSON_HEADER, RESOURCE_NOT_FOUND, SERVER_ERROR, SERVICE_UNAVAILABLE, UNKNOWN_DATA_ITEM
-            type: string
-            example: "MZ006526C, MZ006526"
-
-        get:
-          responses:
-            400:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    invalidBody:
-                      description: Not expected a body to this endpoint
-                      value:
-                        code: INVALID_BODY
-                    invalidEndpoint:
-                      description: Not a valid endpoint
-                      value:
-                        code: INVALID_ENDPOINT
-                    invalidFields:
-                      description: Invalid query parameter fields
-                      value:
-                        code: INVALID_FIELDS
-                    invalidJson:
-                      description: Payload not in the expected Json format
-                      value:
-                        code: INVALID_JSON
-                    invalidNino:
-                      description: Invalid Nino format
-                      value:
-                        code: INVALID_NINO
-                    missingBody:
-                      description: The request must have a body
-                      value:
-                        code: MISSING_BODY
-
-            404:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    resourceNotFound:
-                      description: The provided Nino was not found
-                      value:
-                        code: RESOURCE_NOT_FOUND
-
-            409:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    conflictingRequest:
-                      description: The request is conflicting. Maybe a duplicate POST
-                      value:
-                        code: CONFLICTING_REQUEST
-
-            415:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    missingJsonHeader:
-                      description: Content-Type header missing or invalid
-                      value:
-                        code: MISSING_JSON_HEADER
-
-            422:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    unknownDataItem:
-                      description: 1 or more data items in the 'fields' query parameter are incorrect
-                      value:
-                        code: UNKNOWN_DATA_ITEM
-
-            428:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    headersPreconditionNotMet:
-                      description: Invalid header combination
-                      value:
-                        code: HEADERS_PRECONDITION_NOT_MET
-                    invalidIdentifiers:
-                      description: Invalid path parameter combination
-                      value:
-                        code: INVALID_IDENTIFIERS
-
-            500:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    serverError:
-                      description: We are currently experiencing problems that require live service intervention
-                      value:
-                        code: SERVER_ERROR
-
-            501:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    unknownErrorCode:
-                      description: The error code identifier requested is unknown
-                      value:
-                        code: UNKNOWN_ERROR_CODE
-
-            502:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    badGateway:
-                      description: Downstream systems are not responding
-                      value:
-                        code: BAD_GATEWAY
-
-            503:
-              body:
-                application/json:
-                  type: types.errorResponse
-                  examples:
-                    serviceUnavailable:
-                      description: Downstream systems are not available
-                      value:
-                        code: SERVICE_UNAVAILABLE
