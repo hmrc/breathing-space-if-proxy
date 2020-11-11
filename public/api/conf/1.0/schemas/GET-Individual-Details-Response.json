@@ -1,0 +1,317 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "individualDetails",
+  "description": "Schema of Individual Details",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "nino": {
+      "type": "string",
+      "pattern": "^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}$",
+      "example": "MZ006526"
+    },
+    "ninoSuffix": {
+      "type": "string"
+    },
+    "accountStatusType": {
+      "type": "integer"
+    },
+    "sex": {
+      "type": "string"
+    },
+    "dateOfEntry": {
+      "type": "string",
+      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "dateOfBirthStatus": {
+      "type": "integer"
+    },
+    "dateOfDeath": {
+      "type": "string",
+      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "dateOfDeathStatus": {
+      "type": "integer"
+    },
+    "dateOfRegistration": {
+      "type": "string",
+      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+    },
+    "registrationType": {
+      "type": "integer"
+    },
+    "adultRegSerialNumber": {
+      "type": "string"
+    },
+    "permanentTSuffixCaseIndicator": {
+      "type": "integer"
+    },
+    "liveCapacitorInd": {
+      "type": "integer"
+    },
+    "ntTaxCodeInd": {
+      "type": "integer"
+    },
+    "mergeStatus": {
+      "type": "integer"
+    },
+    "marriageStatusType": {
+      "type": "integer"
+    },
+    "crnIndicator": {
+      "type": "integer"
+    },
+    "nameList": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "nameSequenceNumber": {
+                "type": "integer"
+              },
+              "nameType": {
+                "type": "integer"
+              },
+              "titleType": {
+                "type": "integer"
+              },
+              "requestedName": {
+                "type": "string"
+              },
+              "nameStartDate": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "nameEndDate": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "otherTitle": {
+                "type": "string"
+              },
+              "honours": {
+                "type": "string"
+              },
+              "firstForename": {
+                "type": "string"
+              },
+              "secondForename": {
+                "type": "string"
+              },
+              "surname": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "addressList": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "addressSequenceNumber":  {
+                "type": "integer"
+              },
+              "addressSource":  {
+                "type": "integer"
+              },
+              "countryCode":  {
+                "type": "integer"
+              },
+              "addressType":  {
+                "type": "integer"
+              },
+              "addressStatus":  {
+                "type": "integer"
+              },
+              "addressStartDate": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "addressEndDate": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "addressLastConfirmedDate": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "vpaMail": {
+                "type": "integer"
+              },
+              "deliveryInfo": {
+                "type": "string"
+              },
+              "pafReference": {
+                "type": "string"
+              },
+              "addressLine1": {
+                "type": "string"
+              },
+              "addressLine2": {
+                "type": "string"
+              },
+              "addressLine3": {
+                "type": "string"
+              },
+              "addressLine4": {
+                "type": "string"
+              },
+              "addressLine5": {
+                "type": "string"
+              },
+              "addressPostcode": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "address"
+      ]
+    },
+    "residencyList": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "residency": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "residencySequenceNumber":  {
+                "type": "integer"
+              },
+              "dateLeavingUK": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "dateReturningUK": {
+                "type": "string",
+                "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+              },
+              "residencyStatusFlag": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "residency"
+      ]
+    },
+    "indicators": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "manualCodingInd": {
+          "type": "integer"
+        },
+        "manualCodingReason": {
+          "type": "integer"
+        },
+        "manualCodingOther": {
+          "type": "string"
+        },
+        "manualCorrInd": {
+          "type": "integer"
+        },
+        "manualCorrReason": {
+          "type": "string"
+        },
+        "additionalNotes": {
+          "type": "string"
+        },
+        "deceasedInd": {
+          "type": "integer"
+        },
+        "s128Ind": {
+          "type": "integer"
+        },
+        "noAllowInd": {
+          "type": "integer"
+        },
+        "eeaCmnwthInd": {
+          "type": "integer"
+        },
+        "noRepaymentInd": {
+          "type": "integer"
+        },
+        "saLinkInd": {
+          "type": "integer"
+        },
+        "noATSInd": {
+          "type": "integer"
+        },
+        "taxEqualBenInd": {
+          "type": "integer"
+        },
+        "p2ToAgentInd": {
+          "type": "integer"
+        },
+        "digitallyExcludedInd": {
+          "type": "integer"
+        },
+        "bankruptcyInd": {
+          "type": "integer"
+        },
+        "bankruptcyFiledDate": {
+          "type": "string",
+          "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "utr": {
+          "type": "string"
+        },
+        "audioOutputInd": {
+          "type": "integer"
+        },
+        "welshOutputInd": {
+          "type": "integer"
+        },
+        "largePrintOutputInd": {
+          "type": "integer"
+        },
+        "brailleOutputInd": {
+          "type": "integer"
+        },
+        "specialistBusinessArea": {
+          "type": "integer"
+        },
+        "saStartYear": {
+          "type": "string"
+        },
+        "saFinalYear": {
+          "type": "string"
+        },
+        "digitalP2Ind": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
