@@ -149,8 +149,8 @@ final case class IndividualDetails(
   crnIndicator: Option[Int] = none,
   nameList: Option[NameList] = none,
   addressList: Option[AddressList] = none,
-  indicators: Option[Indicators] = none,
-  residencyList: Option[ResidencyList] = none
+  residencyList: Option[ResidencyList] = none,
+  indicators: Option[Indicators] = none
 ) extends Detail
 
 object FullDetails extends DetailsData[IndividualDetails] {
