@@ -18,15 +18,27 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import java.time.LocalDate
 
+import cats.syntax.option.none
 import play.api.libs.json.Json
 
 final case class Detail0(
   nino: String,
-  dateOfBirth: Option[LocalDate],
-  crnIndicator: Option[Int]
+  firstForename: Option[String] = none,
+  secondForename: Option[String] = none,
+  surname: Option[String] = none,
+  dateOfBirth: Option[LocalDate] = none,
+  addressLine1: Option[String] = none,
+  addressLine2: Option[String] = none,
+  addressLine3: Option[String] = none,
+  addressLine4: Option[String] = none,
+  addressLine5: Option[String] = none,
+  addressPostcode: Option[String] = none,
+  countryCode: Option[Int] = none
 ) extends Detail
 
 object DetailData0 extends DetailsData[Detail0] {
-  val fields = "?fields=details(nino,dateOfBirth,cnrIndicator)"
+  val fields =
+    "?fields=details(nino,dateOfBirth),nameList(name(firstForename,secondForename,surname)),addressList(address(addressLine1,addressLine2,addressLine3,addressLine4,addressLine5,addressPostcode,countryCode))"
+
   val format = Json.format[Detail0]
 }

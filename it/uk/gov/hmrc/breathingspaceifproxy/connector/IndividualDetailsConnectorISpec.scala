@@ -18,11 +18,6 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       verifyResponse(nino, DetailData0, detail0(nino))
     }
 
-    "return a Detail1 instance when it receives the relative \"fields\" query parameter" in {
-      val nino = genNino
-      verifyResponse(nino, DetailData1, detail1(nino))
-    }
-
     "return a IndividualDetails instance when the \"fields\" query parameter is not provided (full population)" in {
       val nino = genNino
       verifyResponse(nino, FullDetails, details(nino))
