@@ -56,7 +56,6 @@ class IndividualDetailsController @Inject()(
     logger.debug(s"$requestId for Nino(${nino.value}) with detailId($detailId)")
     (detailId: @switch) match {
       case '0' => evalResponse[Detail0](connector.get[Detail0](nino, DetailData0), DetailData0)
-      case '1' => evalResponse[Detail1](connector.get[Detail1](nino, DetailData1), DetailData1)
       case 's' => evalResponse[IndividualDetails](connector.get[IndividualDetails](nino, FullDetails), FullDetails)
 
       // Shouldn't happen as detailId was already validated.
@@ -75,7 +74,6 @@ class IndividualDetailsController @Inject()(
   private def validateDetailId(detailId: Int): Validation[EndpointId] =
     (detailId: @switch) match {
       case '0' => BS_Detail0_GET.validNec[ErrorItem]
-      case '1' => BS_Detail1_GET.validNec[ErrorItem]
       case 's' => BS_Details_GET.validNec[ErrorItem]
       case _ => invalidDetailId(detailId).invalidNec[EndpointId]
     }

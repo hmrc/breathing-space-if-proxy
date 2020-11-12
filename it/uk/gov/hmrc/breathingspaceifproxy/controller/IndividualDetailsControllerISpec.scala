@@ -22,10 +22,6 @@ class IndividualDetailsControllerISpec extends BaseISpec {
       verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0')
     }
 
-    "return 200(OK) and the expected individual details when detailId is equal to '1'" in {
-      verifyResponse(attended = true, nino, DetailData1, detail1(nino), '1')
-    }
-
     "return 200(OK) and the expected individual details when detailId is equal to 's'" in {
       verifyResponse(attended = true, nino, FullDetails, details(nino), 's')
     }

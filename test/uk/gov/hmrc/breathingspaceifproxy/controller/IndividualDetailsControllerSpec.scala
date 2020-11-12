@@ -51,11 +51,6 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
       verifyResponse[Detail0](nino, DetailData0, detail0(nino), '0', requestFilteredOutOneHeader(CONTENT_TYPE))
     }
 
-    "return 200(OK) and the expected individual details when detailId is equal to '1'" in {
-      val nino = genNino
-      verifyResponse[Detail1](nino, DetailData1, detail1(nino), '1', fakeGetRequest)
-    }
-
     "return 200(OK) and the expected individual details when detailId is equal to 's' (full population)" in {
       val nino = genNino
       verifyResponse[IndividualDetails](nino, FullDetails, details(nino), 's', fakeGetRequest)
