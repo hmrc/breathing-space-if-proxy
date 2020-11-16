@@ -141,8 +141,12 @@ final case class IndividualDetails(
   dateOfRegistration: Option[LocalDate] = none,
   registrationType: Option[Int] = none,
   adultRegSerialNumber: Option[String] = none,
+  cesaAgentIdentifier: Option[String] = none,
+  cesaAgentClientReference: Option[String] = none,
   permanentTSuffixCaseIndicator: Option[Int] = none,
+  currOptimisticLock: Option[Int] = none,
   liveCapacitorInd: Option[Int] = none,
+  liveAgentInd: Option[Int] = none,
   ntTaxCodeInd: Option[Int] = none,
   mergeStatus: Option[Int] = none,
   marriageStatusType: Option[Int] = none,
@@ -155,5 +159,6 @@ final case class IndividualDetails(
 
 object FullDetails extends DetailsData[IndividualDetails] {
   val fields = ""
-  val format = Json.format[IndividualDetails]
+  implicit val encoder = BaseNameEncoder()
+  implicit val format: OFormat[IndividualDetails] = Jsonx.formatCaseClass[IndividualDetails]
 }
