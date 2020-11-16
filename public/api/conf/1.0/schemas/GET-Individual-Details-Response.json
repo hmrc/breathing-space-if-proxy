@@ -47,10 +47,22 @@
     "adultRegSerialNumber": {
       "type": "string"
     },
+    "cesaAgentIdentifier": {
+      "type": "string"
+    },
+    "cesaAgentClientReference": {
+      "type": "string"
+    },
     "permanentTSuffixCaseIndicator": {
       "type": "integer"
     },
+    "currOptimisticLock": {
+      "type": "integer"
+    },
     "liveCapacitorInd": {
+      "type": "integer"
+    },
+    "liveAgentInd": {
       "type": "integer"
     },
     "ntTaxCodeInd": {
