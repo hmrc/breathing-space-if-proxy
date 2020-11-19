@@ -57,6 +57,9 @@ abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerCompon
   def composeResponse[T](status: Int, body: T)(implicit requestId: RequestId, writes: Writes[T]): Future[Result] =
     logAndAddHeaders(Status(status)(Json.toJson(body)))
 
+  def logHeaders(implicit request: RequestHeader): Unit =
+    logger.info(request.headers.headers.toList.mkString("Headers[", ":", "]"))
+
   private def logAndAddHeaders(result: Result)(implicit requestId: RequestId): Future[Result] = {
     logger.debug(s"Response to $requestId has status(${result.header.status})")
     Future.successful {

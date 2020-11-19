@@ -45,6 +45,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
         validationTuple => {
           implicit val (requestId, nino) = validationTuple
           logger.debug(s"$requestId for Nino(${nino.value})")
+          if (appConfig.onDevEnvironment) logHeaders
           periodsConnector.get(nino).flatMap {
             _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
           }
@@ -65,6 +66,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
         validationTuple => {
           implicit val (requestId, nino, postPeriodsInRequest) = validationTuple
           logger.debug(s"$requestId with $postPeriodsInRequest for Nino(${nino.value})")
+          if (appConfig.onDevEnvironment) logHeaders
           periodsConnector.post(nino, postPeriodsInRequest).flatMap {
             _.fold(HttpError(requestId.correlationId, _).send, composeResponse(CREATED, _))
           }
@@ -86,6 +88,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
         validationTuple => {
           implicit val (requestId, nino, putPeriodsInRequest) = validationTuple
           logger.debug(s"$requestId with $putPeriodsInRequest for Nino(${nino.value})")
+          if (appConfig.onDevEnvironment) logHeaders
           periodsConnector.put(nino, putPeriodsInRequest).flatMap {
             _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
           }
