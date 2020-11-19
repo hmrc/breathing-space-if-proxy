@@ -30,6 +30,7 @@ object BaseError extends Enum[BaseError] {
         "The downstream service has indicated that the request is conflicting. Maybe a duplicate POST?"
       )
 
+  case object DOWNSTREAM_TIMEOUT extends BaseError(GATEWAY_TIMEOUT, "Request timed out")
   case object INVALID_BODY extends BaseError(BAD_REQUEST, "Not expected a body to this endpoint")
   case object INVALID_DETAIL_INDEX extends BaseError(BAD_REQUEST, "Invalid detail index. Must be '0' or 's'")
   case object INVALID_ENDPOINT extends BaseError(BAD_REQUEST, "Not a valid endpoint")

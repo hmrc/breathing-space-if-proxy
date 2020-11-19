@@ -40,6 +40,10 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
     case UpstreamErrorResponse.Upstream5xxResponse(response) =>
       logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 
+    case exc: GatewayTimeoutException =>
+      logger.error(s"Timeout for downstream request $requestId. ${exc.getMessage}")
+      Future.successful(ErrorItem(DOWNSTREAM_TIMEOUT).invalidNec)
+
     case throwable: Throwable =>
       logger.error(s"Exception caught for downstream request $requestId. ${throwable.getMessage}")
       Future.successful(ErrorItem(SERVER_ERROR).invalidNec)
