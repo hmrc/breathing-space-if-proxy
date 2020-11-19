@@ -27,6 +27,9 @@ final case class HeaderMapping(nameToMap: String, nameMapped: String)
 @Singleton
 class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
 
+  lazy val onDevEnvironment: Boolean =
+    config.getOptional[String]("environment.id").fold(false)(_.toLowerCase == "development")
+
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
 
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")

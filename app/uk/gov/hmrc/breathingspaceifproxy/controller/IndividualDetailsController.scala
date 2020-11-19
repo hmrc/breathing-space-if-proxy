@@ -54,6 +54,7 @@ class IndividualDetailsController @Inject()(
   private def get(detailId: Char, validation: (RequestId, Nino))(implicit request: Request[_]): Future[Result] = {
     implicit val (requestId, nino) = validation
     logger.debug(s"$requestId for Nino(${nino.value}) with detailId($detailId)")
+    if (appConfig.onDevEnvironment) logHeaders
     (detailId: @switch) match {
       case '0' => evalResponse[Detail0](connector.get[Detail0](nino, DetailData0), DetailData0)
       case 's' => evalResponse[IndividualDetails](connector.get[IndividualDetails](nino, FullDetails), FullDetails)
