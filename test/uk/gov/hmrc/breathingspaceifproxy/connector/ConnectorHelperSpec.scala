@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.BS_Periods_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.{BadGatewayException, ServiceUnavailableException}
+import uk.gov.hmrc.http.{BadGatewayException, GatewayTimeoutException, ServiceUnavailableException}
 
 class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
 
@@ -47,6 +47,16 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
 
       assert(result.isInvalid)
       assert(result.fold(_.head.baseError == DOWNSTREAM_SERVICE_UNAVAILABLE, _ => false))
+    }
+
+    "return DOWNSTREAM_TIMEOUT for a GatewayTimeoutException while sending downstream a request" in {
+      val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
+      val exception = new GatewayTimeoutException("Request timed out")
+
+      val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
+
+      assert(result.isInvalid)
+      assert(result.fold(_.head.baseError == DOWNSTREAM_TIMEOUT, _ => false))
     }
 
     "return SERVER_ERROR for any Throwable caught while sending downstream a request" in {
