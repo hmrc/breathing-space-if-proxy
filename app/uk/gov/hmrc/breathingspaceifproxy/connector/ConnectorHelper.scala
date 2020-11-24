@@ -40,6 +40,14 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
     case UpstreamErrorResponse.Upstream5xxResponse(response) =>
       logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
 
+    case exc: BadGatewayException =>
+      logger.error(s"Bad Gateway for downstream request $requestId. ${exc.getMessage}")
+      Future.successful(ErrorItem(DOWNSTREAM_BAD_GATEWAY).invalidNec)
+
+    case exc: ServiceUnavailableException =>
+      logger.error(s"Service Unavailable for downstream request $requestId. ${exc.getMessage}")
+      Future.successful(ErrorItem(DOWNSTREAM_SERVICE_UNAVAILABLE).invalidNec)
+
     case exc: GatewayTimeoutException =>
       logger.error(s"Timeout for downstream request $requestId. ${exc.getMessage}")
       Future.successful(ErrorItem(DOWNSTREAM_TIMEOUT).invalidNec)
