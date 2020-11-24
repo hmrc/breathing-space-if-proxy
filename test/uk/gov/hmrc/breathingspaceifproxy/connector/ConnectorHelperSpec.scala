@@ -19,20 +19,54 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 import java.util.UUID
 
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
-import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.SERVER_ERROR
+import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.BS_Periods_GET
+import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.http.{BadGatewayException, GatewayTimeoutException, ServiceUnavailableException}
 
-class ConnectorHelperSpec extends AnyFunSuite with ConnectorHelper {
+class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
 
-  test("handleUpstreamError should return SERVER_ERROR for any Throwable caught while sending downstream a request") {
-    val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
-    val throwable = new IllegalArgumentException("Some illegal argument")
+  "handleUpstreamError" should {
+    "return DOWNSTREAM_BAD_GATEWAY for a BadGatewayException while sending downstream a request" in {
+      val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
+      val exception = new BadGatewayException("The downstream service is not responding")
 
-    val result = handleUpstreamError[Unit](requestId).apply(throwable).futureValue
+      val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
 
-    assert(result.isInvalid)
-    assert(result.fold(_.head.baseError == SERVER_ERROR, _ => false))
+      assert(result.isInvalid)
+      assert(result.fold(_.head.baseError == DOWNSTREAM_BAD_GATEWAY, _ => false))
+    }
+
+    "return DOWNSTREAM_SERVICE_UNAVAILABLE for a ServiceUnavailableException while sending downstream a request" in {
+      val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
+      val exception = new ServiceUnavailableException("The downstream service is unavailable")
+
+      val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
+
+      assert(result.isInvalid)
+      assert(result.fold(_.head.baseError == DOWNSTREAM_SERVICE_UNAVAILABLE, _ => false))
+    }
+
+    "return DOWNSTREAM_TIMEOUT for a GatewayTimeoutException while sending downstream a request" in {
+      val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
+      val exception = new GatewayTimeoutException("Request timed out")
+
+      val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
+
+      assert(result.isInvalid)
+      assert(result.fold(_.head.baseError == DOWNSTREAM_TIMEOUT, _ => false))
+    }
+
+    "return SERVER_ERROR for any Throwable caught while sending downstream a request" in {
+      val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
+      val throwable = new IllegalArgumentException("Some illegal argument")
+
+      val result = handleUpstreamError[Unit](requestId).apply(throwable).futureValue
+
+      assert(result.isInvalid)
+      assert(result.fold(_.head.baseError == SERVER_ERROR, _ => false))
+    }
   }
 }
