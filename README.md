@@ -1,10 +1,12 @@
 
-# Breathing Space Proxy &nbsp; (MDTP &#8594; Integration-Framework)
+# Breathing Space Proxy
 
 "***Breathing Space** is a 2017 government's manifesto commitment to help people with problem debt to better control their finances.  
 It will pause enforcement actions; freeze interest, fees, and charges, and pause creditor contact with debtors where it relates to debt repayment for a 60-day period. These protections will be accessible via professional debt advice. During this period, individuals will receive professional debt advice to find a long-term solution to their financial difficulties.*"
 
 This &#xb5;service enables interaction between PEGA Cloud, the platform controlling the Breathing Space workflow, and HMRC's Strategic Systems via a REST API fully documented on the [HMRC Developer Hub](https://developer.service.hmrc.gov.uk/api-documentation/docs/api/service/breathing-space-if-proxy/1.0).
+
+#### &NBSP; PEGA Cloud &#8594; MDTP &#8594; Integration-Framework
 
 ### Prerequisites
 - Scala 2.12.12
