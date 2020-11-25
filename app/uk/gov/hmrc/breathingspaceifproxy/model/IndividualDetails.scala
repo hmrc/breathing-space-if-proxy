@@ -128,7 +128,7 @@ object ResidencyList { implicit val format = Json.format[ResidencyList] }
 
 // --------------------------------------------------------------------------------
 
-final case class IndividualDetails(
+final case class Details(
   nino: String,
   ninoSuffix: Option[String] = none,
   accountStatusType: Option[Int] = none,
@@ -150,7 +150,16 @@ final case class IndividualDetails(
   ntTaxCodeInd: Option[Int] = none,
   mergeStatus: Option[Int] = none,
   marriageStatusType: Option[Int] = none,
-  crnIndicator: Option[Int] = none,
+  crnIndicator: Option[Int] = none
+)
+object Details {
+  implicit val format = Json.format[Details]
+}
+
+// --------------------------------------------------------------------------------
+
+final case class IndividualDetails(
+  details: Details,
   nameList: Option[NameList] = none,
   addressList: Option[AddressList] = none,
   residencyList: Option[ResidencyList] = none,

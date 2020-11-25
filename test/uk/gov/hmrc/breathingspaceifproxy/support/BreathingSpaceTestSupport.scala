@@ -194,11 +194,13 @@ trait BreathingSpaceTestSupport {
   )
 
   def details(nino: Nino): IndividualDetails = IndividualDetails(
-    nino = nino.value,
-    dateOfBirth = LocalDate.now.some,
-    adultRegSerialNumber = "25673ASN".some,
-    cesaAgentIdentifier = "SDGH/4".some,
-    cesaAgentClientReference = "DIGBY JONES".some,
+    details = Details(
+      nino = nino.value,
+      dateOfBirth = LocalDate.now.some,
+      adultRegSerialNumber = "25673ASN".some,
+      cesaAgentIdentifier = "SDGH/4".some,
+      cesaAgentClientReference = "DIGBY JONES".some
+    ),
     nameList = NameList(
       List(
         NameData(

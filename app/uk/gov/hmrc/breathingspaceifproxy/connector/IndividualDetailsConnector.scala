@@ -67,6 +67,9 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
           case Status.NOT_FOUND => ErrorItem(RESOURCE_NOT_FOUND).invalidNec
           case Status.CONFLICT => ErrorItem(CONFLICTING_REQUEST).invalidNec
+          case Status.BAD_GATEWAY => ErrorItem(DOWNSTREAM_BAD_GATEWAY).invalidNec
+          case Status.SERVICE_UNAVAILABLE => ErrorItem(DOWNSTREAM_SERVICE_UNAVAILABLE).invalidNec
+          case Status.GATEWAY_TIMEOUT => ErrorItem(DOWNSTREAM_TIMEOUT).invalidNec
           case status => logErrorAndGenResponse(s"got an unexpected status($status)", response, SERVER_ERROR)
         }
     }
