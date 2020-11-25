@@ -6,7 +6,7 @@ It will pause enforcement actions; freeze interest, fees, and charges, and pause
 
 This &#xb5;service enables interaction between PEGA Cloud, the platform controlling the Breathing Space workflow, and HMRC's Strategic Systems via a REST API fully documented on the [HMRC Developer Hub](https://developer.service.hmrc.gov.uk/api-documentation/docs/api/service/breathing-space-if-proxy/1.0).
 
-#### &NBSP; PEGA Cloud &#8594; MDTP &#8594; Integration-Framework
+#### &nbsp; &nbsp; PEGA Cloud &#8594; MDTP &#8594; Integration-Framework
 
 ### Prerequisites
 - Scala 2.12.12

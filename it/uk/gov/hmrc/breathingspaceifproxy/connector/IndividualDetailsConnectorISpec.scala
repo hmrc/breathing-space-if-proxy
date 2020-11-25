@@ -51,8 +51,20 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       verifyErrorResponse(genNino, Status.BAD_REQUEST, SERVER_ERROR)
     }
 
-    "return SERVER_ERROR for any 5xx error" in {
-      verifyErrorResponse(genNino, Status.BAD_GATEWAY, SERVER_ERROR)
+    "return DOWNSTREAM_BAD_GATEWAY for a 502(BAD_GATEWAY) error" in {
+      verifyErrorResponse(genNino, Status.BAD_GATEWAY, DOWNSTREAM_BAD_GATEWAY)
+    }
+
+    "return DOWNSTREAM_SERVICE_UNAVAILABLE for a 503(SERVICE_UNAVAILABLE) error" in {
+      verifyErrorResponse(genNino, Status.SERVICE_UNAVAILABLE, DOWNSTREAM_SERVICE_UNAVAILABLE)
+    }
+
+    "return DOWNSTREAM_TIMEOUT for a 504(GATEWAY_TIMEOUT) error" in {
+      verifyErrorResponse(genNino, Status.GATEWAY_TIMEOUT, DOWNSTREAM_TIMEOUT)
+    }
+
+    "return SERVER_ERROR for any 5xx error (excluding 502,503,504)" in {
+      verifyErrorResponse(genNino, Status.NOT_IMPLEMENTED, SERVER_ERROR)
     }
   }
 
