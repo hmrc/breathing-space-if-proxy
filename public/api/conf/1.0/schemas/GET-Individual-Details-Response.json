@@ -5,77 +5,86 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "nino": {
-      "type": "string",
-      "pattern": "^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}$",
-      "example": "MZ006526"
-    },
-    "ninoSuffix": {
-      "type": "string"
-    },
-    "accountStatusType": {
-      "type": "integer"
-    },
-    "sex": {
-      "type": "string"
-    },
-    "dateOfEntry": {
-      "type": "string",
-      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
-    },
-    "dateOfBirth": {
-      "type": "string",
-      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
-    },
-    "dateOfBirthStatus": {
-      "type": "integer"
-    },
-    "dateOfDeath": {
-      "type": "string",
-      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
-    },
-    "dateOfDeathStatus": {
-      "type": "integer"
-    },
-    "dateOfRegistration": {
-      "type": "string",
-      "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
-    },
-    "registrationType": {
-      "type": "integer"
-    },
-    "adultRegSerialNumber": {
-      "type": "string"
-    },
-    "cesaAgentIdentifier": {
-      "type": "string"
-    },
-    "cesaAgentClientReference": {
-      "type": "string"
-    },
-    "permanentTSuffixCaseIndicator": {
-      "type": "integer"
-    },
-    "currOptimisticLock": {
-      "type": "integer"
-    },
-    "liveCapacitorInd": {
-      "type": "integer"
-    },
-    "liveAgentInd": {
-      "type": "integer"
-    },
-    "ntTaxCodeInd": {
-      "type": "integer"
-    },
-    "mergeStatus": {
-      "type": "integer"
-    },
-    "marriageStatusType": {
-      "type": "integer"
-    },
-    "crnIndicator": {
-      "type": "integer"
+    "details": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "nino": {
+          "type": "string",
+          "pattern": "^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}$",
+          "example": "MZ006526"
+        },
+        "ninoSuffix": {
+          "type": "string"
+        },
+        "accountStatusType": {
+          "type": "integer"
+        },
+        "sex": {
+          "type": "string"
+        },
+        "dateOfEntry": {
+          "type": "string",
+          "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "dateOfBirth": {
+          "type": "string",
+          "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "dateOfBirthStatus": {
+          "type": "integer"
+        },
+        "dateOfDeath": {
+          "type": "string",
+          "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "dateOfDeathStatus": {
+          "type": "integer"
+        },
+        "dateOfRegistration": {
+          "type": "string",
+          "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+        },
+        "registrationType": {
+          "type": "integer"
+        },
+        "adultRegSerialNumber": {
+          "type": "string"
+        },
+        "cesaAgentIdentifier": {
+          "type": "string"
+        },
+        "cesaAgentClientReference": {
+          "type": "string"
+        },
+        "permanentTSuffixCaseIndicator": {
+          "type": "integer"
+        },
+        "currOptimisticLock": {
+          "type": "integer"
+        },
+        "liveCapacitorInd": {
+          "type": "integer"
+        },
+        "liveAgentInd": {
+          "type": "integer"
+        },
+        "ntTaxCodeInd": {
+          "type": "integer"
+        },
+        "mergeStatus": {
+          "type": "integer"
+        },
+        "marriageStatusType": {
+          "type": "integer"
+        },
+        "crnIndicator": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "nino"
+      ]
     },
     "nameList": {
       "type": "object",
@@ -325,5 +334,8 @@
         }
       }
     }
-  }
+  },
+  "required": [
+    "details"
+  ]
 }
