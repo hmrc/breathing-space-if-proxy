@@ -20,18 +20,19 @@ import java.util.UUID
 
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.http.Status
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId.BS_Periods_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.{BadGatewayException, GatewayTimeoutException, ServiceUnavailableException}
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
 
   "handleUpstreamError" should {
-    "return DOWNSTREAM_BAD_GATEWAY for a BadGatewayException while sending downstream a request" in {
+    "return DOWNSTREAM_BAD_GATEWAY for a BAD_GATEWAY error while sending downstream a request" in {
       val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
-      val exception = new BadGatewayException("The downstream service is not responding")
+      val exception = UpstreamErrorResponse("The downstream service is not responding", Status.BAD_GATEWAY)
 
       val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
 
@@ -39,9 +40,9 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
       assert(result.fold(_.head.baseError == DOWNSTREAM_BAD_GATEWAY, _ => false))
     }
 
-    "return DOWNSTREAM_SERVICE_UNAVAILABLE for a ServiceUnavailableException while sending downstream a request" in {
+    "return DOWNSTREAM_SERVICE_UNAVAILABLE for a SERVICE_UNAVAILABLE error while sending downstream a request" in {
       val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
-      val exception = new ServiceUnavailableException("The downstream service is unavailable")
+      val exception = UpstreamErrorResponse("The downstream service is unavailable", Status.SERVICE_UNAVAILABLE)
 
       val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
 
@@ -49,9 +50,9 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
       assert(result.fold(_.head.baseError == DOWNSTREAM_SERVICE_UNAVAILABLE, _ => false))
     }
 
-    "return DOWNSTREAM_TIMEOUT for a GatewayTimeoutException while sending downstream a request" in {
+    "return DOWNSTREAM_TIMEOUT for a GATEWAY_TIMEOUT error while sending downstream a request" in {
       val requestId = RequestId(BS_Periods_GET, UUID.randomUUID)
-      val exception = new GatewayTimeoutException("Request timed out")
+      val exception = UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT)
 
       val result = handleUpstreamError[Unit](requestId).apply(exception).futureValue
 
