@@ -37,8 +37,8 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       verifyGetResponse(Status.BAD_REQUEST, SERVER_ERROR)
     }
 
-    "return SERVER_ERROR for any 5xx error" in {
-      verifyGetResponse(Status.BAD_GATEWAY, SERVER_ERROR)
+    "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
+      verifyGetResponse(Status.NOT_IMPLEMENTED, SERVER_ERROR)
     }
   }
 
