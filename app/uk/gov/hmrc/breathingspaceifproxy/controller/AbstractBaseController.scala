@@ -27,13 +27,19 @@ import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.{AppConfig, HeaderMapping}
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
-abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerComponents)
-    extends BackendController(cc)
+abstract class AbstractBaseController(
+  appConfig: AppConfig,
+  val auditConnector: AuditConnector,
+  cc: ControllerComponents
+) extends BackendController(cc)
+    with Auditing
     with RequestValidation {
 
   val withoutBody: BodyParser[Validation[AnyContent]] = BodyParser("Breathing-Space-without-Body") { request =>
@@ -51,26 +57,29 @@ abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerCompon
         .fold[Validation[JsValue]](_ => ErrorItem(INVALID_JSON).invalidNec, _.validNec)
     }
 
-  private def errorOnBody[T](error: BaseError): BodyParser[Validation[T]] =
-    parse.ignore[Validation[T]](ErrorItem(error).invalidNec)
+  def auditEventAndSendErrorResponse[R](
+    errors: Errors
+  )(implicit nino: Nino, request: Request[Validation[R]], requestId: RequestId): Future[Result] = {
+    val errorList = errors.toChain.toList
+    val payload = Json.obj("errors" -> errorList)
+    auditEvent(errorList.head.baseError.httpCode, payload)
+    HttpError(requestId.correlationId, errors).send
+  }
 
-  def composeResponse[T](status: Int, body: T)(implicit requestId: RequestId, writes: Writes[T]): Future[Result] =
-    logAndAddHeaders(Status(status)(Json.toJson(body)))
+  def auditEventAndSendResponse[R, T](
+    status: Int,
+    body: T
+  )(implicit nino: Nino, request: Request[Validation[R]], requestId: RequestId, writes: Writes[T]): Future[Result] = {
+    val payload = Json.toJson(body)
+    auditEvent(status, payload)
+    sendResponse(status, payload)
+  }
 
   def logHeaders(implicit request: RequestHeader): Unit =
     logger.info(request.headers.headers.toList.mkString("Headers[", ":", "]"))
 
-  private def logAndAddHeaders(result: Result)(implicit requestId: RequestId): Future[Result] = {
-    logger.debug(s"Response to $requestId has status(${result.header.status})")
-    Future.successful {
-      result
-        .withHeaders(
-          HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-          Header.CorrelationId -> requestId.correlationId.toString
-        )
-        .as(MimeTypes.JSON)
-    }
-  }
+  private def errorOnBody[T](error: BaseError): BodyParser[Validation[T]] =
+    parse.ignore[Validation[T]](ErrorItem(error).invalidNec)
 
   override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
     val headers = requestFromClient.headers
@@ -92,5 +101,17 @@ abstract class AbstractBaseController(appConfig: AppConfig, cc: ControllerCompon
     val hdrValue =
       hdrs.filter(hdrFromClient => hdrFromClient._1.toLowerCase == hdrMapping.nameToMap.toLowerCase).head._2
     hdrMapping.nameMapped -> hdrValue
+  }
+
+  private def sendResponse[T](status: Int, payload: JsValue)(implicit requestId: RequestId): Future[Result] = {
+    logger.debug(s"Response to $requestId has status(${status})")
+    Future.successful {
+      Status(status)(payload)
+        .withHeaders(
+          HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
+          Header.CorrelationId -> requestId.correlationId.toString
+        )
+        .as(MimeTypes.JSON)
+    }
   }
 }

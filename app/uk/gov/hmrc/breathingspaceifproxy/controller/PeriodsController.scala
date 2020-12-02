@@ -16,30 +16,36 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
+import javax.inject.{Inject, Singleton}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import cats.syntax.apply._
 import cats.syntax.validated._
-import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.EndpointId._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
-class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents, periodsConnector: PeriodsConnector)
-    extends AbstractBaseController(appConfig, cc) {
+class PeriodsController @Inject()(
+  appConfig: AppConfig,
+  auditConnector: AuditConnector,
+  cc: ControllerComponents,
+  periodsConnector: PeriodsConnector
+) extends AbstractBaseController(appConfig, auditConnector, cc) {
 
   def get(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
     (
-      validateHeadersForNPS,
+      validateHeadersForNPS(BS_Periods_GET),
       validateNino(maybeNino),
       request.body
-    ).mapN((correlationId, nino, _) => (RequestId(BS_Periods_GET, correlationId), nino))
+    ).mapN((requestId, nino, _) => (requestId, nino))
       .fold(
         HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
@@ -47,7 +53,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
           logger.debug(s"$requestId for Nino(${nino.value})")
           if (appConfig.onDevEnvironment) logHeaders
           periodsConnector.get(nino).flatMap {
-            _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
+            _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
           }
         }
       )
@@ -55,12 +61,9 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
 
   val post: Action[Validation[JsValue]] = Action.async(withJsonBody) { implicit request =>
     (
-      validateHeadersForNPS,
+      validateHeadersForNPS(BS_Periods_POST),
       request.body.andThen(validateBodyOfPost)
-    ).mapN(
-        (correlationId, ninoAndPostPeriods) =>
-          (RequestId(BS_Periods_POST, correlationId), ninoAndPostPeriods._1, ninoAndPostPeriods._2)
-      )
+    ).mapN((requestId, ninoAndPostPeriods) => (requestId, ninoAndPostPeriods._1, ninoAndPostPeriods._2))
       .fold(
         HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
@@ -68,7 +71,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
           logger.debug(s"$requestId with $postPeriodsInRequest for Nino(${nino.value})")
           if (appConfig.onDevEnvironment) logHeaders
           periodsConnector.post(nino, postPeriodsInRequest).flatMap {
-            _.fold(HttpError(requestId.correlationId, _).send, composeResponse(CREATED, _))
+            _.fold(auditEventAndSendErrorResponse[JsValue], auditEventAndSendResponse(CREATED, _))
           }
         }
       )
@@ -76,13 +79,10 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
 
   def put(maybeNino: String): Action[Validation[JsValue]] = Action.async(withJsonBody) { implicit request =>
     (
-      validateHeadersForNPS,
+      validateHeadersForNPS(BS_Periods_PUT),
       validateNino(maybeNino),
       request.body.andThen(validateBodyOfPut)
-    ).mapN(
-        (correlationId, nino, putPeriodsInRequest) =>
-          (RequestId(BS_Periods_POST, correlationId), nino, putPeriodsInRequest)
-      )
+    ).mapN((requestId, nino, putPeriodsInRequest) => (requestId, nino, putPeriodsInRequest))
       .fold(
         HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
@@ -90,7 +90,7 @@ class PeriodsController @Inject()(appConfig: AppConfig, cc: ControllerComponents
           logger.debug(s"$requestId with $putPeriodsInRequest for Nino(${nino.value})")
           if (appConfig.onDevEnvironment) logHeaders
           periodsConnector.put(nino, putPeriodsInRequest).flatMap {
-            _.fold(HttpError(requestId.correlationId, _).send, composeResponse(OK, _))
+            _.fold(auditEventAndSendErrorResponse[JsValue], auditEventAndSendResponse(OK, _))
           }
         }
       )

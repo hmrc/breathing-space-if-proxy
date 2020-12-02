@@ -8,7 +8,8 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.post
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_POST
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod, PostPeriodsRequest}
 
 class PeriodsControllerPostISpec extends BaseISpec {
@@ -66,6 +67,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
       status(response) shouldBe Status.NOT_FOUND
 
       verifyHeaders(HttpMethod.Post, url)
+      verifyAuditEventCall(BS_Periods_POST)
     }
   }
 
@@ -84,10 +86,11 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
     val response = route(app, request).get
     status(response) shouldBe Status.CREATED
+    contentAsString(response) shouldBe expectedResponseBody
 
     if (attended) verifyHeadersForAttended(HttpMethod.Post, url)
     else verifyHeadersForUnattended(HttpMethod.Post, url)
 
-    contentAsString(response) shouldBe expectedResponseBody
+    verifyAuditEventCall(BS_Periods_POST)
   }
 }

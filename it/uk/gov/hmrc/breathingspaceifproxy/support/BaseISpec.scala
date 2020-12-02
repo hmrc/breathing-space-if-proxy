@@ -16,10 +16,14 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
+import scala.concurrent.duration._
+
 import akka.stream.Materializer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import org.scalatest._
+import org.scalatest.compatible.Assertion
+import org.scalatest.concurrent.Eventually
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -32,12 +36,13 @@ import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.Attended
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 
 abstract class BaseISpec
   extends AnyWordSpec
     with BreathingSpaceTestSupport
     with DefaultAwaitTimeout
+    with Eventually
     with GivenWhenThen
     with GuiceOneServerPerSuite
     with HeaderNames
@@ -47,6 +52,9 @@ abstract class BaseISpec
     with WireMockSupport {
 
   val configProperties: Map[String, Any] = Map(
+    "auditing.enabled" -> true,
+    "auditing.consumer.baseUri.host" -> wireMockHost,
+    "auditing.consumer.baseUri.port" -> wireMockPort,
     "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
     "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321",
     "microservice.services.integration-framework.host" -> wireMockHost,
@@ -70,6 +78,19 @@ abstract class BaseISpec
   def fakeRequestForUnattended(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeadersForUnattended: _*)
 
+  def verifyAuditEventCall(endpointId: EndpointId): Assertion = {
+    val body = s"""{"auditSource":"breathing-space-if-proxy", "auditType":"${endpointId.entryName}"}"""
+    val requestedFor =
+      postRequestedFor(urlEqualTo("/write/audit"))
+        .withRequestBody(equalToJson(body, true, true))
+
+    eventually(timeout(5 seconds), interval(200 millis)) {
+      verify(1, requestedFor)
+    }
+
+    Succeeded
+  }
+
   def verifyHeaders(method: HttpMethod, url: String): Unit =
     verifyHeadersForAttended(method, url)
 
@@ -78,24 +99,24 @@ abstract class BaseISpec
 
   def verifyHeadersForAttended(method: HttpMethod, url: String): Unit =
     verifyHeadersForAttended(
-      method.verifyHeaderFor(urlPathMatching(url))
+      method.requestedFor(urlPathMatching(url))
     )
 
   def verifyHeadersForAttended(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
     if (queryParam.isEmpty) verifyHeadersForAttended(method, url)
     else verifyHeadersForAttended(
-      method.verifyHeaderFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
+      method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
     )
 
   def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
     verifyHeadersForUnattended(
-      method.verifyHeaderFor(urlPathMatching(url))
+      method.requestedFor(urlPathMatching(url))
     )
 
   def verifyHeadersForUnattended(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
     if (queryParam.isEmpty) verifyHeadersForUnattended(method, url)
     else verifyHeadersForUnattended(
-      method.verifyHeaderFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
+      method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
     )
 
   private def verifyHeadersForAttended(requestPatternBuilder: RequestPatternBuilder): Unit =

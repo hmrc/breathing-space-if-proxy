@@ -4,8 +4,8 @@ import org.scalatest.Assertion
 import play.api.http.Status
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {

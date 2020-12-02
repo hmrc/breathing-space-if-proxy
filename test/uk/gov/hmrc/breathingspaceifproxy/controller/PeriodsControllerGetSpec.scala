@@ -27,14 +27,20 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
   val mockConnector: PeriodsConnector = mock[PeriodsConnector]
-  val controller = new PeriodsController(appConfig, Helpers.stubControllerComponents(), mockConnector)
+  val controller = new PeriodsController(
+    appConfig,
+    inject[AuditConnector],
+    Helpers.stubControllerComponents(),
+    mockConnector
+  )
 
   "get" should {
 

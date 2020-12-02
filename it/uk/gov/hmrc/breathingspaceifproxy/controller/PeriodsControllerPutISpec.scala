@@ -8,7 +8,8 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.put
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_JSON, MISSING_BODY}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_JSON, MISSING_BODY}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_PUT
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerPutISpec extends BaseISpec {
@@ -36,8 +37,10 @@ class PeriodsControllerPutISpec extends BaseISpec {
       val response = route(app, request).get
 
       status(response) shouldBe Status.OK
-      verifyHeaders(HttpMethod.Put, connectorUrl)
       contentAsString(response) shouldBe expectedBody
+
+      verifyHeaders(HttpMethod.Put, connectorUrl)
+      verifyAuditEventCall(BS_Periods_PUT)
     }
 
     "return 200(OK) for an ATTENDED request" in {
@@ -83,9 +86,10 @@ class PeriodsControllerPutISpec extends BaseISpec {
         .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
       val response = route(app, request).get
-
       status(response) shouldBe Status.NOT_FOUND
+
       verifyHeaders(HttpMethod.Put, connectorUrl)
+      verifyAuditEventCall(BS_Periods_PUT)
     }
   }
 
@@ -104,10 +108,11 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK
+    contentAsString(response) shouldBe expectedResponseBody
 
     if (attended) verifyHeadersForAttended(HttpMethod.Put, connectorUrl)
     else verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
 
-    contentAsString(response) shouldBe expectedResponseBody
+    verifyAuditEventCall(BS_Periods_PUT)
   }
 }

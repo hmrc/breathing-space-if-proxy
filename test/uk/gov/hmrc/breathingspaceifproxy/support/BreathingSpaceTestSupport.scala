@@ -32,6 +32,7 @@ import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 
 final case class PostPeriodsRequest(nino: String, periods: PostPeriodsInRequest)
 
@@ -56,7 +57,7 @@ trait BreathingSpaceTestSupport {
 
   val errorResponsePayloadFromIF = """{"failures":[{"code":"AN_ERROR","reason":"An error message"}]}"""
 
-  implicit val genericRequestId = RequestId(EndpointId.BS_Periods_POST, correlationId)
+  implicit val genericRequestId = RequestId(EndpointId.BS_Periods_POST, correlationId, attendedStaffPid)
 
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
