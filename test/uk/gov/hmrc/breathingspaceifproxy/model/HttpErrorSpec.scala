@@ -25,7 +25,7 @@ import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import uk.gov.hmrc.breathingspaceifproxy.Header
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, TestingErrorItem}
 
 class HttpErrorSpec extends AnyFunSuite with BaseSpec {

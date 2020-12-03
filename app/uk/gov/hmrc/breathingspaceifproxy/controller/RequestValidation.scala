@@ -29,11 +29,12 @@ import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 
 trait RequestValidation extends Logging {
 
-  def validateHeadersForNPS(implicit request: Request[_]): Validation[UUID] = {
+  def validateHeadersForNPS(endpointId: EndpointId)(implicit request: Request[_]): Validation[RequestId] = {
     val headers = request.headers
     (
       validateContentType(request),
@@ -41,7 +42,7 @@ trait RequestValidation extends Logging {
       validateRequestType(headers),
       validateStaffPid(headers)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
-      .andThen(validateStaffPidForRequestType)
+      .andThen(validateStaffPidForRequestType(endpointId))
   }
 
   def validateNino(maybeNino: String): Validation[Nino] =
@@ -142,15 +143,19 @@ trait RequestValidation extends Logging {
           } { _.validNec }
       }
 
-  private def validateStaffPidForRequestType(headerValues: (UUID, Attended, String)): Validation[UUID] = {
+  private def validateStaffPidForRequestType(
+    endpointId: EndpointId
+  )(headerValues: (UUID, Attended, String)): Validation[RequestId] = {
     val requestType = headerValues._2
     val staffPid = headerValues._3
     if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
       || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
-      // correlationId as UUID
-      headerValues._1.validNec[ErrorItem]
+      RequestId(endpointId, correlationId = headerValues._1, staffPid).validNec[ErrorItem]
     } else {
-      ErrorItem(INVALID_HEADER, s"(${Header.StaffPid}). Cannot be '$staffPid' for $requestType".some).invalidNec[UUID]
+      ErrorItem(
+        INVALID_HEADER,
+        s"(${Header.StaffPid}). Cannot be '$staffPid' for ${requestType.entryName}".some
+      ).invalidNec[RequestId]
     }
   }
 

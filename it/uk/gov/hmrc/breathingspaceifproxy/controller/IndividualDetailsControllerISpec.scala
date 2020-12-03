@@ -7,9 +7,11 @@ import play.api.libs.json.{Json, OFormat}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
-import uk.gov.hmrc.breathingspaceifproxy.controller.routes.IndividualDetailsController.get
+import uk.gov.hmrc.breathingspaceifproxy.controller.routes.IndividualDetailsController.{getDetail0, getDetails}
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Detail0_GET, BS_Details_GET}
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod, TestingErrorItem}
 
 class IndividualDetailsControllerISpec extends BaseISpec {
@@ -18,25 +20,25 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
   "GET Individual's details for the provided Nino" should {
 
-    "return 200(OK) and the expected individual details when detailId is equal to '0'" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0')
+    "return 200(OK) and the expected individual details, according to the expected filter" in {
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url)
     }
 
-    "return 200(OK) and the expected individual details when detailId is equal to 's'" in {
-      verifyResponse(attended = true, nino, FullDetails, details(nino), 's')
+    "return 200(OK) and the expected individual details (full population))" in {
+      verifyResponse(attended = true, nino, FullDetails, details(nino), getDetails(nino.value).url)
     }
 
     "return 200(OK) for an ATTENDED request" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0')
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url)
     }
 
     "return 200(OK) for an UNATTENDED request" in {
-      verifyResponse(attended = false, nino, DetailData0, detail0(nino), '0')
+      verifyResponse(attended = false, nino, DetailData0, detail0(nino), getDetail0(nino.value).url)
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body = Json.obj("aName" -> "aValue")
-      val request = fakeRequest(Helpers.GET, get(nino.value, '0').url).withBody(body)
+      val request = fakeRequest(Helpers.GET, getDetail0(nino.value).url).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -48,16 +50,16 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0', RESOURCE_NOT_FOUND.some)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url, RESOURCE_NOT_FOUND.some)
     }
 
     "return 409(CONFLICT) in case of duplicated requests" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), '0', CONFLICTING_REQUEST.some)
+      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url, CONFLICTING_REQUEST.some)
     }
   }
 
   private def verifyResponse[T <: Detail](
-    attended: Boolean, nino: Nino, detailData: DetailsData[T], detail: T, detailId: Char, error: Option[BaseError] = none
+    attended: Boolean, nino: Nino, detailData: DetailsData[T], detail: T, url: String, error: Option[BaseError] = none
   ): Assertion = {
     implicit val format: OFormat[T] = detailData.format
 
@@ -72,20 +74,17 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
     stubCall(HttpMethod.Get, connectorUrl, new Integer(expectedStatus), expectedResponseBody, queryParams)
 
-    val path = get(nino.value, detailId).url
-
     val request =
-      if (attended) fakeRequest(Helpers.GET, path)
-      else fakeRequestForUnattended(Helpers.GET, path)
+      if (attended) fakeRequest(Helpers.GET, url)
+      else fakeRequestForUnattended(Helpers.GET, url)
 
     val response = route(app, request).get
     status(response) shouldBe expectedStatus
+    contentAsString(response) shouldBe expectedResponseBody
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, connectorUrl, queryParams)
     else verifyHeadersForUnattended(HttpMethod.Get, connectorUrl, queryParams)
 
-    val test = contentAsString(response)
-    test shouldBe expectedResponseBody
-//    contentAsString(response) shouldBe expectedResponseBody
+    verifyAuditEventCall(if (detail.isInstanceOf[Detail0]) BS_Detail0_GET else BS_Details_GET)
   }
 }

@@ -28,7 +28,7 @@ import play.api.mvc.{RequestHeader, Result}
 import play.api.routing.Router
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent

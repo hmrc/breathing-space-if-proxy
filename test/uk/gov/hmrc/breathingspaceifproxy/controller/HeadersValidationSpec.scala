@@ -26,13 +26,19 @@ import play.api.test._
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
 
   val controller =
-    new PeriodsController(appConfig, Helpers.stubControllerComponents(), inject[PeriodsConnector])
+    new PeriodsController(
+      appConfig,
+      inject[AuditConnector],
+      Helpers.stubControllerComponents(),
+      inject[PeriodsConnector]
+    )
 
   test(s"Response should be 400(BAD_REQUEST) when the $CorrelationId header is missing") {
     verifyHeaderIsMissing(

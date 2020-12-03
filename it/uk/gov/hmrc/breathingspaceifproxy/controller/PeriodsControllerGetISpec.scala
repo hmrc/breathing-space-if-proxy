@@ -8,7 +8,8 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.get
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.INVALID_BODY
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.INVALID_BODY
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerGetISpec extends BaseISpec {
@@ -37,8 +38,10 @@ class PeriodsControllerGetISpec extends BaseISpec {
       val response = route(app, fakeRequest(Helpers.GET, controllerUrl)).get
 
       status(response) shouldBe Status.OK
-      verifyHeaders(HttpMethod.Get, connectorUrl)
       contentAsString(response) shouldBe expectedBody
+
+      verifyHeaders(HttpMethod.Get, connectorUrl)
+      verifyAuditEventCall(BS_Periods_GET)
     }
 
     "return 200(OK) and an empty list of periods for the valid Nino provided" in {
@@ -47,9 +50,10 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
       val response = route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get
       status(response) shouldBe Status.OK
+      contentAsString(response) shouldBe expectedBody
 
       verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
-      contentAsString(response) shouldBe expectedBody
+      verifyAuditEventCall(BS_Periods_GET)
     }
 
     "return 200(OK) for an ATTENDED request" in {
@@ -79,7 +83,9 @@ class PeriodsControllerGetISpec extends BaseISpec {
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
       val response = route(app, fakeRequest(Helpers.GET, get(unknownNino.value).url)).get
       status(response) shouldBe Status.NOT_FOUND
+
       verifyHeaders(HttpMethod.Get, url)
+      verifyAuditEventCall(BS_Periods_GET)
     }
   }
 
@@ -93,10 +99,11 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK
+    contentAsString(response) shouldBe expectedResponseBody
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)
     else verifyHeadersForUnattended(HttpMethod.Get, periodsConnectorUrl)
 
-    contentAsString(response) shouldBe expectedResponseBody
+    verifyAuditEventCall(BS_Periods_GET)
   }
 }

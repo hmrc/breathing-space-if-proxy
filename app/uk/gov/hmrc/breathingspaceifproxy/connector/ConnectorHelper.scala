@@ -20,39 +20,37 @@ import scala.concurrent.Future
 
 import cats.syntax.validated._
 import play.api.Logging
+import play.api.http.Status
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.http._
 
 trait ConnectorHelper extends HttpErrorFunctions with Logging {
 
   def handleUpstreamError[T](implicit requestId: RequestId): PartialFunction[Throwable, ResponseValidation[T]] = {
-    case UpstreamErrorResponse.Upstream4xxResponse(response) if response.statusCode == 404 =>
-      logErrorAndGenUpstreamResponse(response, RESOURCE_NOT_FOUND)
-
-    case UpstreamErrorResponse.Upstream4xxResponse(response) if response.statusCode == 409 =>
-      logErrorAndGenUpstreamResponse(response, CONFLICTING_REQUEST)
-
-    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 502 =>
-      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_BAD_GATEWAY)
-
-    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 503 =>
-      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_SERVICE_UNAVAILABLE)
-
-    case UpstreamErrorResponse.Upstream5xxResponse(response) if response.statusCode == 504 =>
-      logErrorAndGenUpstreamResponse(response, DOWNSTREAM_TIMEOUT)
-
-    case UpstreamErrorResponse.Upstream4xxResponse(response) =>
-      logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
-
-    case UpstreamErrorResponse.Upstream5xxResponse(response) =>
-      logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
-
+    case UpstreamErrorResponse.Upstream4xxResponse(response) => handleUpstream4xxError(response)
+    case UpstreamErrorResponse.Upstream5xxResponse(response) => handleUpstream5xxError(response)
     case throwable: Throwable =>
       logger.error(s"Exception caught for downstream request $requestId. ${throwable.getMessage}")
       Future.successful(ErrorItem(SERVER_ERROR).invalidNec)
   }
+
+  private def handleUpstream4xxError[T](response: UpstreamErrorResponse)(implicit r: RequestId): ResponseValidation[T] =
+    response.statusCode match {
+      case Status.NOT_FOUND => logErrorAndGenUpstreamResponse(response, RESOURCE_NOT_FOUND)
+      case Status.CONFLICT => logErrorAndGenUpstreamResponse(response, CONFLICTING_REQUEST)
+      case _ => logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
+    }
+
+  private def handleUpstream5xxError[T](response: UpstreamErrorResponse)(implicit r: RequestId): ResponseValidation[T] =
+    response.statusCode match {
+      case Status.BAD_GATEWAY => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_BAD_GATEWAY)
+      case Status.SERVICE_UNAVAILABLE => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_SERVICE_UNAVAILABLE)
+      case Status.GATEWAY_TIMEOUT => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_TIMEOUT)
+      case _ => logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
+    }
 
   private def logErrorAndGenUpstreamResponse[T](response: UpstreamErrorResponse, baseError: BaseError)(
     implicit requestId: RequestId

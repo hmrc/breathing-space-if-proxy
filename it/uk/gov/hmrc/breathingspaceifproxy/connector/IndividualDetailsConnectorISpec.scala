@@ -5,7 +5,8 @@ import play.api.http.Status
 import play.api.libs.json.{Json, OFormat}
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSupport {

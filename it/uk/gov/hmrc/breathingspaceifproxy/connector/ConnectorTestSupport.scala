@@ -19,7 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 import cats.syntax.option._
 import play.api.http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.Header
-import uk.gov.hmrc.breathingspaceifproxy.model.Attended
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.http.logging.Authorization

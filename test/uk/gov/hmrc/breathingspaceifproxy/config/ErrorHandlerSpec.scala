@@ -20,7 +20,7 @@ import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header
-import uk.gov.hmrc.breathingspaceifproxy.model.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {

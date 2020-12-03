@@ -23,7 +23,7 @@ import enumeratum._
 
 sealed abstract class HttpMethod(
   val call: UrlPattern => MappingBuilder,
-  val verifyHeaderFor: UrlPattern => RequestPatternBuilder
+  val requestedFor: UrlPattern => RequestPatternBuilder
 ) extends EnumEntry
 
 object HttpMethod extends Enum[HttpMethod] {

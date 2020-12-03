@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
+package uk.gov.hmrc.breathingspaceifproxy.model.audit
 
 import java.util.UUID
 
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId
+import play.api.libs.json._
 
-final case class RequestId(endpointId: EndpointId, correlationId: UUID, staffId: String)
+case class AuditDetail(
+  correlationId: UUID,
+  nino: String,
+  staffId: String,
+  request: JsValue,
+  response: JsValue
+)
+
+object AuditDetail { implicit val writes = Json.writes[AuditDetail] }
