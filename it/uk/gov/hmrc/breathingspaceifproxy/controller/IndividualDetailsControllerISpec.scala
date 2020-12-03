@@ -72,7 +72,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
     val queryParams = detailQueryParams(detailData.fields)
 
-    stubCall(HttpMethod.Get, connectorUrl, new Integer(expectedStatus), expectedResponseBody, queryParams)
+    stubCall(HttpMethod.Get, connectorUrl, expectedStatus, expectedResponseBody, queryParams)
 
     val request =
       if (attended) fakeRequest(Helpers.GET, url)

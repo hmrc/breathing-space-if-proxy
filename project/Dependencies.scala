@@ -17,6 +17,9 @@ object Dependencies {
     "com.fasterxml.jackson.module"   %  "jackson-module-paranamer" % version.jackson,
     "com.fasterxml.jackson.module"   %% "jackson-module-scala"     % version.jackson,
 
+    "com.google.inject"            % "guice"                % "5.0.0-BETA-1",
+    "com.google.inject.extensions" % "guice-assistedinject" % "5.0.0-BETA-1",
+
     "uk.gov.hmrc"   %% "bootstrap-backend-play-27" % "3.0.0",
     "org.typelevel" %% "cats-core"                 % "2.2.0",
     "com.beachape"  %% "enumeratum"                % "1.6.1",
