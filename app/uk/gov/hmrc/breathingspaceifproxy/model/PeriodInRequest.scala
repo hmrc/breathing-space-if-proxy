@@ -19,15 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
 
-import play.api.libs.json.{JsObject, Json, Writes}
-
-// --------------------------------------------------------------------------------
-
-trait PeriodInRequest {
-  val startDate: LocalDate
-  val endDate: Option[LocalDate]
-  val pegaRequestTimestamp: ZonedDateTime
-}
+import play.api.libs.json._
 
 // --------------------------------------------------------------------------------
 
@@ -35,18 +27,19 @@ final case class PostPeriodInRequest(
   startDate: LocalDate,
   endDate: Option[LocalDate],
   pegaRequestTimestamp: ZonedDateTime
-) extends PeriodInRequest
+)
 
 object PostPeriodInRequest {
   implicit val reads = Json.reads[PostPeriodInRequest]
 
   implicit val writes = new Writes[PostPeriodInRequest] {
-    def writes(postPeriod: PostPeriodInRequest): JsObject =
-      Json.obj(
-        startDateKey -> postPeriod.startDate,
-        endDateKey -> postPeriod.endDate,
-        timestampKey -> postPeriod.pegaRequestTimestamp.format(timestampFormatter)
+    def writes(postPeriod: PostPeriodInRequest): JsObject = {
+      val items = List(
+        startDateKey -> Json.toJson(postPeriod.startDate),
+        timestampKey -> JsString(postPeriod.pegaRequestTimestamp.format(timestampFormatter))
       )
+      JsObject(postPeriod.endDate.fold(items)(endDate => items :+ (endDateKey -> Json.toJson(endDate))))
+    }
   }
 }
 
@@ -57,18 +50,19 @@ final case class PutPeriodInRequest(
   startDate: LocalDate,
   endDate: Option[LocalDate],
   pegaRequestTimestamp: ZonedDateTime
-) extends PeriodInRequest
+)
 
 object PutPeriodInRequest {
   implicit val reads = Json.reads[PutPeriodInRequest]
 
   implicit val writes = new Writes[PutPeriodInRequest] {
-    def writes(putPeriod: PutPeriodInRequest): JsObject =
-      Json.obj(
-        periodIdKey -> putPeriod.periodID,
-        startDateKey -> putPeriod.startDate,
-        endDateKey -> putPeriod.endDate,
-        timestampKey -> putPeriod.pegaRequestTimestamp.format(timestampFormatter)
+    def writes(putPeriod: PutPeriodInRequest): JsObject = {
+      val items = List(
+        periodIdKey -> Json.toJson(putPeriod.periodID),
+        startDateKey -> Json.toJson(putPeriod.startDate),
+        timestampKey -> JsString(putPeriod.pegaRequestTimestamp.format(timestampFormatter))
       )
+      JsObject(putPeriod.endDate.fold(items)(endDate => items :+ (endDateKey -> Json.toJson(endDate))))
+    }
   }
 }
