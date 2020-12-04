@@ -27,7 +27,7 @@ package object model {
 
   type Errors = NonEmptyChain[ErrorItem]
 
-  lazy val timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+  lazy val timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
   val periodIdKey = "periodID"
   val startDateKey = "startDate"
