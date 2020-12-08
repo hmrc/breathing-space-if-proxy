@@ -21,12 +21,27 @@ import java.time.LocalDate
 import cats.syntax.option.none
 import play.api.libs.json.Json
 
-final case class Detail0(
+final case class Details0(
   nino: String,
+  dateOfBirth: Option[LocalDate] = none
+)
+object Details0 { implicit val format = Json.format[Details0] }
+
+// --------------------------------------------------------------------------------
+
+final case class NameData0(
   firstForename: Option[String] = none,
   secondForename: Option[String] = none,
-  surname: Option[String] = none,
-  dateOfBirth: Option[LocalDate] = none,
+  surname: Option[String] = none
+)
+object NameData0 { implicit val format = Json.format[NameData0] }
+
+final case class NameList0(name: List[NameData0])
+object NameList0 { implicit val format = Json.format[NameList0] }
+
+// --------------------------------------------------------------------------------
+
+final case class AddressData0(
   addressLine1: Option[String] = none,
   addressLine2: Option[String] = none,
   addressLine3: Option[String] = none,
@@ -34,11 +49,28 @@ final case class Detail0(
   addressLine5: Option[String] = none,
   addressPostcode: Option[String] = none,
   countryCode: Option[Int] = none
+)
+object AddressData0 { implicit val format = Json.format[AddressData0] }
+
+final case class AddressList0(address: List[AddressData0])
+object AddressList0 { implicit val format = Json.format[AddressList0] }
+
+// --------------------------------------------------------------------------------
+
+final case class Detail0(
+  details: Details0,
+  nameList: Option[NameList0] = none,
+  addressList: Option[AddressList0] = none
 ) extends Detail
 
 object DetailData0 extends DetailsData[Detail0] {
-  val fields =
-    "?fields=details(nino,dateOfBirth),nameList(name(firstForename,secondForename,surname)),addressList(address(addressLine1,addressLine2,addressLine3,addressLine4,addressLine5,addressPostcode,countryCode))"
+
+  val Details = "details(nino,dateOfBirth)"
+  val NameList = "nameList(name(firstForename,secondForename,surname))"
+  val AddressList =
+    "addressList(address(addressLine1,addressLine2,addressLine3,addressLine4,addressLine5,addressPostcode,countryCode))"
+
+  val fields = s"?fields=$Details,$NameList,$AddressList"
 
   val format = Json.format[Detail0]
 }
