@@ -86,7 +86,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
   private def verifyErrorResponse(nino: Nino, status: Int, baseError: BaseError): Assertion = {
     val url = urlWithoutQuery(IndividualDetailsConnector.path(nino, DetailData0.fields))
     val queryParams = detailQueryParams(DetailData0.fields)
-    stubCall(HttpMethod.Get, url, status, errorResponsePayloadFromIF, queryParams)
+    stubCall(HttpMethod.Get, url, status, errorResponseFromIF(), queryParams)
 
     val response = await(connector.get[Detail0](nino, DetailData0))
 

@@ -21,17 +21,17 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class PeriodsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach with MockitoSugar {
+class DebtsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach with MockitoSugar {
 
-  "PeriodsConnector.url" should {
+  "DebtsConnector.url" should {
     "correctly compose a url to the IF" in {
       Given("a valid Nino")
       val nino = genNino
       val expectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/periods"
+        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/debts"
 
       Then(s"then the composed url should be equal to $expectedUrl")
-      PeriodsConnector.url(nino) shouldBe expectedUrl
+      DebtsConnector.url(nino) shouldBe expectedUrl
     }
   }
 }

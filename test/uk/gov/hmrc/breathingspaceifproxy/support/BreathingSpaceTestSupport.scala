@@ -55,8 +55,6 @@ trait BreathingSpaceTestSupport {
 
   val attendedStaffPid = "1234567"
 
-  val errorResponsePayloadFromIF = """{"failures":[{"code":"AN_ERROR","reason":"An error message"}]}"""
-
   implicit val genericRequestId = RequestId(EndpointId.BS_Periods_POST, correlationId, attendedStaffPid)
 
   lazy val requestHeaders = List(
@@ -111,9 +109,32 @@ trait BreathingSpaceTestSupport {
       )
     )
 
+  lazy val debt1 = Debt(
+    chargeReference = "ETMP ref01",
+    chargeType = "100 chars long charge description as exist in ETMP",
+    chargeAmount = 199999999.11,
+    chargeCreationDate = LocalDate.now,
+    chargeDueDate = LocalDate.now.plusMonths(1),
+    none
+  )
+
+  lazy val debt2 = Debt(
+    chargeReference = "ETMP ref02",
+    chargeType = "long charge 02 description as exist in ETMP",
+    chargeAmount = 299999999.22,
+    chargeCreationDate = LocalDate.now.plusDays(2),
+    chargeDueDate = LocalDate.now.plusMonths(2),
+    utrAssociatedWithCharge = "1234567890".some
+  )
+
+  lazy val debts = List(debt1, debt2)
+
   lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
 
   lazy val random: Random = new Random
+
+  def errorResponseFromIF(code: String = "AN_ERROR"): String =
+    s"""{"failures":[{"code":"$code","reason":"An error message"}]}"""
 
   def genNino: Nino = {
     val prefix = validPrefixes(random.nextInt(validPrefixes.length))

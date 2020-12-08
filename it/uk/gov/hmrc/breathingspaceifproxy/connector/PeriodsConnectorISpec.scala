@@ -71,7 +71,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
   private def verifyGetResponse(status: Int, baseError: BaseError): Assertion = {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
-    stubCall(HttpMethod.Get, url, status, errorResponsePayloadFromIF)
+    stubCall(HttpMethod.Get, url, status, errorResponseFromIF())
 
     val response = await(connector.get(nino))
 

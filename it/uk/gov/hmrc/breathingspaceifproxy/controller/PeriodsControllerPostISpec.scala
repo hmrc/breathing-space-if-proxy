@@ -58,7 +58,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
       val url = PeriodsConnector.path(unknownNino)
-      stubCall(HttpMethod.Post, url, Status.NOT_FOUND, errorResponsePayloadFromIF)
+      stubCall(HttpMethod.Post, url, Status.NOT_FOUND, errorResponseFromIF())
 
       val request = fakeRequest(Helpers.POST, postPath)
         .withBody(postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest))
