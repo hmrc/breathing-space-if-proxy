@@ -187,11 +187,27 @@ trait BreathingSpaceTestSupport {
   }
 
   def detail0(nino: Nino): Detail0 = Detail0(
-    nino = nino.value,
-    firstForename = "Mickey".some,
-    surname = "Mouse".some,
-    dateOfBirth = LocalDate.now.some,
-    addressPostcode = "TY12 987".some
+    details = Details0(
+      nino = nino.value,
+      dateOfBirth = LocalDate.now.some
+    ),
+    nameList = NameList0(
+      List(
+        NameData0(
+          firstForename = "Mickey".some,
+          surname = "Mouse".some
+        )
+      )
+    ).some,
+    addressList = AddressList0(
+      List(
+        AddressData0(
+          addressLine1 = "Some Street".some,
+          countryCode = 1.some,
+          addressPostcode = "E14".some
+        )
+      )
+    ).some
   )
 
   def details(nino: Nino): IndividualDetails = IndividualDetails(

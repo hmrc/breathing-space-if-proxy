@@ -1,14 +1,28 @@
 {
-  "nino": "AS000001",
-  "firstForename": "John",
-  "secondForename": "Junior",
-  "surname": "Smith",
-  "dateOfBirth": "1980-07-31",
-  "addressLine1": "88 TESTING ROAD",
-  "addressLine2": "TESTTOWN",
-  "addressLine3": "TESTREGION",
-  "addressLine4": "TESTAREA",
-  "addressLine5": "TESTSHIRE",
-  "addressPostcode": "XX77 6YY",
-  "countryCode": 1
+  "details": {
+    "nino": "AS000001",
+    "dateOfBirth": "1980-07-31"
+  },
+  "nameList": {
+    "name": [
+      {
+        "firstForename": "John",
+        "secondForename": "Junior",
+        "surname": "Smith"
+      }
+    ]
+  },
+  "addressList": {
+    "address": [
+      {
+        "addressLine1": "88 TESTING ROAD",
+        "addressLine2": "TESTTOWN",
+        "addressLine3": "TESTREGION",
+        "addressLine4": "TESTAREA",
+        "addressLine5": "TESTSHIRE",
+        "addressPostcode": "XX77 6YY",
+        "countryCode": 1
+      }
+    ]
+  }
 }
