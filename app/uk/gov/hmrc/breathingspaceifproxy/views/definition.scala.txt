@@ -5,6 +5,11 @@
 {
   "scopes": [
     {
+      "key": "read:breathing-space-debts",
+      "name": "Breathing Space - Read Debts",
+      "description": "Return debt details for individuals in Breathing Space"
+    },
+    {
       "key": "read:breathing-space-individual",
       "name": "Breathing Space - Read Individual",
       "description": "Return information about an individual who has sought help on the Breathing Space Program"
