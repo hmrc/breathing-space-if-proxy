@@ -5,6 +5,7 @@ GET   /api/conf/:version/*file  uk.gov.hmrc.breathingspaceifproxy.controller.Api
 
 # Microservice specific routes
 # ============================
+GET   /:nino/debts              uk.gov.hmrc.breathingspaceifproxy.controller.DebtsController.get(nino)
 GET   /:nino/detail0            uk.gov.hmrc.breathingspaceifproxy.controller.IndividualDetailsController.getDetail0(nino)
 GET   /:nino/details            uk.gov.hmrc.breathingspaceifproxy.controller.IndividualDetailsController.getDetails(nino)
 GET   /:nino/periods            uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.get(nino)

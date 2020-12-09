@@ -22,6 +22,7 @@ sealed trait EndpointId extends EnumEntry
 
 object EndpointId extends Enum[EndpointId] {
 
+  case object BS_Debts_GET extends EndpointId
   case object BS_Detail0_GET extends EndpointId
   case object BS_Details_GET extends EndpointId
   case object BS_Periods_GET extends EndpointId

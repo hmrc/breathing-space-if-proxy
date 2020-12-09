@@ -34,11 +34,11 @@ object PostPeriodInRequest {
 
   implicit val writes = new Writes[PostPeriodInRequest] {
     def writes(postPeriod: PostPeriodInRequest): JsObject = {
-      val items = List(
+      val fields = List(
         startDateKey -> Json.toJson(postPeriod.startDate),
         timestampKey -> JsString(postPeriod.pegaRequestTimestamp.format(timestampFormatter))
       )
-      JsObject(postPeriod.endDate.fold(items)(endDate => items :+ (endDateKey -> Json.toJson(endDate))))
+      JsObject(postPeriod.endDate.fold(fields)(endDate => fields :+ (endDateKey -> Json.toJson(endDate))))
     }
   }
 }
@@ -57,12 +57,12 @@ object PutPeriodInRequest {
 
   implicit val writes = new Writes[PutPeriodInRequest] {
     def writes(putPeriod: PutPeriodInRequest): JsObject = {
-      val items = List(
+      val fields = List(
         periodIdKey -> Json.toJson(putPeriod.periodID),
         startDateKey -> Json.toJson(putPeriod.startDate),
         timestampKey -> JsString(putPeriod.pegaRequestTimestamp.format(timestampFormatter))
       )
-      JsObject(putPeriod.endDate.fold(items)(endDate => items :+ (endDateKey -> Json.toJson(endDate))))
+      JsObject(putPeriod.endDate.fold(fields)(endDate => fields :+ (endDateKey -> Json.toJson(endDate))))
     }
   }
 }

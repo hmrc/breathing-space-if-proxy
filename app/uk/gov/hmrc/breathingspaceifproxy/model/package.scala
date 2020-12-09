@@ -22,6 +22,7 @@ import cats.data.NonEmptyChain
 
 package object model {
 
+  type Debts = List[Debt]
   type PostPeriodsInRequest = List[PostPeriodInRequest]
   type PutPeriodsInRequest = List[PutPeriodInRequest]
 

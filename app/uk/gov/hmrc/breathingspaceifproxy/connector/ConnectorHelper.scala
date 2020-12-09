@@ -39,7 +39,8 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
 
   private def handleUpstream4xxError[T](response: UpstreamErrorResponse)(implicit r: RequestId): ResponseValidation[T] =
     response.statusCode match {
-      case Status.NOT_FOUND => logErrorAndGenUpstreamResponse(response, RESOURCE_NOT_FOUND)
+      case Status.NOT_FOUND => notFound(response)
+      case Status.FORBIDDEN => logErrorAndGenUpstreamResponse(response, BREATHING_SPACE_EXPIRED)
       case Status.CONFLICT => logErrorAndGenUpstreamResponse(response, CONFLICTING_REQUEST)
       case _ => logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
     }
@@ -51,6 +52,20 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging {
       case Status.GATEWAY_TIMEOUT => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_TIMEOUT)
       case _ => logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
     }
+
+  val noDataFound = """"code":"NO_DATA_FOUND""""
+  val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
+
+  private def notFound[T](response: UpstreamErrorResponse)(implicit requestId: RequestId): ResponseValidation[T] = {
+    val message = response.message.replaceAll("\\s", "")
+
+    val baseError =
+      if (message.contains(noDataFound)) NO_DATA_FOUND
+      else if (message.contains(notInBS)) NOT_IN_BREATHING_SPACE
+      else RESOURCE_NOT_FOUND
+
+    logErrorAndGenUpstreamResponse(response, baseError)
+  }
 
   private def logErrorAndGenUpstreamResponse[T](response: UpstreamErrorResponse, baseError: BaseError)(
     implicit requestId: RequestId
