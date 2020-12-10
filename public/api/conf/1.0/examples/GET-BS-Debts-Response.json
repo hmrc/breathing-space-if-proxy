@@ -1,14 +1,14 @@
 [
   {
     "chargeReference": "ETMP ref01",
-    "chargeType": "100 chars long charge description as exist in ETMP",
+    "chargeDescription": "100 chars long charge description as exist in ETMP",
     "chargeAmount": 199999999.11,
     "chargeCreationDate": "2001-09-12",
     "chargeDueDate": "2001-12-30"
   },
   {
     "chargeReference": "ETMP ref02",
-    "chargeType": "long charge 02 description as exist in ETMP",
+    "chargeDescription": "long charge 02 description as exist in ETMP",
     "chargeAmount": 299999999.22,
     "chargeCreationDate": "2002-09-12",
     "chargeDueDate": "2002-12-30",
@@ -16,7 +16,7 @@
   },
   {
     "chargeReference": "ETMP ref03",
-    "chargeType": "long charge 03 description as exist in ETMP",
+    "chargeDescription": "long charge 03 description as exist in ETMP",
     "chargeAmount": 399999999.33,
     "chargeCreationDate": "2003-09-12",
     "chargeDueDate": "2003-12-30",
@@ -24,7 +24,7 @@
   },
   {
     "chargeReference": "ETMP ref04",
-    "chargeType": "long charge 04 description as exist in ETMP",
+    "chargeDescription": "long charge 04 description as exist in ETMP",
     "chargeAmount": 999999999.99,
     "chargeCreationDate": "2004-09-12",
     "chargeDueDate": "2004-12-30"

@@ -24,7 +24,7 @@ import play.api.libs.json._
 
 case class Debt(
   chargeReference: String,
-  chargeType: String,
+  chargeDescription: String,
   chargeAmount: BigDecimal,
   chargeCreationDate: LocalDate,
   chargeDueDate: LocalDate,
@@ -38,7 +38,7 @@ object Debt {
     def writes(debt: Debt): JsObject = {
       val fields = List(
         "chargeReference" -> JsString(debt.chargeReference),
-        "chargeType" -> JsString(debt.chargeType),
+        "chargeDescription" -> JsString(debt.chargeDescription),
         "chargeAmount" -> JsNumber(debt.chargeAmount.setScale(2, RoundingMode.HALF_EVEN)),
         "chargeCreationDate" -> Json.toJson(debt.chargeCreationDate),
         "chargeDueDate" -> Json.toJson(debt.chargeDueDate)
