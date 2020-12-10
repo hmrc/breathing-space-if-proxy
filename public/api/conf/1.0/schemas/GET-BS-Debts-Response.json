@@ -11,7 +11,7 @@
       "chargeReference": {
         "type": "string"
       },
-      "chargeType": {
+      "chargeDescription": {
         "type": "string"
       },
       "chargeAmount": {
@@ -32,7 +32,7 @@
       }
     },
     "required": [
-      "chargeReference", "chargeType", "chargeAmount", "chargeCreationDate", "chargeDueDate"
+      "chargeReference", "chargeDescription", "chargeAmount", "chargeCreationDate", "chargeDueDate"
     ]
   }
 }
