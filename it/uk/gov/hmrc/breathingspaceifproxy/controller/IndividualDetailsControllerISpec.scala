@@ -21,19 +21,19 @@ class IndividualDetailsControllerISpec extends BaseISpec {
   "GET Individual's details for the provided Nino" should {
 
     "return 200(OK) and the expected individual details, according to the expected filter" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url)
+      verifyResponse(attended = true, nino, IndividualDetail0, detail0(nino), getDetail0(nino.value).url)
     }
 
     "return 200(OK) and the expected individual details (full population))" in {
-      verifyResponse(attended = true, nino, FullDetails, details(nino), getDetails(nino.value).url)
+      verifyResponse(attended = true, nino, IndividualDetails, details(nino), getDetails(nino.value).url)
     }
 
     "return 200(OK) for an ATTENDED request" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url)
+      verifyResponse(attended = true, nino, IndividualDetail0, detail0(nino), getDetail0(nino.value).url)
     }
 
     "return 200(OK) for an UNATTENDED request" in {
-      verifyResponse(attended = false, nino, DetailData0, detail0(nino), getDetail0(nino.value).url)
+      verifyResponse(attended = false, nino, IndividualDetail0, detail0(nino), getDetail0(nino.value).url)
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
@@ -50,29 +50,31 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url, RESOURCE_NOT_FOUND.some)
+      val error = RESOURCE_NOT_FOUND.some
+      verifyResponse(attended = true, nino, IndividualDetail0, detail0(nino), getDetail0(nino.value).url, error)
     }
 
     "return 409(CONFLICT) in case of duplicated requests" in {
-      verifyResponse(attended = true, nino, DetailData0, detail0(nino), getDetail0(nino.value).url, CONFLICTING_REQUEST.some)
+      val error = CONFLICTING_REQUEST.some
+      verifyResponse(attended = true, nino, IndividualDetail0, detail0(nino), getDetail0(nino.value).url, error)
     }
   }
 
   private def verifyResponse[T <: Detail](
-    attended: Boolean, nino: Nino, detailData: DetailsData[T], detail: T, url: String, error: Option[BaseError] = none
+    attended: Boolean, nino: Nino, detailsData: DetailsData[T], detail: T, url: String, error: Option[BaseError] = none
   ): Assertion = {
-    implicit val format: OFormat[T] = detailData.format
+    implicit val format: OFormat[T] = detailsData.format
 
-    val connectorUrl = urlWithoutQuery(IndividualDetailsConnector.path(nino, detailData.fields))
+    val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
 
     val expectedStatus = error.fold(Status.OK)(_.httpCode)
     val expectedResponseBody =
       if (expectedStatus == Status.OK) Json.toJson(detail).toString
       else Json.obj("errors" -> List(TestingErrorItem(error.get.entryName, error.get.message))).toString
 
-    val queryParams = detailQueryParams(detailData.fields)
+    val queryParams = detailQueryParams(detailsData.fields)
 
-    stubCall(HttpMethod.Get, connectorUrl, expectedStatus, expectedResponseBody, queryParams)
+    stubCall(HttpMethod.Get, path, expectedStatus, expectedResponseBody, queryParams)
 
     val request =
       if (attended) fakeRequest(Helpers.GET, url)
@@ -82,9 +84,9 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     status(response) shouldBe expectedStatus
     contentAsString(response) shouldBe expectedResponseBody
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Get, connectorUrl, queryParams)
-    else verifyHeadersForUnattended(HttpMethod.Get, connectorUrl, queryParams)
+    if (attended) verifyHeadersForAttended(HttpMethod.Get, path, queryParams)
+    else verifyHeadersForUnattended(HttpMethod.Get, path, queryParams)
 
-    verifyAuditEventCall(if (detail.isInstanceOf[Detail0]) BS_Detail0_GET else BS_Details_GET)
+    verifyAuditEventCall(if (detail.isInstanceOf[IndividualDetail0]) BS_Detail0_GET else BS_Details_GET)
   }
 }

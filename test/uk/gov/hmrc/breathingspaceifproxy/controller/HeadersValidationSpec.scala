@@ -18,7 +18,6 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import scala.concurrent.Future
 
-import org.mockito.scalatest.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.mvc.Result
@@ -30,7 +29,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
-class HeadersValidationSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
+class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   val controller =
     new PeriodsController(

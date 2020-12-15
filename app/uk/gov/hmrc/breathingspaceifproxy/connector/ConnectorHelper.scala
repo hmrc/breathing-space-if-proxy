@@ -20,57 +20,76 @@ import scala.concurrent.Future
 
 import cats.syntax.validated._
 import play.api.Logging
-import play.api.http.Status
+import play.api.http.Status._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.http._
+import uk.gov.hmrc.circuitbreaker.UsingCircuitBreaker
+import uk.gov.hmrc.http.{HttpErrorFunctions, HttpException}
+import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
 
-trait ConnectorHelper extends HttpErrorFunctions with Logging {
+trait ConnectorHelper extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
+
+  override def breakOnException(throwable: Throwable): Boolean =
+    throwable match {
+      case exc: HttpException if is5xx(exc.responseCode) => true
+      case Upstream5xxResponse(_) => true
+      case _ => false
+    }
 
   def handleUpstreamError[T](implicit requestId: RequestId): PartialFunction[Throwable, ResponseValidation[T]] = {
-    case UpstreamErrorResponse.Upstream4xxResponse(response) => handleUpstream4xxError(response)
-    case UpstreamErrorResponse.Upstream5xxResponse(response) => handleUpstream5xxError(response)
+    case exc: HttpException if is4xx(exc.responseCode) => handleUpstream4xxError(exc.responseCode, exc.message)
+    case exc: HttpException if is5xx(exc.responseCode) => handleUpstream5xxError(exc.responseCode, exc.message)
+
+    case Upstream4xxResponse(res) => handleUpstream4xxError(res.statusCode, res.message)
+    case Upstream5xxResponse(res) => handleUpstream5xxError(res.statusCode, res.message)
+
     case throwable: Throwable =>
-      logger.error(s"Exception caught for downstream request $requestId. ${throwable.getMessage}")
+      val name = throwable.getClass.getSimpleName
+      logger.error(s"Exception($name) caught for upstream request $requestId. ${throwable.getMessage}")
       Future.successful(ErrorItem(SERVER_ERROR).invalidNec)
   }
 
-  private def handleUpstream4xxError[T](response: UpstreamErrorResponse)(implicit r: RequestId): ResponseValidation[T] =
-    response.statusCode match {
-      case Status.NOT_FOUND => notFound(response)
-      case Status.FORBIDDEN => logErrorAndGenUpstreamResponse(response, BREATHING_SPACE_EXPIRED)
-      case Status.CONFLICT => logErrorAndGenUpstreamResponse(response, CONFLICTING_REQUEST)
-      case _ => logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
+  private def handleUpstream4xxError[T](statusCode: Int, message: String)(
+    implicit r: RequestId
+  ): ResponseValidation[T] =
+    statusCode match {
+      case NOT_FOUND => notFound(message)
+      case FORBIDDEN => logErrorAndGenUpstreamResponse(FORBIDDEN, message, BREATHING_SPACE_EXPIRED)
+      case CONFLICT => logErrorAndGenUpstreamResponse(CONFLICT, message, CONFLICTING_REQUEST)
+      case _ => logErrorAndGenUpstreamResponse(statusCode, message, SERVER_ERROR)
     }
 
-  private def handleUpstream5xxError[T](response: UpstreamErrorResponse)(implicit r: RequestId): ResponseValidation[T] =
-    response.statusCode match {
-      case Status.BAD_GATEWAY => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_BAD_GATEWAY)
-      case Status.SERVICE_UNAVAILABLE => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_SERVICE_UNAVAILABLE)
-      case Status.GATEWAY_TIMEOUT => logErrorAndGenUpstreamResponse(response, DOWNSTREAM_TIMEOUT)
-      case _ => logErrorAndGenUpstreamResponse(response, SERVER_ERROR)
+  private def handleUpstream5xxError[T](statusCode: Int, message: String)(
+    implicit r: RequestId
+  ): ResponseValidation[T] =
+    statusCode match {
+      case BAD_GATEWAY => logErrorAndGenUpstreamResponse(BAD_GATEWAY, message, UPSTREAM_BAD_GATEWAY)
+      case SERVICE_UNAVAILABLE =>
+        logErrorAndGenUpstreamResponse(SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
+      case GATEWAY_TIMEOUT => logErrorAndGenUpstreamResponse(GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
+      case _ => logErrorAndGenUpstreamResponse(statusCode, message, SERVER_ERROR)
     }
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
   val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
 
-  private def notFound[T](response: UpstreamErrorResponse)(implicit requestId: RequestId): ResponseValidation[T] = {
-    val message = response.message.replaceAll("\\s", "")
+  private def notFound[T](response: String)(implicit requestId: RequestId): ResponseValidation[T] = {
+    val message = response.replaceAll("\\s", "")
 
     val baseError =
       if (message.contains(noDataFound)) NO_DATA_FOUND
       else if (message.contains(notInBS)) NOT_IN_BREATHING_SPACE
       else RESOURCE_NOT_FOUND
 
-    logErrorAndGenUpstreamResponse(response, baseError)
+    logErrorAndGenUpstreamResponse(NOT_FOUND, response, baseError)
   }
 
-  private def logErrorAndGenUpstreamResponse[T](response: UpstreamErrorResponse, baseError: BaseError)(
+  private def logErrorAndGenUpstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
     implicit requestId: RequestId
   ): ResponseValidation[T] = {
-    logger.error(s"Error(${response.statusCode}) for $requestId. ${response.message}")
+    logger.error(s"Error($statusCode) for $requestId. $message")
     Future.successful(ErrorItem(baseError).invalidNec)
   }
 }

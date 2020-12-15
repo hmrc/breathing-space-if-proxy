@@ -29,11 +29,12 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
-import play.api.http.{HeaderNames, MimeTypes}
+import play.api.http.HeaderNames
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
+import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
@@ -52,11 +53,12 @@ abstract class BaseISpec
     with WireMockSupport {
 
   val configProperties: Map[String, Any] = Map(
+    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
+    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321",
     "auditing.enabled" -> true,
     "auditing.consumer.baseUri.host" -> wireMockHost,
     "auditing.consumer.baseUri.port" -> wireMockPort,
-    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
-    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321",
+    "circuit.breaker.failedCallsBeforeOpeningCircuit" -> Int.MaxValue,
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )
@@ -69,8 +71,6 @@ abstract class BaseISpec
   implicit val materializer = inject[Materializer]
 
   implicit val appConfig: AppConfig = inject[AppConfig]
-
-  def urlWithoutQuery(url: String): String = url.split("\\?").head
 
   def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeaders: _*)

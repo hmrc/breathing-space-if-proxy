@@ -24,16 +24,18 @@ object Dependencies {
     "org.typelevel" %% "cats-core"                 % "2.2.0",
     "com.beachape"  %% "enumeratum"                % "1.6.1",
     "com.kenshoo"   %% "metrics-play"              % "2.7.3_0.8.2",
-    "ai.x"          %% "play-json-extensions"      % "0.42.0"
+    "ai.x"          %% "play-json-extensions"      % "0.42.0",
+    "uk.gov.hmrc"   %% "reactive-circuit-breaker"  % "3.5.0"
+
   )
 
   val test = Seq(
     "uk.gov.hmrc"            %% "bootstrap-test-play-27"   % "3.0.0"   % Test,
     "com.typesafe.play"      %% "play-test"                % PlayVersion.current % Test,
+    "org.mockito"            %% "mockito-scala-scalatest"  % "1.16.3"  % Test,
     "org.scalatest"          %% "scalatest"                % "3.2.3"   % Test,
     "com.vladsch.flexmark"   %  "flexmark-all"             % "0.36.8"  % "test, it",
     "org.scalatestplus.play" %% "scalatestplus-play"       % "4.0.3"   % "test, it",
-    "com.github.tomakehurst" %  "wiremock-jre8"            % "2.27.2"  % "test, it",
-    "org.mockito"            %% "mockito-scala-scalatest"  % "1.16.3"  % "test, it"
+    "com.github.tomakehurst" %  "wiremock-jre8"            % "2.27.2"  % "test, it"
   )
 }

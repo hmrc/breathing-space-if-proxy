@@ -26,18 +26,10 @@ object BaseError extends Enum[BaseError] {
   case object CONFLICTING_REQUEST
       extends BaseError(
         CONFLICT,
-        "The downstream service has indicated that the request is conflicting. Maybe a duplicate POST?"
+        "The upstream service has indicated that the request is conflicting. Maybe a duplicate POST?"
       )
 
   case object BREATHING_SPACE_EXPIRED extends BaseError(FORBIDDEN, "Breathing Space has expired for the given Nino")
-
-  case object DOWNSTREAM_BAD_GATEWAY
-      extends BaseError(INTERNAL_SERVER_ERROR, "The downstream service is not responding")
-
-  case object DOWNSTREAM_SERVICE_UNAVAILABLE
-      extends BaseError(INTERNAL_SERVER_ERROR, "The downstream service is unavailable")
-
-  case object DOWNSTREAM_TIMEOUT extends BaseError(INTERNAL_SERVER_ERROR, "Request timed out")
   case object INVALID_BODY extends BaseError(BAD_REQUEST, "Not expected a body to this endpoint")
   case object INVALID_ENDPOINT extends BaseError(BAD_REQUEST, "Not a valid endpoint")
   case object INVALID_HEADER extends BaseError(BAD_REQUEST, "Invalid value for the header")
@@ -52,13 +44,18 @@ object BaseError extends Enum[BaseError] {
   case object NOT_IN_BREATHING_SPACE extends BaseError(NOT_FOUND, "The given Nino is not in Breathing Space")
 
   case object RESOURCE_NOT_FOUND
-      extends BaseError(NOT_FOUND, "The downstream service has indicated that the provided resource was not found")
+      extends BaseError(NOT_FOUND, "The upstream service has indicated that the provided resource was not found")
 
   case object SERVER_ERROR
       extends BaseError(
         INTERNAL_SERVER_ERROR,
         "We are currently experiencing problems that require live service intervention"
       )
+
+  case object UPSTREAM_BAD_GATEWAY extends BaseError(INTERNAL_SERVER_ERROR, "The upstream service is not responding")
+  case object UPSTREAM_SERVICE_UNAVAILABLE
+      extends BaseError(INTERNAL_SERVER_ERROR, "The upstream service is unavailable")
+  case object UPSTREAM_TIMEOUT extends BaseError(INTERNAL_SERVER_ERROR, "Request timed out")
 
   override val values = findValues
 }

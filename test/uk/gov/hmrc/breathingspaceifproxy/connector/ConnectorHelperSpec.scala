@@ -16,50 +16,82 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import org.scalatest.Assertion
 import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_POST
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.UpstreamErrorResponse
+import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
+import uk.gov.hmrc.http._
 
 class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
 
+  def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker.copy(
+    numberOfCallsToTriggerStateChange = Int.MaxValue
+  )
+
   "handleUpstreamError" should {
-    "return DOWNSTREAM_BAD_GATEWAY for a BAD_GATEWAY error while sending downstream a request" in {
-      val exception = UpstreamErrorResponse("The downstream service is not responding", Status.BAD_GATEWAY)
-
-      val result = handleUpstreamError[Unit](genericRequestId).apply(exception).futureValue
-
-      assert(result.isInvalid)
-      assert(result.fold(_.head.baseError == DOWNSTREAM_BAD_GATEWAY, _ => false))
+    "return RESOURCE_NOT_FOUND for a NOT_FOUND response" in {
+      verifyResponse(new NotFoundException("Some error message"), RESOURCE_NOT_FOUND)
     }
 
-    "return DOWNSTREAM_SERVICE_UNAVAILABLE for a SERVICE_UNAVAILABLE error while sending downstream a request" in {
-      val exception = UpstreamErrorResponse("The downstream service is unavailable", Status.SERVICE_UNAVAILABLE)
-
-      val result = handleUpstreamError[Unit](genericRequestId).apply(exception).futureValue
-
-      assert(result.isInvalid)
-      assert(result.fold(_.head.baseError == DOWNSTREAM_SERVICE_UNAVAILABLE, _ => false))
+    "return NO_DATA_FOUND for a NOT_FOUND response with specific message" in {
+      verifyResponse(new NotFoundException(noDataFound), NO_DATA_FOUND)
     }
 
-    "return DOWNSTREAM_TIMEOUT for a GATEWAY_TIMEOUT error while sending downstream a request" in {
-      val exception = UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT)
-
-      val result = handleUpstreamError[Unit](genericRequestId).apply(exception).futureValue
-
-      assert(result.isInvalid)
-      assert(result.fold(_.head.baseError == DOWNSTREAM_TIMEOUT, _ => false))
+    "return NOT_IN_BREATHING_SPACE for a NOT_FOUND response with specific message" in {
+      verifyResponse(new NotFoundException(notInBS), NOT_IN_BREATHING_SPACE)
     }
 
-    "return SERVER_ERROR for any Throwable caught while sending downstream a request" in {
-      val throwable = new IllegalArgumentException("Some illegal argument")
-
-      val result = handleUpstreamError[Unit](genericRequestId).apply(throwable).futureValue
-
-      assert(result.isInvalid)
-      assert(result.fold(_.head.baseError == SERVER_ERROR, _ => false))
+    "return BREATHING_SPACE_EXPIRED for a FORBIDDEN response" in {
+      verifyResponse(new ForbiddenException("Some error message"), BREATHING_SPACE_EXPIRED)
     }
+
+    "return CONFLICTING_REQUEST for a CONFLICT response" in {
+      verifyResponse(new ConflictException("Some error message"), CONFLICTING_REQUEST)
+    }
+
+    "return UPSTREAM_SERVICE_UNAVAILABLE for a SERVICE_UNAVAILABLE(HttpException) response" in {
+      verifyResponse(
+        new ServiceUnavailableException("The upstream service is unavailable"),
+        UPSTREAM_SERVICE_UNAVAILABLE
+      )
+    }
+
+    "return UPSTREAM_TIMEOUT for a GATEWAY_TIMEOUT(HttpException) response" in {
+      verifyResponse(new GatewayTimeoutException("Request timed out"), UPSTREAM_TIMEOUT)
+    }
+
+    "return UPSTREAM_BAD_GATEWAY for a BAD_GATEWAY(Upstream5xxResponse) response" in {
+      verifyResponse(
+        UpstreamErrorResponse("The upstream service is not responding", Status.BAD_GATEWAY),
+        UPSTREAM_BAD_GATEWAY
+      )
+    }
+
+    "return UPSTREAM_SERVICE_UNAVAILABLE for a SERVICE_UNAVAILABLE(Upstream5xxResponse) response" in {
+      verifyResponse(
+        UpstreamErrorResponse("The upstream service is unavailable", Status.SERVICE_UNAVAILABLE),
+        UPSTREAM_SERVICE_UNAVAILABLE
+      )
+    }
+
+    "return UPSTREAM_TIMEOUT for a GATEWAY_TIMEOUT(Upstream5xxResponse) response" in {
+      verifyResponse(UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT), UPSTREAM_TIMEOUT)
+    }
+
+    "return SERVER_ERROR for any Throwable caught while sending upstream a request" in {
+      verifyResponse(new IllegalArgumentException("Some illegal argument"), SERVER_ERROR)
+    }
+  }
+
+  private def verifyResponse(throwable: Throwable, baseError: BaseError): Assertion = {
+    val result = handleUpstreamError[Unit](genRequestId(BS_Periods_POST)).apply(throwable).futureValue
+
+    assert(result.isInvalid)
+    assert(result.fold(_.head.baseError == baseError, _ => false))
   }
 }
