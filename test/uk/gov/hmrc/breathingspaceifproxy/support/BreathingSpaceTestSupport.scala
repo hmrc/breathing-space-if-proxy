@@ -55,8 +55,6 @@ trait BreathingSpaceTestSupport {
 
   val attendedStaffPid = "1234567"
 
-  implicit val genericRequestId = RequestId(EndpointId.BS_Periods_POST, correlationId, attendedStaffPid)
-
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     Header.CorrelationId -> correlationIdAsString,
@@ -133,6 +131,9 @@ trait BreathingSpaceTestSupport {
 
   lazy val random: Random = new Random
 
+  def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
+    if (withCorrelationId) correlationIdAsString.some else None
+
   def errorResponseFromIF(code: String = "AN_ERROR"): String =
     s"""{"failures":[{"code":"$code","reason":"An error message"}]}"""
 
@@ -151,8 +152,7 @@ trait BreathingSpaceTestSupport {
     Nino(f"$prefix$number%06d$suffix")
   }
 
-  def correlationIdAsOpt(withCorrelationId: => Boolean): Option[String] =
-    if (withCorrelationId) correlationIdAsString.some else None
+  def genRequestId(endpointId: EndpointId): RequestId = RequestId(endpointId, correlationId, attendedStaffPid)
 
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)
@@ -207,7 +207,7 @@ trait BreathingSpaceTestSupport {
     Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
-  def detail0(nino: Nino): Detail0 = Detail0(
+  def detail0(nino: Nino): IndividualDetail0 = IndividualDetail0(
     details = Details0(
       nino = nino.value,
       dateOfBirth = LocalDate.now.some

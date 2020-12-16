@@ -27,6 +27,7 @@ import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
@@ -41,13 +42,14 @@ class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
+  override protected def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker
+
   def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[Debts] =
-    monitor(s"ConsumedAPI-${requestId.endpointId}") {
-      http
-        .GET[Debts](Url(url(nino)).value)
-        .map(_.validNec)
-        .recoverWith(handleUpstreamError)
-    }
+    withCircuitBreaker {
+      monitor(s"ConsumedAPI-${requestId.endpointId}") {
+        http.GET[Debts](Url(url(nino)).value).map(_.validNec)
+      }
+    }.recoverWith(handleUpstreamError)
 }
 
 object DebtsConnector {

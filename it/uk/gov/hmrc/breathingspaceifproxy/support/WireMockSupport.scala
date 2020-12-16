@@ -72,6 +72,6 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
     }
   }
 
-  private def mapQueryParams(queryParams: Map[String, String]): java.util.Map[String, StringValuePattern] =
+  def mapQueryParams(queryParams: Map[String, String]): java.util.Map[String, StringValuePattern] =
     queryParams.map { case (k, v) => k -> equalTo(v) }.asJava
 }

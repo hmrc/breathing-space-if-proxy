@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import org.mockito.scalatest.MockitoSugar
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class PeriodsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach with MockitoSugar {
+class PeriodsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach {
 
   "PeriodsConnector.url" should {
     "correctly compose a url to the IF" in {

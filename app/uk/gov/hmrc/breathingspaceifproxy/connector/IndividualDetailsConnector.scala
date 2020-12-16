@@ -23,15 +23,13 @@ import scala.concurrent.ExecutionContext
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import play.api.http.Status
-import play.api.libs.json._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
 class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
@@ -44,43 +42,23 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get[T <: Detail](nino: Nino, detailData: DetailsData[T])(
-    implicit requestId: RequestId,
-    hc: HeaderCarrier
-  ): ResponseValidation[T] =
-    monitor(s"ConsumedAPI-${requestId.endpointId}") {
-      implicit val format = detailData.format
-      http
-        .GET[Validation[T]](Url(url(nino, detailData.fields)).value)
-        .recoverWith(handleUpstreamError)
-    }
+  override protected def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker
 
-  implicit def reads[T <: Detail](implicit requestId: RequestId, rds: Reads[T]): HttpReads[Validation[T]] =
-    new HttpReads[Validation[T]] {
-      override def read(method: String, url: String, response: HttpResponse): Validation[T] =
-        response.status match {
-          case Status.OK =>
-            response.json.validate[T] match {
-              case JsSuccess(value, _) => value.validNec
-              case JsError(_) =>
-                logErrorAndGenResponse(s"got an unexpected payload(${response.body})", response, SERVER_ERROR)
-            }
+  // Breathing Space Popolation
+  def getDetail0(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[IndividualDetail0] =
+    withCircuitBreaker {
+      monitor(s"ConsumedAPI-${requestId.endpointId}") {
+        http.GET[IndividualDetail0](Url(url(nino, IndividualDetail0.fields)).value).map(_.validNec)
+      }
+    }.recoverWith(handleUpstreamError)
 
-          case Status.NOT_FOUND => ErrorItem(RESOURCE_NOT_FOUND).invalidNec
-          case Status.CONFLICT => ErrorItem(CONFLICTING_REQUEST).invalidNec
-          case Status.BAD_GATEWAY => ErrorItem(DOWNSTREAM_BAD_GATEWAY).invalidNec
-          case Status.SERVICE_UNAVAILABLE => ErrorItem(DOWNSTREAM_SERVICE_UNAVAILABLE).invalidNec
-          case Status.GATEWAY_TIMEOUT => ErrorItem(DOWNSTREAM_TIMEOUT).invalidNec
-          case status => logErrorAndGenResponse(s"got an unexpected status($status)", response, SERVER_ERROR)
-        }
-    }
-
-  private def logErrorAndGenResponse[T](message: String, response: HttpResponse, baseError: BaseError)(
-    implicit requestId: RequestId
-  ): Validation[T] = {
-    logger.error(s"$requestId $message. Body: ${response.body}")
-    ErrorItem(baseError).invalidNec
-  }
+  // Full Popolation
+  def getDetails(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[IndividualDetails] =
+    withCircuitBreaker {
+      monitor(s"ConsumedAPI-${requestId.endpointId}") {
+        http.GET[IndividualDetails](Url(url(nino, IndividualDetails.fields)).value).map(_.validNec)
+      }
+    }.recoverWith(handleUpstreamError)
 }
 
 object IndividualDetailsConnector {

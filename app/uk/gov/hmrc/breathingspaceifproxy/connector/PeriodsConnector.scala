@@ -28,6 +28,7 @@ import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
@@ -42,35 +43,38 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
+  override protected def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker
+
   def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
-    monitor(s"ConsumedAPI-${requestId.endpointId}") {
-      http
-        .GET[PeriodsInResponse](Url(url(nino)).value)
-        .map(_.validNec)
-        .recoverWith(handleUpstreamError)
-    }
+    withCircuitBreaker {
+      monitor(s"ConsumedAPI-${requestId.endpointId}") {
+        http.GET[PeriodsInResponse](Url(url(nino)).value).map(_.validNec)
+      }
+    }.recoverWith(handleUpstreamError)
 
   def post(
     nino: Nino,
     postPeriods: PostPeriodsInRequest
   )(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
-    monitor(s"ConsumedAPI-${requestId.endpointId}") {
-      http
-        .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> postPeriods))
-        .map(_.validNec)
-        .recoverWith(handleUpstreamError)
-    }
+    withCircuitBreaker {
+      monitor(s"ConsumedAPI-${requestId.endpointId}") {
+        http
+          .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> postPeriods))
+          .map(_.validNec)
+      }
+    }.recoverWith(handleUpstreamError)
 
   def put(
     nino: Nino,
     putPeriods: PutPeriodsInRequest
   )(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
-    monitor(s"ConsumedAPI-${requestId.endpointId}") {
-      http
-        .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> putPeriods))
-        .map(_.validNec)
-        .recoverWith(handleUpstreamError)
-    }
+    withCircuitBreaker {
+      monitor(s"ConsumedAPI-${requestId.endpointId}") {
+        http
+          .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> putPeriods))
+          .map(_.validNec)
+      }
+    }.recoverWith(handleUpstreamError)
 }
 
 object PeriodsConnector {

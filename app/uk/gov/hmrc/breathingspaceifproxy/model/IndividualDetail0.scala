@@ -21,6 +21,8 @@ import java.time.LocalDate
 import cats.syntax.option.none
 import play.api.libs.json.Json
 
+// Details (Breathing Space Population) -------------------------------------------
+
 final case class Details0(
   nino: String,
   dateOfBirth: Option[LocalDate] = none
@@ -57,13 +59,13 @@ object AddressList0 { implicit val format = Json.format[AddressList0] }
 
 // --------------------------------------------------------------------------------
 
-final case class Detail0(
+final case class IndividualDetail0(
   details: Details0,
   nameList: Option[NameList0] = none,
   addressList: Option[AddressList0] = none
 ) extends Detail
 
-object DetailData0 extends DetailsData[Detail0] {
+object IndividualDetail0 extends DetailsData[IndividualDetail0] {
 
   val Details = "details(nino,dateOfBirth)"
   val NameList = "nameList(name(firstForename,secondForename,surname))"
@@ -72,5 +74,5 @@ object DetailData0 extends DetailsData[Detail0] {
 
   val fields = s"?fields=$Details,$NameList,$AddressList"
 
-  val format = Json.format[Detail0]
+  implicit val format = Json.format[IndividualDetail0]
 }

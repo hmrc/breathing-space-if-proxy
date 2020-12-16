@@ -29,7 +29,7 @@ abstract class DetailsData[T <: Detail] {
   val format: OFormat[T]
 }
 
-// Details (full population) --------------------------------------------------------------
+// Details (Full Population) ------------------------------------------------------
 
 final case class NameData(
   nameSequenceNumber: Option[Int] = none,
@@ -166,8 +166,8 @@ final case class IndividualDetails(
   indicators: Option[Indicators] = none
 ) extends Detail
 
-object FullDetails extends DetailsData[IndividualDetails] {
+object IndividualDetails extends DetailsData[IndividualDetails] {
   val fields = ""
   implicit val encoder = BaseNameEncoder()
-  implicit val format: OFormat[IndividualDetails] = Jsonx.formatCaseClass[IndividualDetails]
+  implicit val format = Jsonx.formatCaseClass[IndividualDetails]
 }

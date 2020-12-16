@@ -40,14 +40,14 @@ class IndividualDetailsController @Inject()(
 ) extends AbstractBaseController(appConfig, auditConnector, cc) {
 
   def getDetail0(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
-    getDetails[Detail0](maybeNino, BS_Detail0_GET, DetailData0)
+    getIndividualDetails(maybeNino, BS_Detail0_GET)
   }
 
   def getDetails(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
-    getDetails[IndividualDetails](maybeNino, BS_Details_GET, FullDetails)
+    getIndividualDetails(maybeNino, BS_Details_GET)
   }
 
-  private def getDetails[T <: Detail](maybeNino: String, endpointId: EndpointId, detailData: DetailsData[T])(
+  private def getIndividualDetails(maybeNino: String, endpointId: EndpointId)(
     implicit request: Request[Validation[AnyContent]]
   ): Future[Result] =
     (
@@ -61,9 +61,15 @@ class IndividualDetailsController @Inject()(
           implicit val (requestId, nino) = validationTuple
           logger.debug(s"$requestId for Nino(${nino.value})")
           if (appConfig.onDevEnvironment) logHeaders
-          individualDetailsConnector.get[T](nino, detailData).flatMap {
-            implicit val format = detailData.format
-            _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+
+          if (endpointId == BS_Details_GET) {
+            individualDetailsConnector.getDetails(nino).flatMap {
+              _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+            }
+          } else {
+            individualDetailsConnector.getDetail0(nino).flatMap {
+              _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+            }
           }
         }
       )

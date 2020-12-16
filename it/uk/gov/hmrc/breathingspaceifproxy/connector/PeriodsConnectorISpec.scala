@@ -1,15 +1,17 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import org.scalatest.Assertion
-import play.api.http.Status
+import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
+  implicit val requestId = genRequestId(BS_Periods_GET)
   val connector = inject[PeriodsConnector]
 
   "get" should {
@@ -17,7 +19,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val nino = genNino
       val url = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
-      stubCall(HttpMethod.Get, url, Status.OK, responsePayload)
+      stubCall(HttpMethod.Get, url, OK, responsePayload)
 
       val response = await(connector.get(nino))
 
@@ -26,19 +28,19 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
-      verifyGetResponse(Status.NOT_FOUND, RESOURCE_NOT_FOUND)
+      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
-      verifyGetResponse(Status.CONFLICT, CONFLICTING_REQUEST)
+      verifyGetResponse(CONFLICT, CONFLICTING_REQUEST)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      verifyGetResponse(Status.BAD_REQUEST, SERVER_ERROR)
+      verifyGetResponse(BAD_REQUEST, SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
-      verifyGetResponse(Status.NOT_IMPLEMENTED, SERVER_ERROR)
+      verifyGetResponse(NOT_IMPLEMENTED, SERVER_ERROR)
     }
   }
 
@@ -47,7 +49,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val nino = genNino
       val url = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
-      stubCall(HttpMethod.Post, url, Status.CREATED, responsePayload)
+      stubCall(HttpMethod.Post, url, CREATED, responsePayload)
 
       val response = await(connector.post(nino, postPeriodsRequest))
       verifyHeaders(HttpMethod.Post, url)
@@ -60,7 +62,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val nino = genNino
       val url = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
-      stubCall(HttpMethod.Put, url, Status.OK, responsePayload)
+      stubCall(HttpMethod.Put, url, OK, responsePayload)
 
       val response = await(connector.put(nino, putPeriodsRequest))
       verifyHeaders(HttpMethod.Put, url)
