@@ -24,5 +24,8 @@
         "countryCode": 1
       }
     ]
+  },
+  "indicators": {
+    "welshOutputInd": 2
   }
 }

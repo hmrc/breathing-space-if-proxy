@@ -228,7 +228,8 @@ trait BreathingSpaceTestSupport {
           addressPostcode = "E14".some
         )
       )
-    ).some
+    ).some,
+    indicators = Indicators(welshOutputInd = 1.some).some
   )
 
   def detailQueryParams(fields: String): Map[String, String] =
