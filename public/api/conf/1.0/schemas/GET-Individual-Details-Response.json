@@ -90,6 +90,15 @@
       "required": [
         "address"
       ]
+    },
+    "indicators": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "welshOutputInd": {
+          "type": "number"
+        }
+      }
     }
   },
   "required": [ "details" ]
