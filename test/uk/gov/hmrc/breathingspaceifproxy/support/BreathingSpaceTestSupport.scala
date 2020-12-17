@@ -207,37 +207,10 @@ trait BreathingSpaceTestSupport {
     Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 
-  def detail0(nino: Nino): IndividualDetail0 = IndividualDetail0(
-    details = Details0(
-      nino = nino.value,
-      dateOfBirth = LocalDate.now.some
-    ),
-    nameList = NameList0(
-      List(
-        NameData0(
-          firstForename = "Mickey".some,
-          surname = "Mouse".some
-        )
-      )
-    ).some,
-    addressList = AddressList0(
-      List(
-        AddressData0(
-          addressLine1 = "Some Street".some,
-          countryCode = 1.some,
-          addressPostcode = "E14".some
-        )
-      )
-    ).some
-  )
-
   def details(nino: Nino): IndividualDetails = IndividualDetails(
     details = Details(
       nino = nino.value,
-      dateOfBirth = LocalDate.now.some,
-      adultRegSerialNumber = "25673ASN".some,
-      cesaAgentIdentifier = "SDGH/4".some,
-      cesaAgentClientReference = "DIGBY JONES".some
+      dateOfBirth = LocalDate.now.some
     ),
     nameList = NameList(
       List(
@@ -250,7 +223,8 @@ trait BreathingSpaceTestSupport {
     addressList = AddressList(
       List(
         AddressData(
-          addressType = 1.some,
+          addressLine1 = "Some Street".some,
+          countryCode = 1.some,
           addressPostcode = "E14".some
         )
       )

@@ -18,7 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.wordspec.AnyWordSpec
-import uk.gov.hmrc.breathingspaceifproxy.model.{IndividualDetail0, IndividualDetails}
+import uk.gov.hmrc.breathingspaceifproxy.model.IndividualDetails
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach {
@@ -27,23 +27,12 @@ class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec with Befo
     "correctly compose urls to the IF" in {
       Given("a valid Nino")
       val nino = genNino
+      val fields = IndividualDetails.fields
       val expectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}"
+        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}${fields}"
 
       Then(s"the composed url should be equal to $expectedUrl")
       IndividualDetailsConnector.url(nino, IndividualDetails.fields) shouldBe expectedUrl
-
-      Given("another valid Nino")
-      val anotherNino = genNino
-
-      And("and a \"fields\" query parameter")
-      val fields = IndividualDetail0.fields
-
-      val anotherExpectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/details/NINO/${anotherNino.value}${fields}"
-
-      Then(s"the composed url should be equal to $anotherExpectedUrl")
-      IndividualDetailsConnector.url(anotherNino, fields) shouldBe anotherExpectedUrl
     }
   }
 }

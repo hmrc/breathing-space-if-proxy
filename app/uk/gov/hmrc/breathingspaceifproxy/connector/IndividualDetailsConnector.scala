@@ -44,15 +44,7 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override protected def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker
 
-  // Breathing Space Popolation
-  def getDetail0(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[IndividualDetail0] =
-    withCircuitBreaker {
-      monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[IndividualDetail0](Url(url(nino, IndividualDetail0.fields)).value).map(_.validNec)
-      }
-    }.recoverWith(handleUpstreamError)
-
-  // Full Popolation
+  // Breathing Space Population
   def getDetails(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[IndividualDetails] =
     withCircuitBreaker {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {

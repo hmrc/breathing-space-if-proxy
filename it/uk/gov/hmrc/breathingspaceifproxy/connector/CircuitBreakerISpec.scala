@@ -128,28 +128,16 @@ class CircuitBreakerForDebtsConnector_GET_ISpec extends CircuitBreakerISpec {
   }
 }
 
-class CircuitBreakerForIndividualDetailsConnector_GET_Detail0_ISpec extends CircuitBreakerISpec {
-  test("Circuit Breaker should work as expected against failed IndividualDetailsConnector.getDetail0 requests") {
-    val nino = genNino
-    val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
-    val queryParams = detailQueryParams(IndividualDetail0.fields)
-    val details = detail0(nino)
-    val response = Json.toJson(details).toString
-
-    stubsForCircuitBreaker(HttpMethod.Get, path, OK, response, queryParams)
-    verifyCircuitBreaker(inject[IndividualDetailsConnector].getDetail0(nino), details)
-  }
-}
-
 class CircuitBreakerForIndividualDetailsConnector_GET_Details_ISpec extends CircuitBreakerISpec {
   test("Circuit Breaker should work as expected against failed IndividualDetailsConnector.getDetails requests") {
     val nino = genNino
-    val url = IndividualDetailsConnector.path(nino, IndividualDetails.fields)
-    val fullDetails = details(nino)
-    val expected = Json.toJson(fullDetails).toString
+    val url = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
+    val queryParams = detailQueryParams(IndividualDetails.fields)
+    val bsDetails = details(nino)
+    val expected = Json.toJson(bsDetails).toString
 
-    stubsForCircuitBreaker(HttpMethod.Get, url, OK, expected)
-    verifyCircuitBreaker(inject[IndividualDetailsConnector].getDetails(nino), fullDetails)
+    stubsForCircuitBreaker(HttpMethod.Get, url, OK, expected, queryParams)
+    verifyCircuitBreaker(inject[IndividualDetailsConnector].getDetails(nino), bsDetails)
   }
 }
 
