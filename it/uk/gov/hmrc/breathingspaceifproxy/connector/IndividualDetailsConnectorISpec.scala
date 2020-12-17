@@ -16,7 +16,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
   val connector = inject[IndividualDetailsConnector]
 
   "get" should {
-    "return a Detail0 instance when it receives the relative \"fields\" query parameter" in {
+    "return an IndividualDetails instance when it receives the relative \"fields\" query parameter" in {
       val nino = genNino
       val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
       val queryParams = detailQueryParams(IndividualDetails.fields)
@@ -42,13 +42,13 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
 
       val unexpectedPayload = Json.parse("""{"dateOfRegistration":"2020-01-01","sex":"M"}""").toString
-      val queryParamsForDetail0 = detailQueryParams(IndividualDetails.fields)
+      val queryParams = detailQueryParams(IndividualDetails.fields)
 
-      stubCall(HttpMethod.Get, path, OK, unexpectedPayload, queryParamsForDetail0)
+      stubCall(HttpMethod.Get, path, OK, unexpectedPayload, queryParams)
 
       val response = await(connector.getDetails(nino))
 
-      verifyHeaders(HttpMethod.Get, path, queryParamsForDetail0)
+      verifyHeaders(HttpMethod.Get, path, queryParams)
       response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
     }
 
