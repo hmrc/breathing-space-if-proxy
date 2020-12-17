@@ -19,7 +19,6 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 
 import cats.syntax.apply._
 import play.api.mvc._
@@ -27,7 +26,6 @@ import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -39,19 +37,9 @@ class IndividualDetailsController @Inject()(
   individualDetailsConnector: IndividualDetailsConnector
 ) extends AbstractBaseController(appConfig, auditConnector, cc) {
 
-  def getDetail0(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
-    getIndividualDetails(maybeNino, BS_Detail0_GET)
-  }
-
   def getDetails(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
-    getIndividualDetails(maybeNino, BS_Details_GET)
-  }
-
-  private def getIndividualDetails(maybeNino: String, endpointId: EndpointId)(
-    implicit request: Request[Validation[AnyContent]]
-  ): Future[Result] =
     (
-      validateHeadersForNPS(endpointId),
+      validateHeadersForNPS(BS_Details_GET),
       validateNino(maybeNino),
       request.body
     ).mapN((requestId, nino, _) => (requestId, nino))
@@ -61,16 +49,10 @@ class IndividualDetailsController @Inject()(
           implicit val (requestId, nino) = validationTuple
           logger.debug(s"$requestId for Nino(${nino.value})")
           if (appConfig.onDevEnvironment) logHeaders
-
-          if (endpointId == BS_Details_GET) {
-            individualDetailsConnector.getDetails(nino).flatMap {
-              _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
-            }
-          } else {
-            individualDetailsConnector.getDetail0(nino).flatMap {
-              _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
-            }
+          individualDetailsConnector.getDetails(nino).flatMap {
+            _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
           }
         }
       )
+  }
 }

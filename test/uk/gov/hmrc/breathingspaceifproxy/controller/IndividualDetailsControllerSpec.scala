@@ -23,12 +23,11 @@ import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.{Json, OFormat}
-import play.api.mvc.{Action, AnyContent, Request, Result}
+import play.api.libs.json.Json
+import play.api.mvc.{Request, Result}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.StaffPid
-import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
@@ -50,34 +49,11 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
   "getMinimalPopulation" should {
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
-      val nino = genNino
-      val fullDetails = details(nino)
-      when(mockConnector.getDetails(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(fullDetails.validNec[ErrorItem]))
-
-      implicit val format = IndividualDetails.format
-      verifyResponse[IndividualDetails](controller.getDetails(nino.value), fullDetails, fakeGetRequest)
+      verifyResponse(fakeGetRequest)
     }
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
-      val nino = genNino
-      val fullDetails = details(nino)
-      when(mockConnector.getDetails(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(fullDetails.validNec[ErrorItem]))
-
-      implicit val format = IndividualDetails.format
-      val request = requestFilteredOutOneHeader(CONTENT_TYPE)
-      verifyResponse[IndividualDetails](controller.getDetails(nino.value), fullDetails, request)
-    }
-
-    "return 200(OK) and the expected individual details (Breathing Space population)" in {
-      val nino = genNino
-      val bsDetails = detail0(nino)
-      when(mockConnector.getDetail0(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(bsDetails.validNec[ErrorItem]))
-
-      implicit val format = IndividualDetail0.format
-      verifyResponse[IndividualDetail0](controller.getDetail0(nino.value), bsDetails, fakeGetRequest)
+      verifyResponse(requestFilteredOutOneHeader(CONTENT_TYPE))
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
@@ -101,14 +77,15 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
     }
   }
 
-  private def verifyResponse[T <: Detail](
-    action: Action[Validation[AnyContent]],
-    detail: T,
-    request: Request[_]
-  )(implicit format: OFormat[T]): Assertion = {
-    val response = action(request)
+  private def verifyResponse(request: Request[_]): Assertion = {
+    val nino = genNino
+    val bsDetails = details(nino)
+    when(mockConnector.getDetails(any[Nino])(any[RequestId], any[HeaderCarrier]))
+      .thenReturn(Future.successful(bsDetails.validNec[ErrorItem]))
+
+    val response = controller.getDetails(nino.value)(request)
     status(response) shouldBe OK
-    contentAsString(response) shouldBe Json.toJson(detail).toString
+    contentAsString(response) shouldBe Json.toJson(bsDetails).toString
   }
 
   private def verifyBadRequest(response: Future[Result], baseError: BaseError): Assertion = {

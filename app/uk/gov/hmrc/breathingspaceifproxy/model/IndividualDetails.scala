@@ -18,35 +18,25 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import java.time.LocalDate
 
-import ai.x.play.json.{BaseNameEncoder, Jsonx}
-import cats.syntax.option._
-import play.api.libs.json.{Json, OFormat}
+import cats.syntax.option.none
+import play.api.libs.json.Json
 
-trait Detail
+// Details (Breathing Space Population) -------------------------------------------
 
-abstract class DetailsData[T <: Detail] {
-  val fields: String
-  val format: OFormat[T]
-}
+final case class Details(
+  nino: String,
+  dateOfBirth: Option[LocalDate] = none
+)
+object Details { implicit val format = Json.format[Details] }
 
-// Details (Full Population) ------------------------------------------------------
+// --------------------------------------------------------------------------------
 
 final case class NameData(
-  nameSequenceNumber: Option[Int] = none,
-  nameType: Option[Int] = none,
-  titleType: Option[Int] = none,
-  requestedName: Option[String] = none,
-  nameStartDate: Option[LocalDate] = none,
-  nameEndDate: Option[LocalDate] = none,
-  otherTitle: Option[String] = none,
-  honours: Option[String] = none,
   firstForename: Option[String] = none,
   secondForename: Option[String] = none,
   surname: Option[String] = none
 )
-object NameData {
-  implicit val format = Json.format[NameData]
-}
+object NameData { implicit val format = Json.format[NameData] }
 
 final case class NameList(name: List[NameData])
 object NameList { implicit val format = Json.format[NameList] }
@@ -54,23 +44,13 @@ object NameList { implicit val format = Json.format[NameList] }
 // --------------------------------------------------------------------------------
 
 final case class AddressData(
-  addressSequenceNumber: Option[Int] = none,
-  addressSource: Option[Int] = none,
-  countryCode: Option[Int] = none,
-  addressType: Option[Int] = none,
-  addressStatus: Option[Int] = none,
-  addressStartDate: Option[LocalDate] = none,
-  addressEndDate: Option[LocalDate] = none,
-  addressLastConfirmedDate: Option[LocalDate] = none,
-  vpaMail: Option[Int] = none,
-  deliveryInfo: Option[String] = none,
-  pafReference: Option[String] = none,
   addressLine1: Option[String] = none,
   addressLine2: Option[String] = none,
   addressLine3: Option[String] = none,
   addressLine4: Option[String] = none,
   addressLine5: Option[String] = none,
-  addressPostcode: Option[String] = none
+  addressPostcode: Option[String] = none,
+  countryCode: Option[Int] = none
 )
 object AddressData { implicit val format = Json.format[AddressData] }
 
@@ -79,95 +59,20 @@ object AddressList { implicit val format = Json.format[AddressList] }
 
 // --------------------------------------------------------------------------------
 
-final case class Indicators(
-  manualCodingInd: Option[Int] = none,
-  manualCodingReason: Option[Int] = none,
-  manualCodingOther: Option[String] = none,
-  manualCorrInd: Option[Int] = none,
-  manualCorrReason: Option[String] = none,
-  additionalNotes: Option[String] = none,
-  deceasedInd: Option[Int] = none,
-  s128Ind: Option[Int] = none,
-  noAllowInd: Option[Int] = none,
-  eeaCmnwthInd: Option[Int] = none,
-  noRepaymentInd: Option[Int] = none,
-  saLinkInd: Option[Int] = none,
-  noATSInd: Option[Int] = none,
-  taxEqualBenInd: Option[Int] = none,
-  p2ToAgentInd: Option[Int] = none,
-  digitallyExcludedInd: Option[Int] = none,
-  bankruptcyInd: Option[Int] = none,
-  bankruptcyFiledDate: Option[LocalDate] = none,
-  utr: Option[String] = none,
-  audioOutputInd: Option[Int] = none,
-  welshOutputInd: Option[Int] = none,
-  largePrintOutputInd: Option[Int] = none,
-  brailleOutputInd: Option[Int] = none,
-  specialistBusinessArea: Option[Int] = none,
-  saStartYear: Option[String] = none,
-  saFinalYear: Option[String] = none,
-  digitalP2Ind: Option[Int] = none
-)
-object Indicators {
-  implicit val encoder = BaseNameEncoder()
-  implicit val format = Jsonx.formatCaseClass[Indicators]
-}
-
-// --------------------------------------------------------------------------------
-
-final case class ResidencyData(
-  residencySequenceNumber: Option[Int] = none,
-  dateLeavingUK: Option[LocalDate] = none,
-  dateReturningUK: Option[LocalDate] = none,
-  residencyStatusFlag: Option[Int] = none
-)
-object ResidencyData { implicit val format = Json.format[ResidencyData] }
-
-final case class ResidencyList(residency: List[ResidencyData])
-object ResidencyList { implicit val format = Json.format[ResidencyList] }
-
-// --------------------------------------------------------------------------------
-
-final case class Details(
-  nino: String,
-  ninoSuffix: Option[String] = none,
-  accountStatusType: Option[Int] = none,
-  sex: Option[String] = none,
-  dateOfEntry: Option[LocalDate] = none,
-  dateOfBirth: Option[LocalDate] = none,
-  dateOfBirthStatus: Option[Int] = none,
-  dateOfDeath: Option[LocalDate] = none,
-  dateOfDeathStatus: Option[Int] = none,
-  dateOfRegistration: Option[LocalDate] = none,
-  registrationType: Option[Int] = none,
-  adultRegSerialNumber: Option[String] = none,
-  cesaAgentIdentifier: Option[String] = none,
-  cesaAgentClientReference: Option[String] = none,
-  permanentTSuffixCaseIndicator: Option[Int] = none,
-  currOptimisticLock: Option[Int] = none,
-  liveCapacitorInd: Option[Int] = none,
-  liveAgentInd: Option[Int] = none,
-  ntTaxCodeInd: Option[Int] = none,
-  mergeStatus: Option[Int] = none,
-  marriageStatusType: Option[Int] = none,
-  crnIndicator: Option[Int] = none
-)
-object Details {
-  implicit val format = Json.format[Details]
-}
-
-// --------------------------------------------------------------------------------
-
 final case class IndividualDetails(
   details: Details,
   nameList: Option[NameList] = none,
-  addressList: Option[AddressList] = none,
-  residencyList: Option[ResidencyList] = none,
-  indicators: Option[Indicators] = none
-) extends Detail
+  addressList: Option[AddressList] = none
+)
 
-object IndividualDetails extends DetailsData[IndividualDetails] {
-  val fields = ""
-  implicit val encoder = BaseNameEncoder()
-  implicit val format = Jsonx.formatCaseClass[IndividualDetails]
+object IndividualDetails {
+
+  val Details = "details(nino,dateOfBirth)"
+  val NameList = "nameList(name(firstForename,secondForename,surname))"
+  val AddressList =
+    "addressList(address(addressLine1,addressLine2,addressLine3,addressLine4,addressLine5,addressPostcode,countryCode))"
+
+  val fields = s"?fields=$Details,$NameList,$AddressList"
+
+  implicit val format = Json.format[IndividualDetails]
 }

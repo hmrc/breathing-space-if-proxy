@@ -145,64 +145,10 @@ traits:
                     value:
                       code: NOT_IN_BREATHING_SPACE
 
-    /detail0:
-      get:
-        displayName: Retrieve individual details for a given Nino
-        description: Retrieve, for the given Nino, individual details shaped according to the given identifier, here detail0.
-        (annotations.scope): "read:breathing-space-individual"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
-        is: [applicationHeaders]
-        responses:
-          200:
-            headers:
-              Correlation-Id:
-                description: A unique UUID for this request
-                type: string
-                required: true
-                example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
-            body:
-              application/json:
-                type: !include schemas/GET-Individual-Detail0-Response.json
-                examples:
-                  examples-1:
-                    value: !include examples/GET-Individual-Detail0-Response.json
-
-          400:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  invalidBody:
-                    description: Not expected a body to this endpoint
-                    value:
-                      code: INVALID_BODY
-                  invalidHeader:
-                    description: One or more of the header values are invalid
-                    value:
-                      code: INVALID_HEADER
-                  invalidNino:
-                    description: Invalid Nino format
-                    value:
-                      code: INVALID_NINO
-                  missingHeader:
-                    description: One or more of the required headers are missing
-                    value:
-                      code: MISSING_HEADER
-
-          404:
-            body:
-              application/json:
-                type: types.errorResponse
-                examples:
-                  resourceNotFound:
-                    description: The provided Nino was not found
-                    value:
-                      code: RESOURCE_NOT_FOUND
-
     /details:
       get:
-        displayName: Retrieve the full population of individual details for a given Nino
-        description: Retrieve the full population of individual details for the given Nino.
+        displayName: Retrieve, for a given Nino, individual details shaped for Breathing Space
+        description: Retrieve, for the given Nino, individual details shaped for Breathing Space.
         (annotations.scope): "read:breathing-space-individual"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
         is: [applicationHeaders]
