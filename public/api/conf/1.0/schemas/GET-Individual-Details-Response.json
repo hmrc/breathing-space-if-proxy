@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Individual's Details for Breathing Space",
+  "title": "Individual's Details in Breathing Space",
   "description": "Schema of GET Individual's Details for Breathing Space",
   "type": "object",
   "additionalProperties": false,
@@ -10,13 +10,10 @@
       "additionalProperties": false,
       "properties": {
         "nino": {
-          "type": "string",
-          "pattern": "^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}$",
-          "example": "MZ006526"
+          "$ref": "Nino.json"
         },
         "dateOfBirth": {
-          "type": "string",
-          "pattern": "^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$"
+          "$ref": "ISO-Date.json"
         }
       },
       "required": [

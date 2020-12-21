@@ -260,6 +260,13 @@ traits:
         (annotations.scope): "write:breathing-space-periods"
         securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
         is: [headers.contentHeader, applicationHeaders]
+        body:
+          application/json:
+            type: !include schemas/PUT-BS-Periods-Request.json
+            examples:
+              examples-1:
+                description: Update periods request
+                value: !include examples/PUT-BS-Periods-Request.json
         responses:
           200:
             headers:
@@ -270,11 +277,11 @@ traits:
                 example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
             body:
               application/json:
-                type: !include schemas/GET-BS-Periods-Response.json
+                type: !include schemas/PUT-BS-Periods-Response.json
                 examples:
                   examples-1:
                     description: Multiple periods returned
-                    value: !include examples/GET-BS-Periods-Response.json
+                    value: !include examples/PUT-BS-Periods-Response.json
 
           400:
             body:
@@ -341,7 +348,7 @@ traits:
         201:
           body:
             application/json:
-              type: !include schemas/GET-BS-Periods-Response.json
+              type: !include schemas/POST-BS-Periods-Response.json
               examples:
                 examples-1:
                   description: Single created periods returned

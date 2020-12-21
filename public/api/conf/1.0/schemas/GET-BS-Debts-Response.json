@@ -1,9 +1,11 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "id": "debts",
-  "description": "Schema of Debts",
+  "title": "GET Debt Details for Individuals in Breathing Space",
+  "description": "Schema of GET Debt Details for Individuals in Breathing Space",
   "type": "array",
   "minItems": 1,
+  "uniqueItems": true,
+  "additionalItems": false,
   "items": {
     "type": "object",
     "additionalProperties": false,
@@ -18,14 +20,10 @@
         "type": "number"
       },
       "chargeCreationDate": {
-        "type": "string",
-        "pattern": "^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
-        "example": "2020-01-25"
+        "$ref": "ISO-Date.json"
       },
       "chargeDueDate": {
-        "type": "string",
-        "pattern": "^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
-        "example": "2020-01-25"
+        "$ref": "ISO-Date.json"
       },
       "utrAssociatedWithCharge": {
         "type": "string"

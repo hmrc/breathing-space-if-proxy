@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "GET Breathing Space Periods Response",
-  "description": "Schema of GET Breathing Space Periods Response",
+  "title": "POST Breathing Space Periods Response",
+  "description": "Schema of POST Breathing Space Periods Response",
   "type": "object",
   "properties": {
     "periods": {
@@ -18,11 +18,11 @@
             "$ref": "PeriodId.json"
           },
           "startDate": {
-            "description": "Start date of a Breathing Space period",
+            "description": "Start date of a breathing space period",
             "$ref": "ISO-Breathing-Space-Date.json"
           },
           "endDate": {
-            "description": "End date of a Breathing Space period",
+            "description": "End date of a breathing space period",
             "$ref": "ISO-Breathing-Space-Date.json"
           }
         },
