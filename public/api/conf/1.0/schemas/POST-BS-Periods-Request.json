@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "POST Breathing Space Period Request Schema",
-  "description": "POST Breathing Space Period Request Schema",
+  "title": "POST Breathing Space Period Request",
+  "description": "Schema of POST Breathing Space Period Request",
   "type": "object",
   "properties": {
     "nino": {
@@ -19,21 +19,15 @@
         "properties": {
           "startDate": {
             "description": "Start date of a breathing space period",
-            "type": "string",
-            "pattern": "^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
-            "example": "2020-01-25"
+            "$ref": "ISO-Breathing-Space-Date.json"
           },
           "endDate": {
             "description": "End date of a breathing space period",
-            "type": "string",
-            "pattern": "^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$",
-            "example": "2020-01-25"
+            "$ref": "ISO-Breathing-Space-Date.json"
           },
           "pegaRequestTimestamp": {
             "description": "The date and time of when PEGA made the request",
-            "type": "string",
-            "pattern": "^((((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))[T](([0-1]{1}[0-9]{1})|([2]{1}[0-3]{1}))(:([0-5]{1}[0-9]{1})){2})\\.[0-999]{3}[A-Z]{1}$",
-            "example": "2020-12-31T20:19:18.123Z"
+            "$ref": "ISO-DateTime.json"
           }
         },
         "required": [
