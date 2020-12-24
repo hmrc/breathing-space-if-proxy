@@ -76,6 +76,12 @@ class PeriodsControllerPutISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_JSON.message))
     }
 
+    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+      val body = putPeriodsRequestAsJson(putPeriodsRequest)
+      val request = fakeRequest(Helpers.PUT, put(genNino.value).url).withBody(body)
+      verifyUnauthorized(request)
+    }
+
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
       val connectorUrl = PeriodsConnector.path(unknownNino)

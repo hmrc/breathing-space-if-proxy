@@ -43,6 +43,10 @@ class IndividualDetailsControllerISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_BODY.message))
     }
 
+    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+      verifyUnauthorized(fakeRequest(Helpers.GET, getDetails(genNino.value).url))
+    }
+
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       verifyResponse(attended = true, RESOURCE_NOT_FOUND.some)
     }

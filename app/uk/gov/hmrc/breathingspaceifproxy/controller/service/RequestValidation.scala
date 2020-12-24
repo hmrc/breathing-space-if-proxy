@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.controller
+package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
 import java.util.UUID
 
@@ -22,7 +22,6 @@ import cats.syntax.apply._
 import cats.syntax.either._
 import cats.syntax.option._
 import cats.syntax.validated._
-import play.api.Logging
 import play.api.http._
 import play.api.http.HeaderNames._
 import play.api.libs.json._
@@ -32,7 +31,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 
-trait RequestValidation extends Logging {
+trait RequestValidation {
 
   def validateHeadersForNPS(endpointId: EndpointId)(implicit request: Request[_]): Validation[RequestId] = {
     val headers = request.headers
@@ -158,7 +157,4 @@ trait RequestValidation extends Logging {
       ).invalidNec[RequestId]
     }
   }
-
-  def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
-    request.headers.get(Header.CorrelationId)
 }

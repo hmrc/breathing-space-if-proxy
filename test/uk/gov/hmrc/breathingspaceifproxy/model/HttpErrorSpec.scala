@@ -19,7 +19,6 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 import cats.data.{NonEmptyChain => Nec}
 import cats.syntax.option._
 import org.scalatest.Assertion
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json

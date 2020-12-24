@@ -21,13 +21,14 @@ import java.net.URL
 import scala.collection.JavaConverters._
 
 import com.github.tomakehurst.wiremock.WireMockServer
+import com.github.tomakehurst.wiremock.admin.model.ListStubMappingsResult
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig
 import com.github.tomakehurst.wiremock.matching.StringValuePattern
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
-import play.api.http.HeaderNames
+import play.api.http.{HeaderNames, Status}
 import play.mvc.Http.MimeTypes
 
 trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
@@ -36,6 +37,8 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   val wireMockPort = 12345
   val wireMockHost = "localhost"
   val wireMockBaseUrl = new URL(s"http://$wireMockHost:$wireMockPort")
+
+  private val authUrlPath = "/auth/authorise"
 
   val wireMockServer = new WireMockServer(
     wireMockConfig().port(wireMockPort)
@@ -55,7 +58,11 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   override protected def beforeEach(): Unit = {
     super.beforeEach()
     WireMock.reset()
+    stubCall(HttpMethod.Post, authUrlPath, Status.OK, """{"some":"json","with":"data"}""")
   }
+
+  def mapQueryParams(queryParams: Map[String, String]): java.util.Map[String, StringValuePattern] =
+    queryParams.map { case (k, v) => k -> equalTo(v) }.asJava
 
   def stubCall(
     httpMethod: HttpMethod, url: String, status: Integer, body: String, queryParams: Map[String, String] = Map.empty
@@ -72,6 +79,16 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
     }
   }
 
-  def mapQueryParams(queryParams: Map[String, String]): java.util.Map[String, StringValuePattern] =
-    queryParams.map { case (k, v) => k -> equalTo(v) }.asJava
+  def unauthorized(): Unit = {
+    WireMock.reset()
+    stubFor {
+      val response = aResponse()
+        .withStatus(Status.UNAUTHORIZED)
+        .withHeader("WWW-Authenticate", """MDTP detail="UnsupportedAuthProvider"""")
+
+      post(urlPathMatching(authUrlPath)).willReturn(response)
+    }
+  }
+
+  def listAllStubMappings(): ListStubMappingsResult = WireMock.listAllStubMappings()
 }

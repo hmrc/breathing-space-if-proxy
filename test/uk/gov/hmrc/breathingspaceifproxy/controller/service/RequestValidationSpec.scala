@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.controller
+package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy._
@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Details_GET, BS_Periods_POST}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValidation {
+class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValidation with Helpers {
 
   "RequestValidation.validateNino" should {
     "assert that an empty Nino value is invalid" in {

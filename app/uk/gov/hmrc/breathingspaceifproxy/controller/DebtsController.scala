@@ -18,26 +18,29 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 import cats.syntax.apply._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
+import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
 class DebtsController @Inject()(
-  appConfig: AppConfig,
-  auditConnector: AuditConnector,
+  override val appConfig: AppConfig,
+  override val auditConnector: AuditConnector,
+  override val authConnector: AuthConnector,
   cc: ControllerComponents,
   debtsConnector: DebtsConnector
-) extends AbstractBaseController(appConfig, auditConnector, cc) {
+) extends AbstractBaseController(cc) {
 
-  def get(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
+  val action = authAction("read:breathing-space-debts")
+
+  def get(maybeNino: String): Action[Validation[AnyContent]] = action.async(withoutBody) { implicit request =>
     (
       validateHeadersForNPS(BS_Debts_GET),
       validateNino(maybeNino),

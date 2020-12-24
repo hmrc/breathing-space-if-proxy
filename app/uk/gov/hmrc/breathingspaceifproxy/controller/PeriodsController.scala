@@ -18,15 +18,15 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 import cats.syntax.apply._
 import cats.syntax.validated._
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
@@ -34,13 +34,16 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
 class PeriodsController @Inject()(
-  appConfig: AppConfig,
-  auditConnector: AuditConnector,
+  override val appConfig: AppConfig,
+  override val auditConnector: AuditConnector,
+  override val authConnector: AuthConnector,
   cc: ControllerComponents,
   periodsConnector: PeriodsConnector
-) extends AbstractBaseController(appConfig, auditConnector, cc) {
+) extends AbstractBaseController(cc) {
 
-  def get(maybeNino: String): Action[Validation[AnyContent]] = Action.async(withoutBody) { implicit request =>
+  val readAction = authAction("read:breathing-space-periods")
+
+  def get(maybeNino: String): Action[Validation[AnyContent]] = readAction.async(withoutBody) { implicit request =>
     (
       validateHeadersForNPS(BS_Periods_GET),
       validateNino(maybeNino),
@@ -59,7 +62,9 @@ class PeriodsController @Inject()(
       )
   }
 
-  val post: Action[Validation[JsValue]] = Action.async(withJsonBody) { implicit request =>
+  val writeAction = authAction("write:breathing-space-periods")
+
+  val post: Action[Validation[JsValue]] = writeAction.async(withJsonBody) { implicit request =>
     (
       validateHeadersForNPS(BS_Periods_POST),
       request.body.andThen(validateBodyOfPost)
@@ -77,7 +82,7 @@ class PeriodsController @Inject()(
       )
   }
 
-  def put(maybeNino: String): Action[Validation[JsValue]] = Action.async(withJsonBody) { implicit request =>
+  def put(maybeNino: String): Action[Validation[JsValue]] = writeAction.async(withJsonBody) { implicit request =>
     (
       validateHeadersForNPS(BS_Periods_PUT),
       validateNino(maybeNino),

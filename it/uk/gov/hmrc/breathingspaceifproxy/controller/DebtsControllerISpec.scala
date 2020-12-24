@@ -65,6 +65,10 @@ class DebtsControllerISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_BODY.message))
     }
 
+    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+      verifyUnauthorized(fakeRequest(Helpers.GET, getPathWithValidNino))
+    }
+
     "return 403(BREATHING_SPACE_EXPIRED) when Breathing Space has expired for the given Nino" in {
       stubCall(HttpMethod.Get, debtsConnectorUrl, Status.FORBIDDEN, errorResponseFromIF())
 

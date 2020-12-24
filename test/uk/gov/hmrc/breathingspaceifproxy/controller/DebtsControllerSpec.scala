@@ -38,6 +38,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
   val controller = new DebtsController(
     appConfig,
     inject[AuditConnector],
+    authConnector,
     Helpers.stubControllerComponents(),
     mockConnector
   )
