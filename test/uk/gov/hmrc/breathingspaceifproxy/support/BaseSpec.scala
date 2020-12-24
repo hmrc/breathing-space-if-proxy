@@ -16,19 +16,27 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 import akka.stream.Materializer
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.when
+import org.mockito.MockitoSugar.mock
 import org.scalatest._
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
+import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.auth.core.authorise.Predicate
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.breathingspaceifproxy.{unit, Header}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.http.HeaderCarrier
 
 trait BaseSpec
     extends BreathingSpaceTestSupport
@@ -39,11 +47,19 @@ trait BaseSpec
     with Informing
     with Injecting
     with Matchers
-    with OptionValues { this: TestSuite =>
+    with OptionValues
+    with ScalaFutures { this: TestSuite =>
 
   implicit lazy val materializer: Materializer = inject[Materializer]
 
+  implicit val defaultPatience = PatienceConfig(timeout = Span(1, Seconds), interval = Span(250, Millis))
+
   override implicit val appConfig: AppConfig = inject[AppConfig]
+
+  val authConnector = mock[AuthConnector]
+
+  when(authConnector.authorise(any[Predicate], any[Retrieval[Unit]])(any[HeaderCarrier], any[ExecutionContext]))
+    .thenReturn(Future.successful(unit))
 
   def verifyErrorResult(
     future: Future[Result],

@@ -35,6 +35,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
     new PeriodsController(
       appConfig,
       inject[AuditConnector],
+      authConnector,
       Helpers.stubControllerComponents(),
       inject[PeriodsConnector]
     )

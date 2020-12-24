@@ -77,6 +77,10 @@ class PeriodsControllerGetISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_BODY.message))
     }
 
+    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+      verifyUnauthorized(fakeRequest(Helpers.GET, getPathWithValidNino))
+    }
+
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
       val url = PeriodsConnector.path(unknownNino)

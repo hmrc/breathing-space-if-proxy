@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.controller
+package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
 import java.time.ZonedDateTime
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 import play.api.libs.json._
 import play.api.mvc.Request
@@ -32,6 +31,8 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 trait Auditing {
 
   val auditConnector: AuditConnector
+
+  implicit val ec: ExecutionContext
 
   def auditEvent[R](
     status: Int,
@@ -60,8 +61,7 @@ trait Auditing {
     Json.obj(
       fields =
         "detail" -> Json.obj(
-          fields =
-            "responseMessage" -> payload,
+          "responseMessage" -> payload,
           "statusCode" -> Json.toJson(status)
         ),
       "generatedAt" -> Json.toJson(ZonedDateTime.now.format(timestampFormatter))

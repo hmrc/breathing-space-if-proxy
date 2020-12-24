@@ -42,6 +42,7 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
   val controller = new IndividualDetailsController(
     appConfig,
     inject[AuditConnector],
+    authConnector,
     Helpers.stubControllerComponents(),
     mockConnector
   )

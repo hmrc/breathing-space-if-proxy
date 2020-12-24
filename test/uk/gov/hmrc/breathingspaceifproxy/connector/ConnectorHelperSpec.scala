@@ -17,7 +17,6 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import org.scalatest.Assertion
-import org.scalatest.concurrent.ScalaFutures.convertScalaFuture
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError

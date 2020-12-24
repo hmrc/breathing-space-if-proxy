@@ -42,6 +42,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
   val controller = new PeriodsController(
     appConfig,
     inject[AuditConnector],
+    authConnector,
     Helpers.stubControllerComponents(),
     mockConnector
   )

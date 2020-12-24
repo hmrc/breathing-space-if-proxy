@@ -41,6 +41,7 @@ object BaseError extends Enum[BaseError] {
   case object MISSING_NINO extends BaseError(BAD_REQUEST, "Payload does not contain a 'nino' value?")
   case object MISSING_PERIODS extends BaseError(BAD_REQUEST, "Payload does not contain a 'periods' array?")
   case object NO_DATA_FOUND extends BaseError(NOT_FOUND, "No records found for the given Nino")
+  case object NOT_AUTHORISED extends BaseError(UNAUTHORIZED, "Request is not authorised. ")
   case object NOT_IN_BREATHING_SPACE extends BaseError(NOT_FOUND, "The given Nino is not in Breathing Space")
 
   case object RESOURCE_NOT_FOUND

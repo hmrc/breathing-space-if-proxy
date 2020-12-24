@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.controller
+package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 import cats.syntax.either._
 import cats.syntax.validated._
+import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc._
@@ -31,16 +31,20 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.HeaderCarrierConverter
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 abstract class AbstractBaseController(
-  appConfig: AppConfig,
-  val auditConnector: AuditConnector,
-  cc: ControllerComponents
-) extends BackendController(cc)
+  override val controllerComponents: ControllerComponents
+) extends BackendController(controllerComponents)
     with Auditing
+    with Helpers
+    with Logging
+    with RequestAuth
     with RequestValidation {
+
+  val appConfig: AppConfig
+
+  implicit val ec = controllerComponents.executionContext
 
   val withoutBody: BodyParser[Validation[AnyContent]] = BodyParser("Breathing-Space-without-Body") { request =>
     if (request.hasBody) errorOnBody(INVALID_BODY)(request) else parse.ignore(AnyContent().validNec)(request)

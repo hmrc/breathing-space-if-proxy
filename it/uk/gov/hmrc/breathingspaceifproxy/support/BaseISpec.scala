@@ -19,6 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 import scala.concurrent.duration._
 
 import akka.stream.Materializer
+import cats.syntax.option._
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
 import org.scalatest._
@@ -29,15 +30,17 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
-import play.api.http.HeaderNames
+import play.api.http.{HeaderNames, Status, Writeable}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.mvc.{AnyContentAsEmpty, Result}
+import play.api.mvc.{AnyContentAsEmpty, Request, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
+import play.api.test.Helpers.{await, route}
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.NOT_AUTHORISED
 
 abstract class BaseISpec
   extends AnyWordSpec
@@ -59,6 +62,8 @@ abstract class BaseISpec
     "auditing.consumer.baseUri.host" -> wireMockHost,
     "auditing.consumer.baseUri.port" -> wireMockPort,
     "circuit.breaker.failedCallsBeforeOpeningCircuit" -> Int.MaxValue,
+    "microservice.services.auth.host" -> wireMockHost,
+    "microservice.services.auth.port" -> wireMockPort,
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )
@@ -164,5 +169,16 @@ abstract class BaseISpec
     val errorList = (bodyAsJson \ "errors").as[List[TestingErrorItem]]
     errorList.size shouldBe numberOfErrors
     errorList
+  }
+
+  def verifyUnauthorized[T](request: Request[T])(implicit w: Writeable[T]): Assertion = {
+    unauthorized()
+    val response = await(route(app, request).get)
+
+    val errorList = verifyErrorResult(response, Status.UNAUTHORIZED, correlationIdAsString.some, 1)
+
+    And(s"the error code should be $NOT_AUTHORISED")
+    errorList.head.code shouldBe NOT_AUTHORISED.entryName
+    assert(errorList.head.message.startsWith(NOT_AUTHORISED.message))
   }
 }
