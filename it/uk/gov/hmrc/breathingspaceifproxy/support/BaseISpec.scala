@@ -61,7 +61,7 @@ abstract class BaseISpec
     "auditing.enabled" -> true,
     "auditing.consumer.baseUri.host" -> wireMockHost,
     "auditing.consumer.baseUri.port" -> wireMockPort,
-    "circuit.breaker.failedCallsBeforeOpeningCircuit" -> Int.MaxValue,
+    "circuit.breaker.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
     "microservice.services.auth.host" -> wireMockHost,
     "microservice.services.auth.port" -> wireMockPort,
     "microservice.services.integration-framework.host" -> wireMockHost,
