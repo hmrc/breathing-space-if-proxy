@@ -36,9 +36,9 @@ abstract class CircuitBreakerISpec
   with WireMockSupport {
 
   val configProperties: Map[String, Any] = Map(
-    "circuit.breaker.failedCallsBeforeOpeningCircuit" -> 2,
+    "circuit.breaker.failedCallsInUnstableBeforeUnavailable" -> 4,
     "circuit.breaker.unavailablePeriodDurationInMillis" -> 500,
-    "circuit.breaker.unstablePeriodDurationInMillis" -> 1000,
+    "circuit.breaker.unstablePeriodDurationInMillis" -> 500,
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )
@@ -92,28 +92,44 @@ abstract class CircuitBreakerISpec
     }
   }
 
-  protected def verifyCircuitBreaker[T](call: => ResponseValidation[T], expected: T): Assertion = {
-    (1 to appConfig.circuitBreaker.numberOfCallsToTriggerStateChange).foreach { _ =>
+  protected def verifyCircuitBreaker[T](call: => ResponseValidation[T], expected: T, connector: ConnectorHelper): Assertion = {
+
+    connector.currentCircuitBreakerState shouldBe "HEALTHY"
+
+    val failedCalls = appConfig.circuitBreaker.numberOfCallsToTriggerStateChange
+    (1 to failedCalls).foreach { ix =>
       val shouldBeBadGatewayOnLeft = await(call).toEither
       shouldBeBadGatewayOnLeft match {
         case Left(error) => error.head.baseError shouldBe UPSTREAM_BAD_GATEWAY
         case _ => assert(false)
       }
+      connector.currentCircuitBreakerState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")
     }
+
+    val shouldBeBadGatewayOnLeft = await(call).toEither
+    shouldBeBadGatewayOnLeft match {
+      case Left(error) => error.head.baseError shouldBe SERVER_ERROR
+      case _ => assert(false)
+    }
+    connector.currentCircuitBreakerState shouldBe "UNAVAILABLE"
 
     val shouldBeServerErrorOnLeft = await(call).toEither
     shouldBeServerErrorOnLeft match {
       case Left(error) => error.head.baseError shouldBe SERVER_ERROR
       case _ => assert(false)
     }
+    connector.currentCircuitBreakerState shouldBe "UNAVAILABLE"
 
     Thread.sleep(appConfig.circuitBreaker.unavailablePeriodDuration)
 
-    val shouldBeExpectedOnRight = await(call).toEither
-    shouldBeExpectedOnRight match {
-      case Right(actual) => actual shouldBe expected
-      case _ => assert(false)
-    }
+    (1 to failedCalls).find { ix: Int =>
+      val shouldBeExpectedOnRight = await(call).toEither
+      shouldBeExpectedOnRight match {
+        case Right(actual) => actual shouldBe expected
+        case _ => assert(false)
+      }
+      !(connector.currentCircuitBreakerState == (if (ix == failedCalls) "HEALTHY" else "TRIAL"))
+    } shouldBe None
   }
 }
 
@@ -122,9 +138,10 @@ class CircuitBreakerForDebtsConnector_GET_ISpec extends CircuitBreakerISpec {
     val nino = genNino
     val url = DebtsConnector.path(nino)
     val response = Json.toJson(debts).toString
+    val connector = inject[DebtsConnector]
 
     stubsForCircuitBreaker(HttpMethod.Get, url, OK, response)
-    verifyCircuitBreaker(inject[DebtsConnector].get(nino), debts)
+    verifyCircuitBreaker(connector.get(nino), debts, connector)
   }
 }
 
@@ -135,9 +152,10 @@ class CircuitBreakerForIndividualDetailsConnector_GET_Details_ISpec extends Circ
     val queryParams = detailQueryParams(IndividualDetails.fields)
     val bsDetails = details(nino)
     val expected = Json.toJson(bsDetails).toString
+    val connector = inject[IndividualDetailsConnector]
 
     stubsForCircuitBreaker(HttpMethod.Get, url, OK, expected, queryParams)
-    verifyCircuitBreaker(inject[IndividualDetailsConnector].getDetails(nino), bsDetails)
+    verifyCircuitBreaker(connector.getDetails(nino), bsDetails, connector)
   }
 }
 
@@ -146,9 +164,10 @@ class CircuitBreakerForPeriodsConnector_GET_ISpec extends CircuitBreakerISpec {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
     val response = Json.toJson(validPeriodsResponse).toString
+    val connector = inject[PeriodsConnector]
 
     stubsForCircuitBreaker(HttpMethod.Get, url, OK, response)
-    verifyCircuitBreaker(inject[PeriodsConnector].get(nino), validPeriodsResponse)
+    verifyCircuitBreaker(connector.get(nino), validPeriodsResponse, connector)
   }
 }
 
@@ -160,8 +179,10 @@ class CircuitBreakerForPeriodsConnector_POST_ISpec extends CircuitBreakerISpec {
     val bodyResponse = PeriodsInResponse(
       List(PeriodInResponse(UUID.randomUUID(), validPostPeriod.startDate, validPostPeriod.endDate))
     )
+    val connector = inject[PeriodsConnector]
+
     stubsForCircuitBreaker(HttpMethod.Post, url, OK, Json.toJson(bodyResponse).toString)
-    verifyCircuitBreaker(inject[PeriodsConnector].post(nino, bodyRequest), bodyResponse)
+    verifyCircuitBreaker(connector.post(nino, bodyRequest), bodyResponse, connector)
   }
 }
 
@@ -173,7 +194,9 @@ class CircuitBreakerForPeriodsConnector_PUT_ISpec extends CircuitBreakerISpec {
     val bodyResponse = PeriodsInResponse(
       List(PeriodInResponse(validPutPeriod.periodID, validPutPeriod.startDate, validPutPeriod.endDate))
     )
+    val connector = inject[PeriodsConnector]
+
     stubsForCircuitBreaker(HttpMethod.Put, url, OK, Json.toJson(bodyResponse).toString)
-    verifyCircuitBreaker(inject[PeriodsConnector].put(nino, bodyRequest), bodyResponse)
+    verifyCircuitBreaker(connector.put(nino, bodyRequest), bodyResponse, connector)
   }
 }

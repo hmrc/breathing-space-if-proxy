@@ -38,6 +38,8 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging with UsingCircuitB
       case _ => false
     }
 
+  def currentCircuitBreakerState: String = circuitBreaker.currentState.name
+
   def handleUpstreamError[T](implicit requestId: RequestId): PartialFunction[Throwable, ResponseValidation[T]] = {
     case exc: HttpException if is4xx(exc.responseCode) => handleUpstream4xxError(exc.responseCode, exc.message)
     case exc: HttpException if is5xx(exc.responseCode) => handleUpstream5xxError(exc.responseCode, exc.message)

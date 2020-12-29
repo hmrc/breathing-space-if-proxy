@@ -30,7 +30,7 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
   val circuitBreaker = CircuitBreakerConfig(
     config.get[String]("appName"),
-    config.get[Int]("circuit.breaker.failedCallsBeforeOpeningCircuit"),
+    config.get[Int]("circuit.breaker.failedCallsInUnstableBeforeUnavailable"),
     config.get[Int]("circuit.breaker.unavailablePeriodDurationInMillis"),
     config.get[Int]("circuit.breaker.unstablePeriodDurationInMillis")
   )
