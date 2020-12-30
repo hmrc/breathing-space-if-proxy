@@ -30,6 +30,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
@@ -39,7 +40,12 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
+  val mockUpstreamConnector = mock[EisConnector]
+  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
+
   val mockConnector: PeriodsConnector = mock[PeriodsConnector]
+  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
+
   val controller = new PeriodsController(
     appConfig,
     inject[AuditConnector],

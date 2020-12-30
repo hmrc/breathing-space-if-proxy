@@ -42,7 +42,7 @@ class DebtsController @Inject()(
 
   def get(maybeNino: String): Action[Validation[AnyContent]] = action.async(withoutBody) { implicit request =>
     (
-      validateHeadersForNPS(BS_Debts_GET),
+      validateHeadersForNPS(BS_Debts_GET, debtsConnector.etmpConnector),
       validateNino(maybeNino),
       request.body
     ).mapN((requestId, nino, _) => (requestId, nino))

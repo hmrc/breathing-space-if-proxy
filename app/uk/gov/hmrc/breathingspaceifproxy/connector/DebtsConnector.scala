@@ -25,31 +25,29 @@ import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.EtmpConnector
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
 class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
+  val etmpConnector: EtmpConnector,
   ec: ExecutionContext
-) extends ConnectorHelper
-    with HttpAPIMonitor {
+) extends HttpAPIMonitor {
 
   import DebtsConnector._
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  override protected def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker
-
   def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[Debts] =
-    withCircuitBreaker {
+    etmpConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http.GET[Debts](Url(url(nino)).value).map(_.validNec)
       }
-    }.recoverWith(handleUpstreamError)
+    }
 }
 
 object DebtsConnector {

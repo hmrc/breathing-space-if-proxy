@@ -36,5 +36,6 @@ package object breathingspaceifproxy {
     lazy val CorrelationId = "Correlation-Id"
     lazy val RequestType = "Request-Type"
     lazy val StaffPid = "Pid"
+    lazy val UpstreamState = "Upstream-State"
   }
 }

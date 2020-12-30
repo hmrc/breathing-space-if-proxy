@@ -29,6 +29,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header.StaffPid
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
@@ -38,7 +39,12 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
+  val mockUpstreamConnector = mock[EisConnector]
+  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
+
   val mockConnector: IndividualDetailsConnector = mock[IndividualDetailsConnector]
+  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
+
   val controller = new IndividualDetailsController(
     appConfig,
     inject[AuditConnector],

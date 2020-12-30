@@ -25,32 +25,30 @@ import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
 class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
+  val eisConnector: EisConnector,
   ec: ExecutionContext
-) extends ConnectorHelper
-    with HttpAPIMonitor {
+) extends HttpAPIMonitor {
 
   import IndividualDetailsConnector._
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  override protected def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker
-
   // Breathing Space Population
   def getDetails(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[IndividualDetails] =
-    withCircuitBreaker {
+    eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http.GET[IndividualDetails](Url(url(nino, IndividualDetails.fields)).value).map(_.validNec)
       }
-    }.recoverWith(handleUpstreamError)
+    }
 }
 
 object IndividualDetailsConnector {

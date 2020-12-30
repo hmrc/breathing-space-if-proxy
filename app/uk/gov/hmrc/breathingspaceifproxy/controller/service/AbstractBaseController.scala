@@ -67,7 +67,10 @@ abstract class AbstractBaseController(
     val errorList = errors.toChain.toList
     val payload = Json.obj("errors" -> errorList)
     auditEvent(errorList.head.baseError.httpCode, payload)
-    HttpError(requestId.correlationId, errors).send
+    Future.successful {
+      HttpError(requestId.correlationId, errors).value
+        .withHeaders(Header.UpstreamState -> requestId.upstreamConnector.currentState)
+    }
   }
 
   def auditEventAndSendResponse[R, T](
@@ -113,7 +116,8 @@ abstract class AbstractBaseController(
       Status(status)(payload)
         .withHeaders(
           HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-          Header.CorrelationId -> requestId.correlationId.toString
+          Header.CorrelationId -> requestId.correlationId.toString,
+          Header.UpstreamState -> requestId.upstreamConnector.currentState
         )
         .as(MimeTypes.JSON)
     }

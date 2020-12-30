@@ -27,13 +27,16 @@ import play.api.http.HeaderNames._
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 
 trait RequestValidation {
 
-  def validateHeadersForNPS(endpointId: EndpointId)(implicit request: Request[_]): Validation[RequestId] = {
+  def validateHeadersForNPS(endpointId: EndpointId, uc: UpstreamConnector)(
+    implicit request: Request[_]
+  ): Validation[RequestId] = {
     val headers = request.headers
     (
       validateContentType(request),
@@ -41,7 +44,7 @@ trait RequestValidation {
       validateRequestType(headers),
       validateStaffPid(headers)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
-      .andThen(validateStaffPidForRequestType(endpointId))
+      .andThen(validateStaffPidForRequestType(endpointId, uc))
   }
 
   def validateNino(maybeNino: String): Validation[Nino] =
@@ -143,13 +146,14 @@ trait RequestValidation {
       }
 
   private def validateStaffPidForRequestType(
-    endpointId: EndpointId
+    endpointId: EndpointId,
+    uc: UpstreamConnector
   )(headerValues: (UUID, Attended, String)): Validation[RequestId] = {
     val requestType = headerValues._2
     val staffPid = headerValues._3
     if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
       || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
-      RequestId(endpointId, correlationId = headerValues._1, staffPid).validNec[ErrorItem]
+      RequestId(endpointId, correlationId = headerValues._1, staffPid, uc).validNec[ErrorItem]
     } else {
       ErrorItem(
         INVALID_HEADER,

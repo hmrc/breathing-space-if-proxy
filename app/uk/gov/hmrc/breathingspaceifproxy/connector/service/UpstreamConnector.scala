@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.connector
+package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 import cats.syntax.validated._
-import play.api.Logging
+import play.api.{Configuration, Logging}
 import play.api.http.Status._
-import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.circuitbreaker.UsingCircuitBreaker
-import uk.gov.hmrc.http.{HttpErrorFunctions, HttpException}
+import uk.gov.hmrc.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpException}
 import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
 
-trait ConnectorHelper extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
+trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
 
   override def breakOnException(throwable: Throwable): Boolean =
     throwable match {
@@ -38,9 +38,27 @@ trait ConnectorHelper extends HttpErrorFunctions with Logging with UsingCircuitB
       case _ => false
     }
 
-  def currentCircuitBreakerState: String = circuitBreaker.currentState.name
+  val config: Configuration
 
-  def handleUpstreamError[T](implicit requestId: RequestId): PartialFunction[Throwable, ResponseValidation[T]] = {
+  override protected def circuitBreakerConfig = CircuitBreakerConfig(
+    config.get[String]("appName"),
+    config.get[Int]("circuit.breaker.failedCallsInUnstableBeforeUnavailable"),
+    config.get[Int]("circuit.breaker.unavailablePeriodDurationInMillis"),
+    config.get[Int]("circuit.breaker.unstablePeriodDurationInMillis")
+  )
+
+  def currentState: String = circuitBreaker.currentState.name
+
+  def monitor[T](f: => ResponseValidation[T])(
+    implicit ec: ExecutionContext,
+    hc: HeaderCarrier,
+    requestId: RequestId
+  ): ResponseValidation[T] =
+    withCircuitBreaker(f).recoverWith(handleUpstreamError)
+
+  protected def handleUpstreamError[T](
+    implicit requestId: RequestId
+  ): PartialFunction[Throwable, ResponseValidation[T]] = {
     case exc: HttpException if is4xx(exc.responseCode) => handleUpstream4xxError(exc.responseCode, exc.message)
     case exc: HttpException if is5xx(exc.responseCode) => handleUpstream5xxError(exc.responseCode, exc.message)
 

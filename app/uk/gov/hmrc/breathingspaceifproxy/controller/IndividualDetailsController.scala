@@ -42,7 +42,7 @@ class IndividualDetailsController @Inject()(
 
   def getDetails(maybeNino: String): Action[Validation[AnyContent]] = action.async(withoutBody) { implicit request =>
     (
-      validateHeadersForNPS(BS_Details_GET),
+      validateHeadersForNPS(BS_Details_GET, individualDetailsConnector.eisConnector),
       validateNino(maybeNino),
       request.body
     ).mapN((requestId, nino, _) => (requestId, nino))
