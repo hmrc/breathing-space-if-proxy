@@ -27,10 +27,19 @@ final case class HeaderMapping(nameToMap: String, nameMapped: String)
 @Singleton
 class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
 
+  lazy val appName = config.get[String]("appName")
+
   lazy val onDevEnvironment: Boolean =
     config.getOptional[String]("environment.id").fold(false)(_.toLowerCase == "development")
 
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
+
+  lazy val numberOfCallsToTriggerStateChange =
+    if (onDevEnvironment) Int.MaxValue // Disable the Circuit Breaker on Dev
+    else config.get[Int]("circuit.breaker.failedCallsInUnstableBeforeUnavailable")
+
+  lazy val unavailablePeriodDuration = config.get[Int]("circuit.breaker.unavailablePeriodDurationInMillis")
+  lazy val unstablePeriodDuration = config.get[Int]("circuit.breaker.unstablePeriodDurationInMillis")
 
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 

@@ -18,7 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
 import javax.inject.{Inject, Singleton}
 
-import play.api.Configuration
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
 @Singleton
-class EisConnector @Inject()(val config: Configuration) extends UpstreamConnector
+class EisConnector @Inject()(val appConfig: AppConfig) extends UpstreamConnector
