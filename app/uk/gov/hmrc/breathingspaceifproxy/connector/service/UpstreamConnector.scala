@@ -19,9 +19,10 @@ package uk.gov.hmrc.breathingspaceifproxy.connector.service
 import scala.concurrent.{ExecutionContext, Future}
 
 import cats.syntax.validated._
-import play.api.{Configuration, Logging}
+import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
@@ -38,13 +39,13 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       case _ => false
     }
 
-  val config: Configuration
+  val appConfig: AppConfig
 
   override protected def circuitBreakerConfig = CircuitBreakerConfig(
-    config.get[String]("appName"),
-    config.get[Int]("circuit.breaker.failedCallsInUnstableBeforeUnavailable"),
-    config.get[Int]("circuit.breaker.unavailablePeriodDurationInMillis"),
-    config.get[Int]("circuit.breaker.unstablePeriodDurationInMillis")
+    appConfig.appName,
+    appConfig.numberOfCallsToTriggerStateChange,
+    appConfig.unavailablePeriodDuration,
+    appConfig.unstablePeriodDuration
   )
 
   def currentState: String = circuitBreaker.currentState.name
