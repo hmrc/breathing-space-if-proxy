@@ -11,8 +11,8 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
-  implicit val requestId = genRequestId(BS_Periods_GET)
   val connector = inject[PeriodsConnector]
+  implicit val requestId = genRequestId(BS_Periods_GET, connector.eisConnector)
 
   "get" should {
     "return a PeriodsResponse instance when it receives a 200(OK) response" in {

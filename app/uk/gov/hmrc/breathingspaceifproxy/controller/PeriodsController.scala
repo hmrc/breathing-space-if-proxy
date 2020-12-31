@@ -45,7 +45,7 @@ class PeriodsController @Inject()(
 
   def get(maybeNino: String): Action[Validation[AnyContent]] = readAction.async(withoutBody) { implicit request =>
     (
-      validateHeadersForNPS(BS_Periods_GET),
+      validateHeadersForNPS(BS_Periods_GET, periodsConnector.eisConnector),
       validateNino(maybeNino),
       request.body
     ).mapN((requestId, nino, _) => (requestId, nino))
@@ -66,7 +66,7 @@ class PeriodsController @Inject()(
 
   val post: Action[Validation[JsValue]] = writeAction.async(withJsonBody) { implicit request =>
     (
-      validateHeadersForNPS(BS_Periods_POST),
+      validateHeadersForNPS(BS_Periods_POST, periodsConnector.eisConnector),
       request.body.andThen(validateBodyOfPost)
     ).mapN((requestId, ninoAndPostPeriods) => (requestId, ninoAndPostPeriods._1, ninoAndPostPeriods._2))
       .fold(
@@ -84,7 +84,7 @@ class PeriodsController @Inject()(
 
   def put(maybeNino: String): Action[Validation[JsValue]] = writeAction.async(withJsonBody) { implicit request =>
     (
-      validateHeadersForNPS(BS_Periods_PUT),
+      validateHeadersForNPS(BS_Periods_PUT, periodsConnector.eisConnector),
       validateNino(maybeNino),
       request.body.andThen(validateBodyOfPut)
     ).mapN((requestId, nino, putPeriodsInRequest) => (requestId, nino, putPeriodsInRequest))

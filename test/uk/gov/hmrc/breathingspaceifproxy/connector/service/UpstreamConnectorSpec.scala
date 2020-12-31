@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.connector
+package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
+import cats.syntax.option._
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.Configuration
 import play.api.http.Status
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
@@ -26,10 +28,13 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 
-class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper {
+class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConnector {
 
-  def circuitBreakerConfig: CircuitBreakerConfig = appConfig.circuitBreaker.copy(
-    numberOfCallsToTriggerStateChange = Int.MaxValue
+  val config = inject[Configuration]
+
+  override protected def circuitBreakerConfig: CircuitBreakerConfig = CircuitBreakerConfig(
+    serviceName = config.get[String]("appName"),
+    numberOfCallsToTriggerStateChange = Int.MaxValue.some
   )
 
   "handleUpstreamError" should {
@@ -87,8 +92,11 @@ class ConnectorHelperSpec extends AnyWordSpec with BaseSpec with ConnectorHelper
     }
   }
 
+  val upstreamConnector = inject[EisConnector]
+
   private def verifyResponse(throwable: Throwable, baseError: BaseError): Assertion = {
-    val result = handleUpstreamError[Unit](genRequestId(BS_Periods_POST)).apply(throwable).futureValue
+    val result =
+      handleUpstreamError[Unit](genRequestId(BS_Periods_POST, upstreamConnector)).apply(throwable).futureValue
 
     assert(result.isInvalid)
     assert(result.fold(_.head.baseError == baseError, _ => false))

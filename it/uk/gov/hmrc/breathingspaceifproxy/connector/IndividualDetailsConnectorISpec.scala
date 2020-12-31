@@ -12,8 +12,8 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
-  implicit val requestId = genRequestId(BS_Details_GET)
   val connector = inject[IndividualDetailsConnector]
+  implicit val requestId = genRequestId(BS_Details_GET, connector.eisConnector)
 
   "get" should {
     "return an IndividualDetails instance when it receives the relative \"fields\" query parameter" in {

@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model
+package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
-import java.util.UUID
+import javax.inject.{Inject, Singleton}
 
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId
+import play.api.Configuration
 
-final case class RequestId(
-  endpointId: EndpointId,
-  correlationId: UUID,
-  staffId: String,
-  upstreamConnector: UpstreamConnector
-)
+@Singleton
+class EisConnector @Inject()(val config: Configuration) extends UpstreamConnector

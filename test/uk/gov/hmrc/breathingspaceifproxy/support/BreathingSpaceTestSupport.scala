@@ -30,6 +30,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
@@ -152,7 +153,8 @@ trait BreathingSpaceTestSupport {
     Nino(f"$prefix$number%06d$suffix")
   }
 
-  def genRequestId(endpointId: EndpointId): RequestId = RequestId(endpointId, correlationId, attendedStaffPid)
+  def genRequestId(endpointId: EndpointId, uc: UpstreamConnector): RequestId =
+    RequestId(endpointId, correlationId, attendedStaffPid, uc)
 
   def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     requestFilteredOutOneHeader("", method)

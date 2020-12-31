@@ -26,6 +26,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.EtmpConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
@@ -34,7 +35,12 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
+  val mockUpstreamConnector = mock[EtmpConnector]
+  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
+
   val mockConnector: DebtsConnector = mock[DebtsConnector]
+  when(mockConnector.etmpConnector).thenReturn(mockUpstreamConnector)
+
   val controller = new DebtsController(
     appConfig,
     inject[AuditConnector],

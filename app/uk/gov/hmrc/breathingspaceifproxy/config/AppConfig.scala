@@ -20,20 +20,12 @@ import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
 import uk.gov.hmrc.breathingspaceifproxy.Header
-import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 final case class HeaderMapping(nameToMap: String, nameMapped: String)
 
 @Singleton
 class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
-
-  val circuitBreaker = CircuitBreakerConfig(
-    config.get[String]("appName"),
-    config.get[Int]("circuit.breaker.failedCallsInUnstableBeforeUnavailable"),
-    config.get[Int]("circuit.breaker.unavailablePeriodDurationInMillis"),
-    config.get[Int]("circuit.breaker.unstablePeriodDurationInMillis")
-  )
 
   lazy val onDevEnvironment: Boolean =
     config.getOptional[String]("environment.id").fold(false)(_.toLowerCase == "development")

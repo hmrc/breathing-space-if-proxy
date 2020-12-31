@@ -11,11 +11,15 @@ This &#xb5;service enables interaction between PEGA Cloud, the platform controll
 ### Prerequisites
 - Scala 2.12.12
 - Java 8
-- sbt +1.4.1
+- sbt +1.3
 
-### Development Setup
+### Running the service
 
-Run from the console using: `sbt run`
+Start a terminal and enter:
+```
+$ sm --start AUTH
+$ sbt run
+```
 
 !!**IMPORTANT**!!
 Before committing, always run from the console: `./precheck.sh`
