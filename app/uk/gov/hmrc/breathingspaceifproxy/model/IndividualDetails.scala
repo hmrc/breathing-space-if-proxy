@@ -34,7 +34,8 @@ object Details { implicit val format = Json.format[Details] }
 final case class NameData(
   firstForename: Option[String] = none,
   secondForename: Option[String] = none,
-  surname: Option[String] = none
+  surname: Option[String] = none,
+  nameType: Option[Int] = none
 )
 object NameData { implicit val format = Json.format[NameData] }
 
@@ -50,7 +51,9 @@ final case class AddressData(
   addressLine4: Option[String] = none,
   addressLine5: Option[String] = none,
   addressPostcode: Option[String] = none,
-  countryCode: Option[Int] = none
+  countryCode: Option[Int] = none,
+  addressType: Option[Int] = none
+
 )
 object AddressData { implicit val format = Json.format[AddressData] }
 
@@ -76,9 +79,9 @@ final case class IndividualDetails(
 object IndividualDetails {
 
   val Details = "details(nino,dateOfBirth)"
-  val NameList = "nameList(name(firstForename,secondForename,surname))"
+  val NameList = "nameList(name(firstForename,secondForename,surname,nameType))"
   val AddressList =
-    "addressList(address(addressLine1,addressLine2,addressLine3,addressLine4,addressLine5,addressPostcode,countryCode))"
+    "addressList(address(addressLine1,addressLine2,addressLine3,addressLine4,addressLine5,addressPostcode,countryCode,addressType))"
   val Indicators = "indicators(welshOutputInd)"
 
   val fields = s"?fields=$Details,$NameList,$AddressList,$Indicators"

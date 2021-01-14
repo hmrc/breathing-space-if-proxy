@@ -39,6 +39,9 @@
               },
               "surname": {
                 "type": "string"
+              },
+              "nameType": {
+                "type": "integer"
               }
             }
           }
@@ -78,6 +81,9 @@
                 "type": "string"
               },
               "countryCode":  {
+                "type": "integer"
+              },
+              "addressType":  {
                 "type": "integer"
               }
             }
