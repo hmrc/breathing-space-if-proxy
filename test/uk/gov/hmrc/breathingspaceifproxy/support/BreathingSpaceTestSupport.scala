@@ -218,7 +218,8 @@ trait BreathingSpaceTestSupport {
       List(
         NameData(
           firstForename = "Mickey".some,
-          surname = "Mouse".some
+          surname = "Mouse".some,
+          nameType = 1.some
         )
       )
     ).some,
@@ -227,7 +228,8 @@ trait BreathingSpaceTestSupport {
         AddressData(
           addressLine1 = "Some Street".some,
           countryCode = 1.some,
-          addressPostcode = "E14".some
+          addressPostcode = "E14".some,
+          addressType = 1.some
         )
       )
     ).some,
