@@ -3,7 +3,6 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.http.Status._
-import play.api.libs.json.Json
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
@@ -19,8 +18,7 @@ class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     "return a Debts instance when it receives a 200(OK) response" in {
       val nino = genNino
       val url = DebtsConnector.path(nino)
-      val responsePayload = Json.toJson(debts).toString
-      stubCall(HttpMethod.Get, url, OK, responsePayload)
+      stubCall(HttpMethod.Get, url, OK, debtsAsSentFromEis)
 
       val response = await(connector.get(nino))
 

@@ -142,12 +142,11 @@ class CircuitBreakerForDebtsConnector_GET_ISpec extends CircuitBreakerISpec {
   test("Circuit Breaker should work as expected against failed DebtsConnector.get requests") {
     val nino = genNino
     val url = DebtsConnector.path(nino)
-    val response = Json.toJson(debts).toString
     val connector = inject[DebtsConnector]
     implicit val requestId = genRequestId(BS_Debts_GET, connector.etmpConnector)
 
-    stubsForCircuitBreaker(HttpMethod.Get, url, OK, response)
-    verifyCircuitBreaker(connector.get(nino), debts, connector.etmpConnector)
+    stubsForCircuitBreaker(HttpMethod.Get, url, OK, debtsAsSentFromEis)
+    verifyCircuitBreaker(connector.get(nino), Debts(listOfDebts), connector.etmpConnector)
   }
 }
 

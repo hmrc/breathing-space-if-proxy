@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[Debts] =
     etmpConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[Debts](Url(url(nino)).value).map(_.validNec)
+        http.GET[List[Debt]](Url(url(nino)).value).map(Debts(_).validNec)
       }
     }
 }

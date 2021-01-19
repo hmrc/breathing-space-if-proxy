@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       Given(s"a GET request with a valid Nino and all required headers")
       when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(debts.validNec))
+        .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
       val response = controller.get(genNinoString)(fakeGetRequest)
       status(response) shouldBe OK
@@ -63,7 +63,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
       Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
       when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
-        .thenReturn(Future.successful(debts.validNec))
+        .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
       val response = controller.get(genNinoString)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
