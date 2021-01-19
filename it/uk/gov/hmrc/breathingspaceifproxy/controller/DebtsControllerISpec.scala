@@ -32,13 +32,12 @@ class DebtsControllerISpec extends BaseISpec {
           .path(ninoWithoutSuffix)
           .replace(ninoWithoutSuffix.value, s"${ninoWithoutSuffix.value}%20")
 
-      val expectedBody = Json.toJson(debts).toString
-      stubCall(HttpMethod.Get, connectorUrl, Status.OK, expectedBody)
+      stubCall(HttpMethod.Get, connectorUrl, Status.OK, debtsAsSentFromEis)
 
       val response = route(app, fakeRequest(Helpers.GET, controllerUrl)).get
 
       status(response) shouldBe Status.OK
-      contentAsString(response) shouldBe expectedBody
+      contentAsString(response) shouldBe debts
 
       verifyHeaders(HttpMethod.Get, connectorUrl)
       verifyAuditEventCall(BS_Debts_GET)
@@ -115,8 +114,7 @@ class DebtsControllerISpec extends BaseISpec {
   }
 
   private def verifyOk(attended: Boolean): Assertion = {
-    val expectedResponseBody = Json.toJson(debts).toString
-    stubCall(HttpMethod.Get, debtsConnectorUrl, Status.OK, expectedResponseBody)
+    stubCall(HttpMethod.Get, debtsConnectorUrl, Status.OK, debtsAsSentFromEis)
 
     val request =
       if (attended) fakeRequest(Helpers.GET, getPathWithValidNino)
@@ -124,7 +122,7 @@ class DebtsControllerISpec extends BaseISpec {
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK
-    contentAsString(response) shouldBe expectedResponseBody
+    contentAsString(response) shouldBe debts
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, debtsConnectorUrl)
     else verifyHeadersForUnattended(HttpMethod.Get, debtsConnectorUrl)

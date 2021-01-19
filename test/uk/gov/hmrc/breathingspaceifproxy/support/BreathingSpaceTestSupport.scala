@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -126,7 +126,9 @@ trait BreathingSpaceTestSupport {
     utrAssociatedWithCharge = "1234567890".some
   )
 
-  lazy val debts = List(debt1, debt2)
+  lazy val listOfDebts = List(debt1, debt2)
+  lazy val debtsAsSentFromEis = Json.toJson(listOfDebts).toString
+  lazy val debts = Json.toJson(Debts(listOfDebts)).toString
 
   lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
 
