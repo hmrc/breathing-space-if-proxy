@@ -19,6 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 import javax.inject.{Inject, Singleton}
 
 import cats.syntax.apply._
+import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -104,15 +105,27 @@ class PeriodsController @Inject()(
   private def validateBodyOfPost(json: JsValue): Validation[(Nino, PostPeriodsInRequest)] =
     (
       validateNino(parseJsValue[String](json, "nino")),
+      validateUtr(parseJsValueOpt[String](json, "utr")),
       parseJsValue[JsArray](json, "periods")
-        .fold(ErrorItem(MISSING_PERIODS).invalidNec[PostPeriodsInRequest]) {
+        .fold(ErrorItem(MISSING_PERIODS).invalidNec[List[PostPeriodInRequest]]) {
           validateJsArray[PostPeriodInRequest](_, "period")
         }
-    ).mapN((nino, periods) => (nino, periods))
+    ).mapN((nino, utr, periods) => (nino, PostPeriodsInRequest(utr, periods)))
 
   private def validateBodyOfPut(json: JsValue): Validation[PutPeriodsInRequest] =
     parseJsValue[JsArray](json, "periods")
       .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriodsInRequest]) {
         validateJsArray[PutPeriodInRequest](_, "period")
       }
+
+  private def validateUtr(maybeUtr: Option[String]): Validation[Option[String]] =
+    maybeUtr.fold(none[String].validNec[ErrorItem])(validateUtr)
+
+  private val utrRegex = """^[0-9]{10}$""".r
+
+  private def validateUtr(utr: String): Validation[Option[String]] =
+    utr match {
+      case utrRegex() => utr.some.validNec[ErrorItem]
+      case _ => ErrorItem(INVALID_UTR).invalidNec[Option[String]]
+    }
 }

@@ -182,7 +182,7 @@ class CircuitBreakerForPeriodsConnector_POST_ISpec extends CircuitBreakerISpec {
   test("Circuit Breaker should work as expected against failed PeriodsConnector.post requests") {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
-    val bodyRequest = List(validPostPeriod)
+    val bodyRequest = postPeriodsRequest()
     val bodyResponse = PeriodsInResponse(
       List(PeriodInResponse(UUID.randomUUID(), validPostPeriod.startDate, validPostPeriod.endDate))
     )

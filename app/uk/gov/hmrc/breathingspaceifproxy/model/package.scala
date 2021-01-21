@@ -22,7 +22,6 @@ import cats.data.NonEmptyChain
 
 package object model {
 
-  type PostPeriodsInRequest = List[PostPeriodInRequest]
   type PutPeriodsInRequest = List[PutPeriodInRequest]
 
   type Errors = NonEmptyChain[ErrorItem]

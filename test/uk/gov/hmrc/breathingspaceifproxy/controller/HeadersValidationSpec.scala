@@ -66,7 +66,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("return 400(BAD_REQUEST) for a POST when the Content-Type header is missing") {
-    val body = postPeriodsRequest(postPeriodsRequest)
+    val body = postPeriodsRequestAsJson(postPeriodsRequest())
     val request = requestFilteredOutOneHeader(CONTENT_TYPE, POST).withBody(body)
 
     verifyHeaderIsMissing(controller.post(request), CONTENT_TYPE)
@@ -74,7 +74,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test("return 400(BAD_REQUEST) for a POST when all required headers are missing") {
     Given("a POST request without any of the requested headers")
-    val body = postPeriodsRequest(postPeriodsRequest)
+    val body = postPeriodsRequestAsJson(postPeriodsRequest())
     val request = FakeRequest(POST, "/").withBody(body)
 
     val response = controller.post(request)
