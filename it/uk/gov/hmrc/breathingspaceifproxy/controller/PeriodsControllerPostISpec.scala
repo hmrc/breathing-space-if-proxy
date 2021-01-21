@@ -8,9 +8,10 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.post
+import uk.gov.hmrc.breathingspaceifproxy.model.PostPeriodsInRequest
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_POST
-import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod, PostPeriodsRequest}
+import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerPostISpec extends BaseISpec {
 
@@ -28,6 +29,10 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
     "return 201(CREATED) for an UNATTENDED request" in {
       verifyCreated(attended = false)
+    }
+
+    "return 201(CREATED) even when the UTR is not provided" in {
+      verifyCreated(attended = false, postPeriodsRequest(none))
     }
 
     "return 400(BAD_REQUEST) when no body is provided" in {
@@ -56,7 +61,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
-      val body = Json.toJson(PostPeriodsRequest(genNino.value, postPeriodsRequest))
+      val body = postPeriodsRequestAsJson(genNino.value, postPeriodsRequest())
       val request = fakeRequest(Helpers.POST, postPath).withBody(body)
       verifyUnauthorized(request)
     }
@@ -67,7 +72,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
       stubCall(HttpMethod.Post, url, Status.NOT_FOUND, errorResponseFromIF())
 
       val request = fakeRequest(Helpers.POST, postPath)
-        .withBody(postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest))
+        .withBody(postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest()))
 
       val response = route(app, request).get
       status(response) shouldBe Status.NOT_FOUND
@@ -77,13 +82,13 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
   }
 
-  private def verifyCreated(attended: Boolean): Assertion = {
+  private def verifyCreated(attended: Boolean, postPeriods: PostPeriodsInRequest = postPeriodsRequest()): Assertion = {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
     val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
     stubCall(HttpMethod.Post, url, Status.CREATED, expectedResponseBody)
 
-    val body = Json.toJson(PostPeriodsRequest(nino.value, postPeriodsRequest))
+    val body = postPeriodsRequestAsJson(nino.value, postPeriods)
 
     val request =
       (if (attended) fakeRequest(Helpers.POST, postPath)

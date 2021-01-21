@@ -51,7 +51,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Post, url, CREATED, responsePayload)
 
-      val response = await(connector.post(nino, postPeriodsRequest))
+      val response = await(connector.post(nino, postPeriodsRequest()))
       verifyHeaders(HttpMethod.Post, url)
       assert(response.fold(_ => false, _ => true))
     }

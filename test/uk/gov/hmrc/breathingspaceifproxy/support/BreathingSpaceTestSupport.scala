@@ -35,7 +35,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 
-final case class PostPeriodsRequest(nino: String, periods: PostPeriodsInRequest)
+final case class PostPeriodsRequest(nino: String, utr: Option[String], periods: List[PostPeriodInRequest])
 
 object PostPeriodsRequest {
   implicit val format = Json.format[PostPeriodsRequest]
@@ -81,8 +81,6 @@ trait BreathingSpaceTestSupport {
     LocalDate.now.minusMonths(4).some,
     ZonedDateTime.now
   )
-
-  lazy val postPeriodsRequest: PostPeriodsInRequest = List(validPostPeriod, validPostPeriod)
 
   lazy val validPutPeriod = PutPeriodInRequest(
     UUID.randomUUID(),
@@ -169,16 +167,16 @@ trait BreathingSpaceTestSupport {
       requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
 
-  def postPeriodsRequestAsJson(postPeriods: PostPeriodsInRequest): JsValue =
-    Json.toJson(PostPeriodsRequest(genNinoString, postPeriods))
+  def postPeriodsRequest(utr: Option[String] = "9876543210".some): PostPeriodsInRequest =
+    PostPeriodsInRequest(utr, List(validPostPeriod, validPostPeriod))
 
   def postPeriodsRequestAsJson(nino: String, postPeriods: PostPeriodsInRequest): JsValue =
-    Json.toJson(PostPeriodsRequest(nino, postPeriods))
+    Json.toJson(PostPeriodsRequest(nino, postPeriods.utr, postPeriods.periods))
 
-  def postPeriodsRequest(postPeriods: PostPeriodsInRequest): Validation[JsValue] =
-    postPeriodsRequestAsJson(postPeriods).validNec[ErrorItem]
+  def postPeriodsRequestAsJson(postPeriods: PostPeriodsInRequest): Validation[JsValue] =
+    Json.toJson(PostPeriodsRequest(genNinoString, postPeriods.utr, postPeriods.periods)).validNec[ErrorItem]
 
-  def postPeriodsRequest(
+  def postPeriodsRequestAsJson(
     nino: String,
     startDate: String,
     endDate: Option[String],

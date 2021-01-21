@@ -61,6 +61,12 @@ trait RequestValidation {
       case JsError(_) => none
     }
 
+  def parseJsValueOpt[T](json: JsValue, name: String)(implicit rds: Reads[T]): Option[T] =
+    (json \ name).validateOpt[T] match {
+      case JsSuccess(value, _) => value
+      case JsError(_) => none
+    }
+
   def parseJsObject[T](json: JsValue)(implicit rds: Reads[T]): Option[T] =
     json.validate[T] match {
       case JsSuccess(value, _) => value.some

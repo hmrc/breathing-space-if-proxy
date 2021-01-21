@@ -57,7 +57,7 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http
-          .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> postPeriods))
+          .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods))
           .map(_.validNec)
       }
     }

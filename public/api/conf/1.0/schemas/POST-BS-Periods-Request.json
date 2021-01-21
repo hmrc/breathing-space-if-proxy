@@ -7,6 +7,10 @@
     "nino": {
       "$ref": "Nino.json"
     },
+    "utr": {
+      "type": "string",
+      "pattern": "^[0-9]{10}$"
+    },
     "periods": {
       "title" : "Periods",
       "type": "array",

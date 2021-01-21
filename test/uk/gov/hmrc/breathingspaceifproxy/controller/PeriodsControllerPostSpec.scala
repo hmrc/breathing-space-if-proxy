@@ -60,7 +60,18 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body")
-      val request = requestWithAllHeaders(POST).withBody(postPeriodsRequest(postPeriodsRequest))
+      val request = requestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest()))
+
+      val response = controller.post(request)
+      status(response) shouldBe CREATED
+    }
+
+    "return 201(CREATED) when the utr is not provided" in {
+      when(mockConnector.post(any[Nino], any[PostPeriodsInRequest])(any[RequestId], any[HeaderCarrier]))
+        .thenReturn(Future.successful(validPeriodsResponse.validNec))
+
+      Given("a request with all required headers and a valid Json body where the utr is not provided")
+      val request = requestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest(none)))
 
       val response = controller.post(request)
       status(response) shouldBe CREATED
@@ -71,7 +82,9 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a Period where the endDate is missing")
-      val body = postPeriodsRequest(List(PostPeriodInRequest(LocalDate.now, None, ZonedDateTime.now)))
+      val body = postPeriodsRequestAsJson(
+        PostPeriodsInRequest("9876543210".some, List(PostPeriodInRequest(LocalDate.now, None, ZonedDateTime.now)))
+      )
 
       And("a request with all required headers and the Period as a valid Json body")
       val request = requestWithAllHeaders(POST).withBody(body)
@@ -81,7 +94,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when the Nino is missing" in {
-      val body = Json.obj("periods" -> postPeriodsRequest).validNec[ErrorItem]
+      val body = Json.toJson(postPeriodsRequest()).validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -162,7 +175,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     endDate: Option[String] = None,
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
-    val body = postPeriodsRequest(nino.fold(genNinoString)(identity), startDate, endDate, timestamp)
+    val body = postPeriodsRequestAsJson(nino.fold(genNinoString)(identity), startDate, endDate, timestamp)
     val request = requestWithAllHeaders(POST).withBody(body)
 
     val response = controller.post(request)
