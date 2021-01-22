@@ -105,7 +105,7 @@ class PeriodsController @Inject()(
   private def validateBodyOfPost(json: JsValue): Validation[(Nino, PostPeriodsInRequest)] =
     (
       validateNino(parseJsValue[String](json, "nino")),
-      validateUtr(parseJsValueOpt[String](json, "utr")),
+      parseJsValueOpt[String](json, "utr").andThen(validateUtr),
       parseJsValue[JsArray](json, "periods")
         .fold(ErrorItem(MISSING_PERIODS).invalidNec[List[PostPeriodInRequest]]) {
           validateJsArray[PostPeriodInRequest](_, "period")

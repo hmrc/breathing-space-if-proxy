@@ -93,7 +93,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       status(response) shouldBe CREATED
     }
 
-    "return 400(BAD_REQUEST) when the Nino is missing" in {
+    "return 400(MISSING_NINO) when the Nino is missing" in {
       val body = Json.toJson(postPeriodsRequest()).validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
@@ -104,6 +104,44 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       And(s"the error code should be $MISSING_NINO")
       errorList.head.code shouldBe MISSING_NINO.entryName
       assert(errorList.head.message.startsWith(MISSING_NINO.message))
+    }
+
+    val bodyWithInvalidUtr =
+      """{
+          |  "nino": "MZ123456C",
+          |  "utr": 9876543210,
+          |  "periods":[
+          |    {
+          |      "startDate": "2020-01-01",
+          |      "pegaRequestTimestamp": "2020-11-13T20:20:39.000Z"
+          |    }
+          |  ]
+          |}""".stripMargin
+
+    "return 400(INVALID_JSON) when the Utr is not of the expected type" in {
+      val body = Json.parse(bodyWithInvalidUtr).validNec[ErrorItem]
+      val request = requestWithAllHeaders(POST).withBody(body)
+
+      val response = controller.post(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_JSON")
+      errorList.head.code shouldBe INVALID_JSON.entryName
+      assert(errorList.head.message.startsWith(INVALID_JSON.message))
+    }
+
+    "return 400(INVALID_UTR) when the Utr is not in the expected format" in {
+      val body = postPeriodsRequestAsJson(postPeriodsRequest("1234567".some))
+      val request = requestWithAllHeaders(POST).withBody(body)
+
+      val response = controller.post(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_UTR")
+      errorList.head.code shouldBe INVALID_UTR.entryName
+      assert(errorList.head.message.startsWith(INVALID_UTR.message))
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
