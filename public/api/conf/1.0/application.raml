@@ -74,8 +74,8 @@ traits:
 
     /debts:
       get:
-        displayName: Retrieve individual's debt details in a context of Breathing Space
-        description: Retrieve individual's debt details in a context of Breathing Space.
+        displayName: Use a nino to get a person's HMRC debts
+        description: Get a person in breathing space's debts.
         (annotations.scope): "read:breathing-space-debts"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-debts" ] } ]
         is: [applicationHeaders]
@@ -147,8 +147,8 @@ traits:
 
     /details:
       get:
-        displayName: Retrieve, for a given Nino, individual details shaped for Breathing Space
-        description: Retrieve, for the given Nino, individual details shaped for Breathing Space.
+        displayName: Use a Nino to get a person in Breathing Space's personal information
+        description: Get an individual's in Breathing Space personal details.
         (annotations.scope): "read:breathing-space-individual"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-individual" ] } ]
         is: [applicationHeaders]
