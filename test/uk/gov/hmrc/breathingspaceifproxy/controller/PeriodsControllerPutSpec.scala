@@ -26,7 +26,7 @@ import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
@@ -35,6 +35,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -144,7 +145,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     endDate: Option[String] = None,
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
-    val body = putPeriodsRequest(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
+    val body = putPeriodsRequestAsJson(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
     val request = requestWithAllHeaders(PUT).withBody(body)
 
     val response = controller.put(genNinoString)(request)
@@ -154,5 +155,19 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     And(s"the error code should be $error")
     errorList.head.code shouldBe error.entryName
     assert(errorList.head.message.startsWith(error.message))
+  }
+
+  private def putPeriodsRequestAsJson(
+    periodId: String,
+    startDate: String,
+    endDate: Option[String],
+    timestamp: String
+  ): Validation[JsValue] = {
+    val pi = s""""$periodIdKey":"$periodId""""
+    val sd = s""""$startDateKey":"$startDate""""
+    val ed = endDate.fold("")(v => s""","$endDateKey":"$v"""")
+    val ts = s""""$timestampKey":"$timestamp""""
+
+    Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
   }
 }

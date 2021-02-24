@@ -16,12 +16,11 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import org.scalatest.BeforeAndAfterEach
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy.model.IndividualDetails
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec with BeforeAndAfterEach {
+class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec {
 
   "IndividualDetailsConnector.url" should {
     "correctly compose urls to the IF" in {

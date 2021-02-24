@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "consumer-request-id",
+  "type": "string",
+  "description": "Consumer-specific request identifier for Breathing Space Periods",
+  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+  "example": "f7c708bd-78c0-4985-a7b2-28500250ae69"
+}

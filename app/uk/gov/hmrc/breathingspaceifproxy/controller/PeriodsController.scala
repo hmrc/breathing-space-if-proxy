@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 
 import cats.syntax.apply._
+import cats.syntax.either._
 import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.libs.json.{JsArray, JsValue}
@@ -105,18 +107,29 @@ class PeriodsController @Inject()(
   private def validateBodyOfPost(json: JsValue): Validation[(Nino, PostPeriodsInRequest)] =
     (
       validateNino(parseJsValue[String](json, "nino")),
+      validateConsumerRequestId(parseJsValue[String](json, "consumerRequestId")),
       parseJsValueOpt[String](json, "utr").andThen(validateUtr),
       parseJsValue[JsArray](json, "periods")
         .fold(ErrorItem(MISSING_PERIODS).invalidNec[List[PostPeriodInRequest]]) {
           validateJsArray[PostPeriodInRequest](_, "period")
         }
-    ).mapN((nino, utr, periods) => (nino, PostPeriodsInRequest(utr, periods)))
+    ).mapN((nino, consumerRequestId, utr, periods) => (nino, PostPeriodsInRequest(consumerRequestId, utr, periods)))
 
   private def validateBodyOfPut(json: JsValue): Validation[PutPeriodsInRequest] =
     parseJsValue[JsArray](json, "periods")
       .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriodsInRequest]) {
         validateJsArray[PutPeriodInRequest](_, "period")
       }
+
+  def validateConsumerRequestId(maybeConsumerRequestId: Option[String]): Validation[UUID] =
+    maybeConsumerRequestId.fold(ErrorItem(MISSING_CONSUMER_REQUEST_ID).invalidNec[UUID]) { crId =>
+      Either
+        .catchNonFatal(UUID.fromString(crId))
+        .fold(
+          _ => ErrorItem(INVALID_CONSUMER_REQUEST_ID, s"(${Header.CorrelationId})".some).invalidNec[UUID],
+          _.validNec[ErrorItem]
+        )
+    }
 
   private def validateUtr(maybeUtr: Option[String]): Validation[Option[String]] =
     maybeUtr.fold(none[String].validNec[ErrorItem])(validateUtr)
