@@ -35,7 +35,12 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 
-final case class PostPeriodsRequest(nino: String, utr: Option[String], periods: List[PostPeriodInRequest])
+final case class PostPeriodsRequest(
+  nino: String,
+  consumerRequestId: UUID,
+  utr: Option[String],
+  periods: List[PostPeriodInRequest]
+)
 
 object PostPeriodsRequest {
   implicit val format = Json.format[PostPeriodsRequest]
@@ -168,46 +173,19 @@ trait BreathingSpaceTestSupport {
     )
 
   def postPeriodsRequest(utr: Option[String] = "9876543210".some): PostPeriodsInRequest =
-    PostPeriodsInRequest(utr, List(validPostPeriod, validPostPeriod))
+    PostPeriodsInRequest(randomUUID, utr, List(validPostPeriod, validPostPeriod))
 
   def postPeriodsRequestAsJson(nino: String, postPeriods: PostPeriodsInRequest): JsValue =
-    Json.toJson(PostPeriodsRequest(nino, postPeriods.utr, postPeriods.periods))
+    Json.toJson(PostPeriodsRequest(nino, randomUUID, postPeriods.utr, postPeriods.periods))
 
   def postPeriodsRequestAsJson(postPeriods: PostPeriodsInRequest): Validation[JsValue] =
-    Json.toJson(PostPeriodsRequest(genNinoString, postPeriods.utr, postPeriods.periods)).validNec[ErrorItem]
-
-  def postPeriodsRequestAsJson(
-    nino: String,
-    startDate: String,
-    endDate: Option[String],
-    timestamp: String
-  ): Validation[JsValue] = {
-    val sd = s""""$startDateKey":"$startDate""""
-    val ed = endDate.fold("")(v => s""","$endDateKey":"$v"""")
-    val ts = s""""$timestampKey":"$timestamp""""
-
-    Json.parse(s"""{"nino":"$nino","periods":[{$sd$ed,$ts}]}""").validNec[ErrorItem]
-  }
+    Json.toJson(PostPeriodsRequest(genNinoString, randomUUID, postPeriods.utr, postPeriods.periods)).validNec[ErrorItem]
 
   def putPeriodsRequestAsJson(putPeriods: PutPeriodsInRequest): JsValue =
     Json.obj("periods" -> putPeriods)
 
   def putPeriodsRequest(putPeriods: PutPeriodsInRequest): Validation[JsValue] =
     putPeriodsRequestAsJson(putPeriods).validNec[ErrorItem]
-
-  def putPeriodsRequest(
-    periodId: String,
-    startDate: String,
-    endDate: Option[String],
-    timestamp: String
-  ): Validation[JsValue] = {
-    val pi = s""""$periodIdKey":"$periodId""""
-    val sd = s""""$startDateKey":"$startDate""""
-    val ed = endDate.fold("")(v => s""","$endDateKey":"$v"""")
-    val ts = s""""$timestampKey":"$timestamp""""
-
-    Json.parse(s"""{"periods":[{$pi,$sd$ed,$ts}]}""").validNec[ErrorItem]
-  }
 
   def details(nino: Nino): IndividualDetails = IndividualDetails(
     details = Details(

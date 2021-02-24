@@ -17,6 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
+import java.util.UUID
 
 import scala.concurrent.Future
 
@@ -25,7 +26,7 @@ import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
@@ -34,6 +35,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -83,7 +85,11 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
       Given("a Period where the endDate is missing")
       val body = postPeriodsRequestAsJson(
-        PostPeriodsInRequest("9876543210".some, List(PostPeriodInRequest(LocalDate.now, None, ZonedDateTime.now)))
+        PostPeriodsInRequest(
+          randomUUID,
+          "9876543210".some,
+          List(PostPeriodInRequest(LocalDate.now, None, ZonedDateTime.now))
+        )
       )
 
       And("a request with all required headers and the Period as a valid Json body")
@@ -106,20 +112,34 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       assert(errorList.head.message.startsWith(MISSING_NINO.message))
     }
 
-    val bodyWithInvalidUtr =
-      """{
-          |  "nino": "MZ123456C",
-          |  "utr": 9876543210,
-          |  "periods":[
-          |    {
-          |      "startDate": "2020-01-01",
-          |      "pegaRequestTimestamp": "2020-11-13T20:20:39.000Z"
-          |    }
-          |  ]
-          |}""".stripMargin
+    "return 400(MISSING_CONSUMER_REQUEST_ID) when consumerRequestId is missing" in {
+      val body = requestPayloadWithError("", """"utr": "9876543210",""")
+      val request = requestWithAllHeaders(POST).withBody(body)
+
+      val response = controller.post(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $MISSING_CONSUMER_REQUEST_ID")
+      errorList.head.code shouldBe MISSING_CONSUMER_REQUEST_ID.entryName
+      assert(errorList.head.message.startsWith(MISSING_CONSUMER_REQUEST_ID.message))
+    }
+
+    "return 400(MISSING_CONSUMER_REQUEST_ID) when consumerRequestId is not in the expected format" in {
+      val body = requestPayloadWithError(s""""consumerRequestId": "123456",""")
+      val request = requestWithAllHeaders(POST).withBody(body)
+
+      val response = controller.post(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_CONSUMER_REQUEST_ID")
+      errorList.head.code shouldBe INVALID_CONSUMER_REQUEST_ID.entryName
+      assert(errorList.head.message.startsWith(INVALID_CONSUMER_REQUEST_ID.message))
+    }
 
     "return 400(INVALID_JSON) when the Utr is not of the expected type" in {
-      val body = Json.parse(bodyWithInvalidUtr).validNec[ErrorItem]
+      val body = requestPayloadWithError(s""""consumerRequestId": "$randomUUID",""", """"utr": 12345,""")
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -152,6 +172,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       val body = Json
         .obj(
           "nino" -> genNinoString,
+          "consumerRequestId" -> randomUUID,
           "periods" -> List.empty[PostPeriodInRequest]
         )
         .validNec[ErrorItem]
@@ -168,7 +189,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when the 'periods' array is not provided" in {
-      val body = Json.obj("nino" -> genNinoString).validNec[ErrorItem]
+      val body = Json.obj("nino" -> genNinoString, "consumerRequestId" -> randomUUID).validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -181,7 +202,9 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
 
     "return 400(BAD_REQUEST) when 'periods' is not an array" in {
-      val body = Json.obj("nino" -> genNinoString, "periods" -> validPostPeriod).validNec[ErrorItem]
+      val body = Json
+        .obj("nino" -> genNinoString, "consumerRequestId" -> randomUUID, "periods" -> validPostPeriod)
+        .validNec[ErrorItem]
       val request = requestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
@@ -206,6 +229,19 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     }
   }
 
+  def requestPayloadWithError(consumerRequestId: String = "", utr: String = ""): Validation[JsValue] =
+    Json.parse(s"""{
+       |  "nino": "MZ123456C",
+       |  $consumerRequestId
+       |  $utr
+       |  "periods": [
+       |    {
+       |      "startDate": "2020-01-01",
+       |      "pegaRequestTimestamp": "2020-11-13T20:20:39.000Z"
+       |    }
+       |  ]
+       |}""".stripMargin).validNec[ErrorItem]
+
   private def verifyJsonItemValidation(
     error: BaseError,
     nino: Option[String],
@@ -213,7 +249,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     endDate: Option[String] = None,
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
-    val body = postPeriodsRequestAsJson(nino.fold(genNinoString)(identity), startDate, endDate, timestamp)
+    val body = postPeriodsRequestAsJson(nino.fold(genNinoString)(identity), randomUUID, startDate, endDate, timestamp)
     val request = requestWithAllHeaders(POST).withBody(body)
 
     val response = controller.post(request)
@@ -223,5 +259,21 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     And(s"the error code should be $error")
     errorList.head.code shouldBe error.entryName
     assert(errorList.head.message.startsWith(error.message))
+  }
+
+  private def postPeriodsRequestAsJson(
+    nino: String,
+    consumerRequestId: UUID,
+    startDate: String,
+    endDate: Option[String],
+    timestamp: String
+  ): Validation[JsValue] = {
+    val sd = s""""$startDateKey":"$startDate""""
+    val ed = endDate.fold("")(v => s""","$endDateKey":"$v"""")
+    val ts = s""""$timestampKey":"$timestamp""""
+
+    Json
+      .parse(s"""{"nino":"$nino","consumerRequestId":"$consumerRequestId", "periods":[{$sd$ed,$ts}]}""")
+      .validNec[ErrorItem]
   }
 }

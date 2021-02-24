@@ -7,6 +7,9 @@
     "nino": {
       "$ref": "Nino.json"
     },
+    "consumerRequestId": {
+      "$ref": "ConsumerRequestId.json"
+    },
     "utr": {
       "type": "string",
       "pattern": "^[0-9]{10}$"
@@ -43,6 +46,7 @@
   },
   "required": [
     "nino",
+    "consumerRequestId",
     "periods"
   ],
   "additionalProperties": false

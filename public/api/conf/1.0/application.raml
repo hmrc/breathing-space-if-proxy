@@ -362,6 +362,10 @@ traits:
             application/json:
               type: types.errorResponse
               examples:
+                invalidConsumerRequestId:
+                  description: Invalid consumerRequestId
+                  value:
+                    code: INVALID_CONSUMER_REQUEST_ID
                 invalidHeader:
                   description: Invalid Header
                   value:
@@ -386,6 +390,10 @@ traits:
                   description: Missing Body
                   value:
                     code: MISSING_BODY
+                missingConsumerRequestId:
+                  description: Missing consumerRequestId
+                  value:
+                    code: MISSING_CONSUMER_REQUEST_ID
                 missingHeader:
                   description: Missing Header
                   value:
@@ -408,3 +416,13 @@ traits:
                   description: Resource specified by the provided Nino was not found
                   value:
                     code: RESOURCE_NOT_FOUND
+
+        409:
+          body:
+            application/json:
+              type: types.errorResponse
+              examples:
+                conflictingRequest:
+                  description: Breathing Space Period(s) already existing
+                  value:
+                    code: CONFLICTING_REQUEST
