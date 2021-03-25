@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 
 import scala.concurrent.ExecutionContext
@@ -42,19 +43,19 @@ class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[Debts] =
+  def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[Debts] =
     etmpConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[List[Debt]](Url(url(nino)).value).map(Debts(_).validNec)
+        http.GET[List[Debt]](Url(url(nino, periodId)).value).map(Debts(_).validNec)
       }
     }
 }
 
 object DebtsConnector {
 
-  def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/debts"
+  def path(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/${periodId}/debts"
 
-  def url(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"
+  def url(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
+    s"${appConfig.integrationFrameworkBaseUrl}${path(nino, periodId)}"
 }

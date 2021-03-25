@@ -72,7 +72,17 @@ traits:
         type: string
         example: "MZ006526C, MZ006526"
 
-    /debts:
+    /{periodId}/debts:
+      uriParameters:
+        periodId:
+          description: |
+            Breathing Space Period Unique Reference
+
+            Must conform to the regular expression
+
+            <code>^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fAF]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$</code>
+          type: string
+          example: "7957547e-1619-4f22-82bb-f12138ec2f8b"
       get:
         displayName: Use a nino to get a person's HMRC debts
         description: Get a person in breathing space's debts.
@@ -112,6 +122,10 @@ traits:
                     description: Invalid Nino format
                     value:
                       code: INVALID_NINO
+                  invalidPeriodId:
+                    description: Invalid PeriodId format
+                    value:
+                      code: INVALID_PERIOD_ID
                   missingHeader:
                     description: One or more of the required headers are missing
                     value:
@@ -132,10 +146,6 @@ traits:
               application/json:
                 type: types.errorResponse
                 examples:
-                  resourceNotFound:
-                    description: The provided Nino was not found
-                    value:
-                      code: RESOURCE_NOT_FOUND
                   dataNotFound:
                     description: No records found for the given Nino
                     value:
@@ -144,6 +154,14 @@ traits:
                     description: The given Nino is not in Breathing Space
                     value:
                       code: NOT_IN_BREATHING_SPACE
+                  periodIdNotFound:
+                    description: The provided PeriodId was not found
+                    value:
+                      code: PERIOD_ID_NOT_FOUND
+                  resourceNotFound:
+                    description: The provided Nino was not found
+                    value:
+                      code: RESOURCE_NOT_FOUND
 
     /details:
       get:

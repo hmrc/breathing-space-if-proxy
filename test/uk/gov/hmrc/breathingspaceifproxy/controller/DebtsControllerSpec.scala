@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
+import java.util.UUID
+
 import scala.concurrent.Future
 
 import cats.syntax.option._
@@ -53,25 +55,25 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       Given(s"a GET request with a valid Nino and all required headers")
-      when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
-      val response = controller.get(genNinoString)(fakeGetRequest)
+      val response = controller.get(genNinoString, periodIdAsString)(fakeGetRequest)
       status(response) shouldBe OK
     }
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
       Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
-      when(mockConnector.get(any[Nino])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
-      val response = controller.get(genNinoString)(requestFilteredOutOneHeader(CONTENT_TYPE))
+      val response = controller.get(genNinoString, periodIdAsString)(requestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"a GET request with an invalid Nino")
-      val response = controller.get(invalidNino)(fakeGetRequest).run
+      val response = controller.get(invalidNino, periodIdAsString)(fakeGetRequest).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -80,19 +82,34 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
       assert(errorList.head.message.startsWith(INVALID_NINO.message))
     }
 
-    "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
-      Given(s"a GET request with an invalid Nino and without the ${Header.StaffPid} request header")
-      val response = controller.get("HT1234B")(requestFilteredOutOneHeader(Header.StaffPid)).run
+    "return 400(BAD_REQUEST) when the periodId is invalid" in {
+      Given(s"a GET request with an invalid periodId")
+      val response = controller.get(genNinoString, "An invalid periodId")(fakeGetRequest).run
 
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_PERIOD_ID")
+      errorList.head.code shouldBe INVALID_PERIOD_ID.entryName
+      assert(errorList.head.message.startsWith(INVALID_PERIOD_ID.message))
+    }
+
+    "return 400(BAD_REQUEST) with multiple errors when the URI params are invalid and one required header is missing" in {
+      Given(s"a GET request with an invalid Nino, an invalid periodId and without the ${Header.StaffPid} request header")
+      val response = controller.get("HT1234B", "An invalid periodId")(requestFilteredOutOneHeader(Header.StaffPid)).run
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 3)
 
       And(s"the 1st error code should be $MISSING_HEADER")
-      errorList.head.code shouldBe MISSING_HEADER.entryName
-      assert(errorList.head.message.startsWith(MISSING_HEADER.message))
+      errorList(0).code shouldBe MISSING_HEADER.entryName
+      assert(errorList(0).message.startsWith(MISSING_HEADER.message))
 
       And(s"the 2nd error code should be $INVALID_NINO")
-      errorList.last.code shouldBe INVALID_NINO.entryName
-      assert(errorList.last.message.startsWith(INVALID_NINO.message))
+      errorList(1).code shouldBe INVALID_NINO.entryName
+      assert(errorList(1).message.startsWith(INVALID_NINO.message))
+
+      And(s"the 3rd error code should be $INVALID_PERIOD_ID")
+      errorList(2).code shouldBe INVALID_PERIOD_ID.entryName
+      assert(errorList(2).message.startsWith(INVALID_PERIOD_ID.message))
     }
   }
 }

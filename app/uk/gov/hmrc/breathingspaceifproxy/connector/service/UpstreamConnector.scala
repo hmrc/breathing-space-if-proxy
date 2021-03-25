@@ -95,6 +95,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
   val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
+  val noPeriodIdFound = """"code":"BREATHINGSPACE_ID_NOT_FOUND""""
 
   private def notFound[T](response: String)(implicit requestId: RequestId): ResponseValidation[T] = {
     val message = response.replaceAll("\\s", "")
@@ -102,6 +103,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
     val baseError =
       if (message.contains(noDataFound)) NO_DATA_FOUND
       else if (message.contains(notInBS)) NOT_IN_BREATHING_SPACE
+      else if (message.contains(noPeriodIdFound)) PERIOD_ID_NOT_FOUND
       else RESOURCE_NOT_FOUND
 
     logErrorAndGenUpstreamResponse(NOT_FOUND, response, baseError)

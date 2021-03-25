@@ -17,10 +17,10 @@ class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
   "get" should {
     "return a Debts instance when it receives a 200(OK) response" in {
       val nino = genNino
-      val url = DebtsConnector.path(nino)
+      val url = DebtsConnector.path(nino, periodId)
       stubCall(HttpMethod.Get, url, OK, debtsAsSentFromEis)
 
-      val response = await(connector.get(nino))
+      val response = await(connector.get(nino, periodId))
 
       verifyHeaders(HttpMethod.Get, url)
       assert(response.fold(_ => false, _ => true))
@@ -30,16 +30,20 @@ class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       verifyGetResponse(FORBIDDEN, BREATHING_SPACE_EXPIRED, "BREATHINGSPACE_EXPIRED".some)
     }
 
-    "return RESOURCE_NOT_FOUND when the given Nino is unknown" in {
-      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND, "IDENTIFIER_NOT_FOUND".some)
-    }
-
     "return NO_DATA_FOUND when the given Nino has no debts" in {
       verifyGetResponse(NOT_FOUND, NO_DATA_FOUND, "NO_DATA_FOUND".some)
     }
 
     "return NOT_IN_BREATHING_SPACE when the given Nino is not in Breathing Space" in {
       verifyGetResponse(NOT_FOUND, NOT_IN_BREATHING_SPACE, "IDENTIFIER_NOT_IN_BREATHINGSPACE".some)
+    }
+
+    "return RESOURCE_NOT_FOUND when the given Nino is unknown" in {
+      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND, "IDENTIFIER_NOT_FOUND".some)
+    }
+
+    "return PERIOD_ID_NOT_FOUND when the given periodId is unknown" in {
+      verifyGetResponse(NOT_FOUND, PERIOD_ID_NOT_FOUND, "BREATHINGSPACE_ID_NOT_FOUND".some)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
@@ -57,10 +61,10 @@ class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
   private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = none): Assertion = {
     val nino = genNino
-    val url = DebtsConnector.path(nino)
+    val url = DebtsConnector.path(nino, periodId)
     stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
-    val response = await(connector.get(nino))
+    val response = await(connector.get(nino, periodId))
 
     verifyHeaders(HttpMethod.Get, url)
     response.fold(_.head.baseError shouldBe baseError, _ => notAnErrorInstance)
