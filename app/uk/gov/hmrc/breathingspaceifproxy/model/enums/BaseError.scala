@@ -37,6 +37,7 @@ object BaseError extends Enum[BaseError] {
   case object INVALID_JSON extends BaseError(BAD_REQUEST, "Payload not in the expected Json format")
   case object INVALID_JSON_ITEM extends BaseError(BAD_REQUEST, "One or more values cannot validated for the Json item")
   case object INVALID_NINO extends BaseError(BAD_REQUEST, "Invalid Nino format")
+  case object INVALID_PERIOD_ID extends BaseError(BAD_REQUEST, "Invalid PeriodId format")
   case object INVALID_UTR extends BaseError(BAD_REQUEST, "Invalid UTR format")
   case object MISSING_BODY extends BaseError(BAD_REQUEST, "The request must have a body")
 
@@ -49,6 +50,7 @@ object BaseError extends Enum[BaseError] {
   case object NO_DATA_FOUND extends BaseError(NOT_FOUND, "No records found for the given Nino")
   case object NOT_AUTHORISED extends BaseError(UNAUTHORIZED, "Request is not authorised. ")
   case object NOT_IN_BREATHING_SPACE extends BaseError(NOT_FOUND, "The given Nino is not in Breathing Space")
+  case object PERIOD_ID_NOT_FOUND extends BaseError(NOT_FOUND, "The given PeriodId was not found")
 
   case object RESOURCE_NOT_FOUND
       extends BaseError(NOT_FOUND, "The upstream service has indicated that the provided resource was not found")

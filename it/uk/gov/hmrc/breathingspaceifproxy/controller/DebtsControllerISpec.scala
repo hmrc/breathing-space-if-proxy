@@ -15,8 +15,8 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 class DebtsControllerISpec extends BaseISpec {
 
   val nino = genNino
-  val getPathWithValidNino = get(nino.value).url
-  val debtsConnectorUrl = DebtsConnector.path(nino)
+  val getPathWithValidNino = get(nino.value, periodIdAsString).url
+  val debtsConnectorUrl = DebtsConnector.path(nino, periodId)
 
   "GET BS Debts for Nino" should {
 
@@ -26,10 +26,10 @@ class DebtsControllerISpec extends BaseISpec {
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
       val ninoWithoutSuffix = genNino
-      val controllerUrl = get(s"${ninoWithoutSuffix.value} ").url
+      val controllerUrl = get(s"${ninoWithoutSuffix.value} ", periodIdAsString).url
       val connectorUrl =
         DebtsConnector
-          .path(ninoWithoutSuffix)
+          .path(ninoWithoutSuffix, periodId)
           .replace(ninoWithoutSuffix.value, s"${ninoWithoutSuffix.value}%20")
 
       stubCall(HttpMethod.Get, connectorUrl, Status.OK, debtsAsSentFromEis)
@@ -81,9 +81,9 @@ class DebtsControllerISpec extends BaseISpec {
 
     "return 404(RESOURCE_NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
-      val url = DebtsConnector.path(unknownNino)
+      val url = DebtsConnector.path(unknownNino, periodId)
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponseFromIF())
-      val response = route(app, fakeRequest(Helpers.GET, get(unknownNino.value).url)).get
+      val response = route(app, fakeRequest(Helpers.GET, get(unknownNino.value, periodIdAsString).url)).get
       status(response) shouldBe Status.NOT_FOUND
 
       verifyHeaders(HttpMethod.Get, url)
@@ -110,6 +110,17 @@ class DebtsControllerISpec extends BaseISpec {
       And(s"the error code should be $NOT_IN_BREATHING_SPACE")
       errorList.head.code shouldBe NOT_IN_BREATHING_SPACE.entryName
       assert(errorList.head.message.startsWith(NOT_IN_BREATHING_SPACE.message))
+    }
+
+    "return 404(PERIOD_ID_NOT_FOUND) when the given periodId was not found" in {
+      stubCall(HttpMethod.Get, debtsConnectorUrl, Status.NOT_FOUND, errorResponseFromIF("BREATHINGSPACE_ID_NOT_FOUND"))
+
+      val response = await(route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get)
+      val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $PERIOD_ID_NOT_FOUND")
+      errorList.head.code shouldBe PERIOD_ID_NOT_FOUND.entryName
+      assert(errorList.head.message.startsWith(PERIOD_ID_NOT_FOUND.message))
     }
   }
 
