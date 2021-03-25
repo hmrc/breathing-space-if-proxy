@@ -94,7 +94,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the URI params are invalid and one required header is missing" in {
-      Given(s"a GET request with an invalid Nino and without the ${Header.StaffPid} request header")
+      Given(s"a GET request with an invalid Nino, an invalid periodId and without the ${Header.StaffPid} request header")
       val response = controller.get("HT1234B", "An invalid periodId")(requestFilteredOutOneHeader(Header.StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 3)
