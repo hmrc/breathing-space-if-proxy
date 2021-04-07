@@ -17,13 +17,11 @@
 package uk.gov.hmrc.breathingspaceifproxy.model.audit
 
 import cats.syntax.option._
-import play.api.http.HeaderNames
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 
 case class AuditRequest(
-  authorization: Option[String],
   method: String,
   path: String,
   requestBody: Option[JsValue]
@@ -34,7 +32,6 @@ object AuditRequest {
 
   def apply[R](request: Request[Validation[R]]): AuditRequest =
     AuditRequest(
-      authorization = request.headers.get(HeaderNames.AUTHORIZATION),
       method = request.method,
       path = request.path,
       requestBody = request.body.fold(_ => none, _ match {
