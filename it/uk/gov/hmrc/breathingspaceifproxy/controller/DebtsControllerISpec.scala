@@ -34,7 +34,7 @@ class DebtsControllerISpec extends BaseISpec {
 
       stubCall(HttpMethod.Get, connectorUrl, Status.OK, debtsAsSentFromEis)
 
-      val response = route(app, fakeRequest(Helpers.GET, controllerUrl)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, controllerUrl)).get
 
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe debts
@@ -53,7 +53,7 @@ class DebtsControllerISpec extends BaseISpec {
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body = Json.obj("aName" -> "aValue")
-      val request = fakeRequest(Helpers.GET, getPathWithValidNino).withBody(body)
+      val request = fakeAttendedRequest(Helpers.GET, getPathWithValidNino).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -65,13 +65,13 @@ class DebtsControllerISpec extends BaseISpec {
     }
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
-      verifyUnauthorized(fakeRequest(Helpers.GET, getPathWithValidNino))
+      verifyUnauthorized(fakeAttendedRequest(Helpers.GET, getPathWithValidNino))
     }
 
     "return 403(BREATHING_SPACE_EXPIRED) when Breathing Space has expired for the given Nino" in {
       stubCall(HttpMethod.Get, debtsConnectorUrl, Status.FORBIDDEN, errorResponseFromIF())
 
-      val response = await(route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get)
+      val response = await(route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get)
       val errorList = verifyErrorResult(response, FORBIDDEN, correlationIdAsString.some, 1)
 
       And(s"the error code should be $BREATHING_SPACE_EXPIRED")
@@ -83,7 +83,7 @@ class DebtsControllerISpec extends BaseISpec {
       val unknownNino = genNino
       val url = DebtsConnector.path(unknownNino, periodId)
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponseFromIF())
-      val response = route(app, fakeRequest(Helpers.GET, get(unknownNino.value, periodIdAsString).url)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, get(unknownNino.value, periodIdAsString).url)).get
       status(response) shouldBe Status.NOT_FOUND
 
       verifyHeaders(HttpMethod.Get, url)
@@ -93,7 +93,7 @@ class DebtsControllerISpec extends BaseISpec {
     "return 404(NO_DATA_FOUND) when no records were found for the provided Nino" in {
       stubCall(HttpMethod.Get, debtsConnectorUrl, Status.NOT_FOUND, errorResponseFromIF("NO_DATA_FOUND"))
 
-      val response = await(route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get)
+      val response = await(route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get)
       val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)
 
       And(s"the error code should be $NO_DATA_FOUND")
@@ -104,7 +104,7 @@ class DebtsControllerISpec extends BaseISpec {
     "return 404(NOT_IN_BREATHING_SPACE) when the given Nino is not in Breathing Space" in {
       stubCall(HttpMethod.Get, debtsConnectorUrl, Status.NOT_FOUND, errorResponseFromIF("IDENTIFIER_NOT_IN_BREATHINGSPACE"))
 
-      val response = await(route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get)
+      val response = await(route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get)
       val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)
 
       And(s"the error code should be $NOT_IN_BREATHING_SPACE")
@@ -115,7 +115,7 @@ class DebtsControllerISpec extends BaseISpec {
     "return 404(PERIOD_ID_NOT_FOUND) when the given periodId was not found" in {
       stubCall(HttpMethod.Get, debtsConnectorUrl, Status.NOT_FOUND, errorResponseFromIF("BREATHINGSPACE_ID_NOT_FOUND"))
 
-      val response = await(route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get)
+      val response = await(route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get)
       val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)
 
       And(s"the error code should be $PERIOD_ID_NOT_FOUND")
@@ -128,8 +128,8 @@ class DebtsControllerISpec extends BaseISpec {
     stubCall(HttpMethod.Get, debtsConnectorUrl, Status.OK, debtsAsSentFromEis)
 
     val request =
-      if (attended) fakeRequest(Helpers.GET, getPathWithValidNino)
-      else fakeRequestForUnattended(Helpers.GET, getPathWithValidNino)
+      if (attended) fakeAttendedRequest(Helpers.GET, getPathWithValidNino)
+      else fakeUnattendedRequest(Helpers.GET, getPathWithValidNino)
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK

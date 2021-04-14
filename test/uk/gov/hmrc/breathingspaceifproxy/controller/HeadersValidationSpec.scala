@@ -18,6 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import scala.concurrent.Future
 
+import cats.syntax.option._
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.mvc.Result
@@ -25,6 +26,7 @@ import play.api.test._
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.Header._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -42,17 +44,20 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test(s"Response should be 400(BAD_REQUEST) when the $CorrelationId header is missing") {
     verifyHeaderIsMissing(
-      controller.get(genNinoString)(requestFilteredOutOneHeader(CorrelationId)).run,
+      controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(CorrelationId)).run,
       CorrelationId
     )
   }
 
   test(s"return 400(BAD_REQUEST) when the $RequestType header is missing") {
-    verifyHeaderIsMissing(controller.get(genNinoString)(requestFilteredOutOneHeader(RequestType)).run, RequestType)
+    verifyHeaderIsMissing(
+      controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(RequestType)).run,
+      RequestType
+    )
   }
 
   test(s"return 400(BAD_REQUEST) when the $StaffPid header is missing") {
-    verifyHeaderIsMissing(controller.get(genNinoString)(requestFilteredOutOneHeader(StaffPid)).run, StaffPid)
+    verifyHeaderIsMissing(controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(StaffPid)).run, StaffPid)
   }
 
   test("return 400(BAD_REQUEST) for a GET when all required headers are missing") {
@@ -67,7 +72,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test("return 400(BAD_REQUEST) for a POST when the Content-Type header is missing") {
     val body = postPeriodsRequestAsJson(postPeriodsRequest())
-    val request = requestFilteredOutOneHeader(CONTENT_TYPE, POST).withBody(body)
+    val request = unattendedRequestFilteredOutOneHeader(CONTENT_TYPE, "POST").withBody(body)
 
     verifyHeaderIsMissing(controller.post(request), CONTENT_TYPE)
   }
@@ -83,6 +88,39 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
     And("the error code for all elements should be MISSING_HEADER")
     assert(errorList.forall(_.code == MISSING_HEADER.entryName))
+  }
+
+  test("return 400(BAD_REQUEST) for a 'POST Periods' when the RequestType header is DA2_BS_ATTENDED") {
+    Given(s"a 'POST Periods' request with a $RequestType header equal to ${Attended.DA2_BS_ATTENDED}")
+    val body = postPeriodsRequestAsJson(postPeriodsRequest())
+    val request = attendedRequestWithAllHeaders(POST).withBody(body)
+
+    val response = controller.post(request)
+
+    val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+    And("the error code for all elements should be INVALID_HEADER")
+    assert(errorList.forall(_.code == INVALID_HEADER.entryName))
+  }
+
+  test("return 400(BAD_REQUEST) for a PUT when the Content-Type header is missing") {
+    val body = putPeriodsRequest(putPeriodsRequest)
+    val request = unattendedRequestFilteredOutOneHeader(CONTENT_TYPE, "PUT").withBody(body)
+
+    verifyHeaderIsMissing(controller.put(genNinoString)(request), CONTENT_TYPE)
+  }
+
+  test("return 400(BAD_REQUEST) for a 'PUT Periods' when the RequestType header is DA2_BS_ATTENDED") {
+    Given(s"a 'PUT Periods' request with a $RequestType header equal to ${Attended.DA2_BS_ATTENDED}")
+    val body = putPeriodsRequest(putPeriodsRequest)
+    val request = attendedRequestWithAllHeaders(PUT).withBody(body)
+
+    val response = controller.put(genNinoString)(request)
+
+    val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+    And("the error code for all elements should be INVALID_HEADER")
+    assert(errorList.forall(_.code == INVALID_HEADER.entryName))
   }
 
   private def verifyHeaderIsMissing(f: => Future[Result], headerFilteredOut: String): Assertion = {

@@ -29,13 +29,13 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
 import play.api.test.Helpers._
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -62,7 +62,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body")
-      val request = requestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest()))
+      val request = unattendedRequestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest()))
 
       val response = controller.post(request)
       status(response) shouldBe CREATED
@@ -73,7 +73,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body where the utr is not provided")
-      val request = requestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest(none)))
+      val request = unattendedRequestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest(none)))
 
       val response = controller.post(request)
       status(response) shouldBe CREATED
@@ -93,7 +93,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       )
 
       And("a request with all required headers and the Period as a valid Json body")
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
       status(response) shouldBe CREATED
@@ -101,7 +101,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
     "return 400(MISSING_NINO) when the Nino is missing" in {
       val body = Json.toJson(postPeriodsRequest()).validNec[ErrorItem]
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -114,7 +114,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
     "return 400(MISSING_CONSUMER_REQUEST_ID) when consumerRequestId is missing" in {
       val body = requestPayloadWithError("", """"utr": "9876543210",""")
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -127,7 +127,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
     "return 400(MISSING_CONSUMER_REQUEST_ID) when consumerRequestId is not in the expected format" in {
       val body = requestPayloadWithError(s""""consumerRequestId": "123456",""")
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -140,7 +140,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
     "return 400(INVALID_JSON) when the Utr is not of the expected type" in {
       val body = requestPayloadWithError(s""""consumerRequestId": "$randomUUID",""", """"utr": 12345,""")
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -153,7 +153,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
     "return 400(INVALID_UTR) when the Utr is not in the expected format" in {
       val body = postPeriodsRequestAsJson(postPeriodsRequest("1234567".some))
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -177,7 +177,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
         )
         .validNec[ErrorItem]
 
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -190,7 +190,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
     "return 400(BAD_REQUEST) when the 'periods' array is not provided" in {
       val body = Json.obj("nino" -> genNinoString, "consumerRequestId" -> randomUUID).validNec[ErrorItem]
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -205,7 +205,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       val body = Json
         .obj("nino" -> genNinoString, "consumerRequestId" -> randomUUID, "periods" -> validPostPeriod)
         .validNec[ErrorItem]
-      val request = requestWithAllHeaders(POST).withBody(body)
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
       val response = controller.post(request)
 
@@ -250,7 +250,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
     val body = postPeriodsRequestAsJson(nino.fold(genNinoString)(identity), randomUUID, startDate, endDate, timestamp)
-    val request = requestWithAllHeaders(POST).withBody(body)
+    val request = unattendedRequestWithAllHeaders(POST).withBody(body)
 
     val response = controller.post(request)
 

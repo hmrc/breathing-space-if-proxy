@@ -67,7 +67,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
       when(mockConnector.get(any[Nino], any[UUID])(any[RequestId], any[HeaderCarrier]))
         .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
-      val response = controller.get(genNinoString, periodIdAsString)(requestFilteredOutOneHeader(CONTENT_TYPE))
+      val response = controller.get(genNinoString, periodIdAsString)(attendedRequestFilteredOutOneHeader(CONTENT_TYPE))
       status(response) shouldBe OK
     }
 
@@ -97,7 +97,8 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
       Given(
         s"a GET request with an invalid Nino, an invalid periodId and without the ${Header.StaffPid} request header"
       )
-      val response = controller.get("HT1234B", "An invalid periodId")(requestFilteredOutOneHeader(Header.StaffPid)).run
+      val response =
+        controller.get("HT1234B", "An invalid periodId")(attendedRequestFilteredOutOneHeader(Header.StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 3)
 

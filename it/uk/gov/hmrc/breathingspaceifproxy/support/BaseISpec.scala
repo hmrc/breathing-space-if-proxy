@@ -77,10 +77,10 @@ abstract class BaseISpec
 
   implicit val appConfig: AppConfig = inject[AppConfig]
 
-  def fakeRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
+  def fakeAttendedRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeaders: _*)
 
-  def fakeRequestForUnattended(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
+  def fakeUnattendedRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeadersForUnattended: _*)
 
   def verifyAuditEventCall(endpointId: EndpointId): Assertion = {

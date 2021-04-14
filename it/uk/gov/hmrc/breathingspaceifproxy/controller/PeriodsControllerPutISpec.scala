@@ -19,7 +19,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
   "PUT BS Periods for Nino" should {
 
     "return 200(OK) and all periods for the valid Nino provided" in {
-      verifyOk(attended = true)
+      verifyOk
     }
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
@@ -33,26 +33,18 @@ class PeriodsControllerPutISpec extends BaseISpec {
       val expectedBody = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedBody)
 
-      val request = fakeRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
+      val request = fakeUnattendedRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
       val response = route(app, request).get
 
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe expectedBody
 
-      verifyHeaders(HttpMethod.Put, connectorUrl)
+      verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
       verifyAuditEventCall(BS_Periods_PUT)
     }
 
-    "return 200(OK) for an ATTENDED request" in {
-      verifyOk(attended = true)
-    }
-
-    "return 200(OK) for an UNATTENDED request" in {
-      verifyOk(attended = false)
-    }
-
     "return 400(BAD_REQUEST) when no body is provided" in {
-      val request = fakeRequest(Helpers.PUT, putPath)
+      val request = fakeUnattendedRequest(Helpers.PUT, putPath)
 
       val response = await(route(app, request).get)
 
@@ -65,7 +57,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
       val body = s"""{periods":[${Json.toJson(validPutPeriod).toString}]}"""
-      val request = fakeRequest(Helpers.PUT, putPath).withBody(body)
+      val request = fakeUnattendedRequest(Helpers.PUT, putPath).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -78,7 +70,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
       val body = putPeriodsRequestAsJson(putPeriodsRequest)
-      val request = fakeRequest(Helpers.PUT, put(genNino.value).url).withBody(body)
+      val request = fakeUnattendedRequest(Helpers.PUT, put(genNino.value).url).withBody(body)
       verifyUnauthorized(request)
     }
 
@@ -88,18 +80,18 @@ class PeriodsControllerPutISpec extends BaseISpec {
       stubCall(HttpMethod.Put, connectorUrl, Status.NOT_FOUND, errorResponseFromIF())
 
       val controllerUrl = put(unknownNino.value).url
-      val request = fakeRequest(Helpers.PUT, controllerUrl)
+      val request = fakeUnattendedRequest(Helpers.PUT, controllerUrl)
         .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
       val response = route(app, request).get
       status(response) shouldBe Status.NOT_FOUND
 
-      verifyHeaders(HttpMethod.Put, connectorUrl)
+      verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
       verifyAuditEventCall(BS_Periods_PUT)
     }
   }
 
-  private def verifyOk(attended: Boolean): Assertion = {
+  private def verifyOk: Assertion = {
     val nino = genNino
     val connectorUrl = PeriodsConnector.path(nino)
     val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
@@ -107,18 +99,13 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
     val controllerUrl = put(nino.value).url
 
-    val request =
-      (if (attended) fakeRequest(Helpers.PUT, controllerUrl)
-      else fakeRequestForUnattended(Helpers.PUT, controllerUrl))
-        .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
+    val request = fakeUnattendedRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK
     contentAsString(response) shouldBe expectedResponseBody
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Put, connectorUrl)
-    else verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
-
+    verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
     verifyAuditEventCall(BS_Periods_PUT)
   }
 }

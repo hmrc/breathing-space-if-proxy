@@ -27,7 +27,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
   "GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {
       val url = getDefinition.url
-      val response = route(app, fakeRequest(Helpers.GET, url)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, url)).get
 
       status(response) shouldBe Status.OK
 
@@ -39,7 +39,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
   "GET /api/conf/1.0/application.raml" should {
     "return 200(OK) and the application.raml content" in {
       val url = conf("1.0", "application.raml").url
-      val response = route(app, fakeRequest(Helpers.GET, url)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, url)).get
 
       status(response) shouldBe Status.OK
       contentAsString(response) should include("title: Breathing Space")

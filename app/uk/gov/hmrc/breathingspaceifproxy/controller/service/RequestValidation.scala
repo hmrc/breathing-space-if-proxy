@@ -31,6 +31,7 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST, BS_Periods_PUT}
 
 trait RequestValidation {
 
@@ -41,7 +42,7 @@ trait RequestValidation {
     (
       validateContentType(request),
       validateCorrelationId(headers),
-      validateRequestType(headers),
+      validateRequestType(headers, endpointId),
       validateStaffPid(headers)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
       .andThen(validateStaffPidForRequestType(endpointId, uc))
@@ -120,10 +121,13 @@ trait RequestValidation {
           )
       }
 
+  private def illegalRequestTypeHeader(requestType: String): Option[String] =
+    s"(${Header.RequestType}). $requestType is an illegal value for this endpoint".some
+
   private def invalidRequestTypeHeader(requestType: String): Option[String] =
     s"(${Header.RequestType}). Was $requestType but valid values are only: ${Attended.values.mkString(", ")}".some
 
-  private def validateRequestType(headers: Headers): Validation[Attended] =
+  private def validateRequestType(headers: Headers, endpointId: EndpointId): Validation[Attended] =
     headers
       .get(Header.RequestType)
       .fold[Validation[Attended]] {
@@ -133,7 +137,12 @@ trait RequestValidation {
           .withNameOption(requestType.toUpperCase)
           .fold[Validation[Attended]] {
             ErrorItem(INVALID_HEADER, invalidRequestTypeHeader(requestType)).invalidNec
-          } { _.validNec }
+          } {
+            case Attended.DA2_BS_ATTENDED if (endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT) =>
+              ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
+
+            case attended => attended.validNec
+          }
       }
 
   private val staffPidRegex = "^[0-9]{7}$".r

@@ -161,15 +161,26 @@ trait BreathingSpaceTestSupport {
   def genRequestId(endpointId: EndpointId, uc: UpstreamConnector): RequestId =
     RequestId(endpointId, correlationId, attendedStaffPid, uc)
 
-  def requestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
-    requestFilteredOutOneHeader("", method)
+  def attendedRequestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+    attendedRequestFilteredOutOneHeader("", method)
 
-  def requestFilteredOutOneHeader(
+  def attendedRequestFilteredOutOneHeader(
     headerToFilterOut: String,
     method: String = "GET"
   ): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, "/").withHeaders(
       requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
+    )
+
+  def unattendedRequestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
+    unattendedRequestFilteredOutOneHeader("", method)
+
+  def unattendedRequestFilteredOutOneHeader(
+    headerToFilterOut: String,
+    method: String = "GET"
+  ): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(method, "/").withHeaders(
+      requestHeadersForUnattended.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
 
   def postPeriodsRequest(utr: Option[String] = "9876543210".some): PostPeriodsInRequest =
