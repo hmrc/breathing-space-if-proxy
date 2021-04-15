@@ -29,13 +29,13 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
 import play.api.test.Helpers._
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -62,7 +62,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body")
-      val request = requestWithAllHeaders(PUT).withBody(putPeriodsRequest(putPeriodsRequest))
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(putPeriodsRequest(putPeriodsRequest))
 
       val response = controller.put(genNinoString)(request)
       status(response) shouldBe OK
@@ -76,7 +76,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val body = putPeriodsRequest(List(PutPeriodInRequest(UUID.randomUUID, LocalDate.now, None, ZonedDateTime.now)))
 
       And("a request with all required headers and the Period as a valid Json body")
-      val request = requestWithAllHeaders(PUT).withBody(body)
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(genNinoString)(request)
       status(response) shouldBe OK
@@ -84,7 +84,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       val body = putPeriodsRequest(putPeriodsRequest)
-      val request = requestWithAllHeaders(PUT).withBody(body)
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(invalidNino)(request)
 
@@ -97,7 +97,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     "return 400(BAD_REQUEST) when the 'periods' array is empty" in {
       val body = Json.obj("periods" -> List.empty[PutPeriodInRequest]).validNec[ErrorItem]
-      val request = requestWithAllHeaders(PUT).withBody(body)
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(genNinoString)(request)
 
@@ -110,7 +110,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     "return 400(BAD_REQUEST) when 'periods' is not an array" in {
       val body = Json.obj("periods" -> validPutPeriod).validNec[ErrorItem]
-      val request = requestWithAllHeaders(PUT).withBody(body)
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(genNinoString)(request)
 
@@ -146,7 +146,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
     val body = putPeriodsRequestAsJson(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
-    val request = requestWithAllHeaders(PUT).withBody(body)
+    val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
     val response = controller.put(genNinoString)(request)
 

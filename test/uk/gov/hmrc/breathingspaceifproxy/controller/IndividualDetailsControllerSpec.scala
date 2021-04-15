@@ -60,7 +60,7 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
     }
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
-      verifyResponse(requestFilteredOutOneHeader(CONTENT_TYPE))
+      verifyResponse(attendedRequestFilteredOutOneHeader(CONTENT_TYPE))
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
@@ -70,7 +70,7 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
       Given(s"a GET request with an invalid Nino and without the $StaffPid request header")
-      val response = controller.getDetails("HT1234B")(requestFilteredOutOneHeader(StaffPid)).run
+      val response = controller.getDetails("HT1234B")(attendedRequestFilteredOutOneHeader(StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 

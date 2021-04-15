@@ -20,23 +20,15 @@ class PeriodsControllerPostISpec extends BaseISpec {
   "POST BS Periods for Nino" should {
 
     "return 201(CREATED) and all periods for the valid Nino provided" in {
-      verifyCreated(attended = true)
-    }
-
-    "return 201(CREATED) for an ATTENDED request" in {
-      verifyCreated(attended = true)
-    }
-
-    "return 201(CREATED) for an UNATTENDED request" in {
-      verifyCreated(attended = false)
+      verifyCreated()
     }
 
     "return 201(CREATED) even when the UTR is not provided" in {
-      verifyCreated(attended = false, postPeriodsRequest(none))
+      verifyCreated(postPeriodsRequest(none))
     }
 
     "return 400(BAD_REQUEST) when no body is provided" in {
-      val request = fakeRequest(Helpers.POST, postPath)
+      val request = fakeUnattendedRequest(Helpers.POST, postPath)
 
       val response = await(route(app, request).get)
 
@@ -49,7 +41,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
       val body = s"""{nino":"${genNinoString}","periods":[${Json.toJson(validPostPeriod).toString}]}"""
-      val request = fakeRequest(Helpers.POST, postPath).withBody(body)
+      val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -62,7 +54,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
       val body = postPeriodsRequestAsJson(genNino.value, postPeriodsRequest())
-      val request = fakeRequest(Helpers.POST, postPath).withBody(body)
+      val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
       verifyUnauthorized(request)
     }
 
@@ -71,37 +63,31 @@ class PeriodsControllerPostISpec extends BaseISpec {
       val url = PeriodsConnector.path(unknownNino)
       stubCall(HttpMethod.Post, url, Status.NOT_FOUND, errorResponseFromIF())
 
-      val request = fakeRequest(Helpers.POST, postPath)
-        .withBody(postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest()))
+      val body = postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest())
+      val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
       val response = route(app, request).get
       status(response) shouldBe Status.NOT_FOUND
 
-      verifyHeaders(HttpMethod.Post, url)
+      verifyHeadersForUnattended(HttpMethod.Post, url)
       verifyAuditEventCall(BS_Periods_POST)
     }
   }
 
-  private def verifyCreated(attended: Boolean, postPeriods: PostPeriodsInRequest = postPeriodsRequest()): Assertion = {
+  private def verifyCreated(postPeriods: PostPeriodsInRequest = postPeriodsRequest()): Assertion = {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
     val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
     stubCall(HttpMethod.Post, url, Status.CREATED, expectedResponseBody)
 
     val body = postPeriodsRequestAsJson(nino.value, postPeriods)
-
-    val request =
-      (if (attended) fakeRequest(Helpers.POST, postPath)
-      else fakeRequestForUnattended(Helpers.POST, postPath))
-        .withBody(body)
+    val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
     val response = route(app, request).get
     status(response) shouldBe Status.CREATED
     contentAsString(response) shouldBe expectedResponseBody
 
-    if (attended) verifyHeadersForAttended(HttpMethod.Post, url)
-    else verifyHeadersForUnattended(HttpMethod.Post, url)
-
+    verifyHeadersForUnattended(HttpMethod.Post, url)
     verifyAuditEventCall(BS_Periods_POST)
   }
 }

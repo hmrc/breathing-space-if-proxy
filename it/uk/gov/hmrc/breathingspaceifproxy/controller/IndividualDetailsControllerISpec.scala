@@ -32,7 +32,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body = Json.obj("aName" -> "aValue")
-      val request = fakeRequest(Helpers.GET, getDetails(genNino.value).url).withBody(body)
+      val request = fakeAttendedRequest(Helpers.GET, getDetails(genNino.value).url).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -44,7 +44,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     }
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
-      verifyUnauthorized(fakeRequest(Helpers.GET, getDetails(genNino.value).url))
+      verifyUnauthorized(fakeAttendedRequest(Helpers.GET, getDetails(genNino.value).url))
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
@@ -70,8 +70,8 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     stubCall(HttpMethod.Get, path, expectedStatus, expectedResponseBody, queryParams)
 
     val request =
-      if (attended) fakeRequest(Helpers.GET, getDetails(nino.value).url)
-      else fakeRequestForUnattended(Helpers.GET, getDetails(nino.value).url)
+      if (attended) fakeAttendedRequest(Helpers.GET, getDetails(nino.value).url)
+      else fakeUnattendedRequest(Helpers.GET, getDetails(nino.value).url)
 
     val response = route(app, request).get
     status(response) shouldBe expectedStatus

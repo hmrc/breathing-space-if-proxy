@@ -277,7 +277,27 @@ traits:
         description: Update all Breathing Space periods for the given Nino.
         (annotations.scope): "write:breathing-space-periods"
         securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
-        is: [headers.contentHeader, applicationHeaders]
+        headers:
+          Content-Type:
+            description: Specifies the content type of the payload. Must be same as the example given.
+            type: string
+            required: true
+            example: application/json;charset=utf-8
+          Correlation-Id:
+            description: A unique UUID for this request
+            type: string
+            required: true
+            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          Request-Type:
+            description: Context flag for this request. Must be same as the example given.
+            type: string
+            required: true
+            example: DA2_BS_UNATTENDED
+          Staff-Id:
+            description: The Staff identifier. Must be same as the example given.
+            type: string
+            required: true
+            example: "0000000"
         body:
           application/json:
             type: !include schemas/PUT-BS-Periods-Request.json
@@ -351,7 +371,27 @@ traits:
       description: Create new Breathing Space periods for a given Nino.
       (annotations.scope): "write:breathing-space-periods"
       securedBy: [ sec.oauth_2_0: { scopes: [ "write:breathing-space-periods" ] } ]
-      is: [headers.contentHeader, applicationHeaders]
+      headers:
+        Content-Type:
+          description: Specifies the content type of the request payload. Must be same as the example given.
+          type: string
+          required: true
+          example: application/json;charset=utf-8
+        Correlation-Id:
+          description: A unique UUID for this request
+          type: string
+          required: true
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+        Request-Type:
+          description: Context flag for this request. Must be same as the example given.
+          type: string
+          required: true
+          example: DA2_BS_UNATTENDED
+        Staff-Id:
+          description: The Staff identifier. Must be same as the example given.
+          type: string
+          required: true
+          example: "0000000"
       body:
         application/json:
           type: !include schemas/POST-BS-Periods-Request.json

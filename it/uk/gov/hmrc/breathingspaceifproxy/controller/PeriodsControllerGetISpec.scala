@@ -35,7 +35,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
       val expectedBody = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Get, connectorUrl, Status.OK, expectedBody)
 
-      val response = route(app, fakeRequest(Helpers.GET, controllerUrl)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, controllerUrl)).get
 
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe expectedBody
@@ -48,7 +48,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
       val expectedBody = """{"periods":[]}"""
       stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedBody)
 
-      val response = route(app, fakeRequest(Helpers.GET, getPathWithValidNino)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe expectedBody
 
@@ -66,7 +66,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body = Json.obj("aName" -> "aValue")
-      val request = fakeRequest(Helpers.GET, getPathWithValidNino).withBody(body)
+      val request = fakeAttendedRequest(Helpers.GET, getPathWithValidNino).withBody(body)
 
       val response = await(route(app, request).get)
 
@@ -78,14 +78,14 @@ class PeriodsControllerGetISpec extends BaseISpec {
     }
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
-      verifyUnauthorized(fakeRequest(Helpers.GET, getPathWithValidNino))
+      verifyUnauthorized(fakeAttendedRequest(Helpers.GET, getPathWithValidNino))
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
       val url = PeriodsConnector.path(unknownNino)
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponseFromIF())
-      val response = route(app, fakeRequest(Helpers.GET, get(unknownNino.value).url)).get
+      val response = route(app, fakeAttendedRequest(Helpers.GET, get(unknownNino.value).url)).get
       status(response) shouldBe Status.NOT_FOUND
 
       verifyHeaders(HttpMethod.Get, url)
@@ -98,8 +98,8 @@ class PeriodsControllerGetISpec extends BaseISpec {
     stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedResponseBody)
 
     val request =
-      if (attended) fakeRequest(Helpers.GET, getPathWithValidNino)
-      else fakeRequestForUnattended(Helpers.GET, getPathWithValidNino)
+      if (attended) fakeAttendedRequest(Helpers.GET, getPathWithValidNino)
+      else fakeUnattendedRequest(Helpers.GET, getPathWithValidNino)
 
     val response = route(app, request).get
     status(response) shouldBe Status.OK

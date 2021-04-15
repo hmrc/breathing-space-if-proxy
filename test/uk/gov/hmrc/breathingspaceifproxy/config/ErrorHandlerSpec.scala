@@ -31,7 +31,7 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
     "return an error message as response's body according to the expected format (a list of errors)" in {
       val statusCode = BAD_REQUEST
       val expectedMessage = "Invalid Json."
-      val request = requestFilteredOutOneHeader(Header.CorrelationId)
+      val request = attendedRequestFilteredOutOneHeader(Header.CorrelationId)
 
       val response = errorHandler.onClientError(request, statusCode, expectedMessage)
 
