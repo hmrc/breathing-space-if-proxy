@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.Validation
 case class AuditRequest(
   method: String,
   path: String,
-  requestBody: Option[JsValue]
+  payload: Option[JsValue]
 )
 
 object AuditRequest {
@@ -34,7 +34,7 @@ object AuditRequest {
     AuditRequest(
       method = request.method,
       path = request.path,
-      requestBody = request.body.fold(_ => none, _ match {
+      payload = request.body.fold(_ => none, _ match {
         case b: JsValue => b.some
         case _ => none
       })
