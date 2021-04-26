@@ -84,7 +84,7 @@ abstract class BaseISpec
     FakeRequest(method, path).withHeaders(requestHeadersForUnattended: _*)
 
   def verifyAuditEventCall(endpointId: EndpointId): Assertion = {
-    val body = s"""{"auditSource":"breathing-space-if-proxy", "auditType":"${endpointId.entryName}"}"""
+    val body = s"""{"auditSource":"breathing-space-if-proxy", "auditType":"${endpointId.auditType}"}"""
     val requestedFor =
       postRequestedFor(urlEqualTo("/write/audit"))
         .withRequestBody(equalToJson(body, true, true))

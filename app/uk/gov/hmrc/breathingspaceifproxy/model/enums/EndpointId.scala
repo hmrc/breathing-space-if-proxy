@@ -18,15 +18,15 @@ package uk.gov.hmrc.breathingspaceifproxy.model.enums
 
 import enumeratum._
 
-sealed trait EndpointId extends EnumEntry
+sealed abstract class EndpointId(val auditType: String) extends EnumEntry
 
 object EndpointId extends Enum[EndpointId] {
 
-  case object BS_Debts_GET extends EndpointId
-  case object BS_Details_GET extends EndpointId
-  case object BS_Periods_GET extends EndpointId
-  case object BS_Periods_POST extends EndpointId
-  case object BS_Periods_PUT extends EndpointId
+  case object BS_Debts_GET extends EndpointId("RetrieveIndividualDebts")
+  case object BS_Details_GET extends EndpointId("RetrieveIndividualDetails")
+  case object BS_Periods_GET extends EndpointId("RetrieveBreathingSpacePeriods")
+  case object BS_Periods_POST extends EndpointId("CreateBreathingSpacePeriods")
+  case object BS_Periods_PUT extends EndpointId("AmendBreathingSpacePeriods")
 
   override val values = findValues
 }

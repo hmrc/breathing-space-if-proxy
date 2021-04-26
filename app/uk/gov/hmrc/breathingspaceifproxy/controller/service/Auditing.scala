@@ -40,7 +40,7 @@ trait Auditing {
   )(implicit hc: HeaderCarrier, nino: Nino, request: Request[Validation[R]], requestId: RequestId): Future[Unit] =
     Future {
       auditConnector.sendExplicitAudit(
-        requestId.endpointId.entryName,
+        auditType = requestId.endpointId.auditType,
         AuditDetail(
           correlationId = requestId.correlationId,
           nino = nino.value,
@@ -61,8 +61,8 @@ trait Auditing {
     Json.obj(
       fields =
         "detail" -> Json.obj(
-          "responseMessage" -> payload,
-          "statusCode" -> Json.toJson(status)
+          "payload" -> payload,
+          "httpStatusCode" -> Json.toJson(status)
         ),
       "generatedAt" -> Json.toJson(ZonedDateTime.now.format(timestampFormatter))
     )
