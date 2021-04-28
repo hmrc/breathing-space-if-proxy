@@ -19,7 +19,6 @@ package uk.gov.hmrc.breathingspaceifproxy.config
 import javax.inject.{Inject, Singleton}
 
 import play.api.Configuration
-import uk.gov.hmrc.breathingspaceifproxy.Header
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 final case class HeaderMapping(nameToMap: String, nameMapped: String)
@@ -53,14 +52,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
   val integrationframeworkAuthToken =
     s"""Bearer ${config.get[String]("microservice.services.integration-framework.auth-token")}"""
-
-  val staffPidMapped = servicesConfig.getString("headers.mapping.staff-pid")
-
-  val headerMapping = List[HeaderMapping](
-    HeaderMapping(Header.CorrelationId, servicesConfig.getString("headers.mapping.correlation-id")),
-    HeaderMapping(Header.RequestType, servicesConfig.getString("headers.mapping.request-type")),
-    HeaderMapping(Header.StaffPid, staffPidMapped)
-  )
 
   // Must be 'lazy'
   lazy val v1WhitelistedApplicationIds =

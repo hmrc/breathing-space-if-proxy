@@ -25,7 +25,7 @@ import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
 
 case class HttpError(value: Result) {
   lazy val send = Future.successful(value)
@@ -56,7 +56,7 @@ object HttpError {
       Status(httpErrorCode)(payload)
         .withHeaders(
           correlationId.fold(headers) { corrId =>
-            headers :+ (Header.CorrelationId -> corrId)
+            headers :+ (UpstreamHeader.CorrelationId -> corrId)
           }: _*
         )
     )

@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Request, Result}
 import play.api.test.Helpers
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.Header.StaffPid
+import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader.StaffPid
 import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
@@ -39,11 +39,11 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockUpstreamConnector = mock[EisConnector]
-  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
+  val mockDownstreamConnector = mock[EisConnector]
+  when(mockDownstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: IndividualDetailsConnector = mock[IndividualDetailsConnector]
-  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
+  when(mockConnector.eisConnector).thenReturn(mockDownstreamConnector)
 
   val controller = new IndividualDetailsController(
     appConfig,

@@ -35,11 +35,11 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockUpstreamConnector = mock[EisConnector]
-  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
+  val mockDownstreamConnector = mock[EisConnector]
+  when(mockDownstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: PeriodsConnector = mock[PeriodsConnector]
-  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
+  when(mockConnector.eisConnector).thenReturn(mockDownstreamConnector)
 
   val controller = new PeriodsController(
     appConfig,
@@ -81,8 +81,8 @@ class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
-      Given(s"a GET request with an invalid Nino and without the ${Header.StaffPid} request header")
-      val response = controller.get("HT1234B")(attendedRequestFilteredOutOneHeader(Header.StaffPid)).run
+      Given(s"a GET request with an invalid Nino and without the ${UpstreamHeader.StaffPid} request header")
+      val response = controller.get("HT1234B")(attendedRequestFilteredOutOneHeader(UpstreamHeader.StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 

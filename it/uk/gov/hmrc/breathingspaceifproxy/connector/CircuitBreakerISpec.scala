@@ -1,3 +1,19 @@
+/*
+ * Copyright 2021 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import java.util.UUID
@@ -20,7 +36,7 @@ import play.api.test.Helpers.await
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.DownstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
@@ -97,10 +113,10 @@ abstract class CircuitBreakerISpec
   protected def verifyCircuitBreaker[T](
     call: => ResponseValidation[T],
     expected: T,
-    upstreamConnector: UpstreamConnector
+    downstreamConnector: DownstreamConnector
   ): Assertion = {
 
-    upstreamConnector.currentState shouldBe "HEALTHY"
+    downstreamConnector.currentState shouldBe "HEALTHY"
 
     (1 to failedCalls).foreach { ix =>
       val shouldBeBadGatewayOnLeft = await(call).toEither
@@ -108,7 +124,7 @@ abstract class CircuitBreakerISpec
         case Left(error) => error.head.baseError shouldBe UPSTREAM_BAD_GATEWAY
         case _ => assert(false)
       }
-      upstreamConnector.currentState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")
+      downstreamConnector.currentState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")
     }
 
     val shouldBeBadGatewayOnLeft = await(call).toEither
@@ -116,14 +132,14 @@ abstract class CircuitBreakerISpec
       case Left(error) => error.head.baseError shouldBe SERVER_ERROR
       case _ => assert(false)
     }
-    upstreamConnector.currentState shouldBe "UNAVAILABLE"
+    downstreamConnector.currentState shouldBe "UNAVAILABLE"
 
     val shouldBeServerErrorOnLeft = await(call).toEither
     shouldBeServerErrorOnLeft match {
       case Left(error) => error.head.baseError shouldBe SERVER_ERROR
       case _ => assert(false)
     }
-    upstreamConnector.currentState shouldBe "UNAVAILABLE"
+    downstreamConnector.currentState shouldBe "UNAVAILABLE"
 
     Thread.sleep(unavailablePeriodDuration)
 
@@ -133,7 +149,7 @@ abstract class CircuitBreakerISpec
         case Right(actual) => actual shouldBe expected
         case _ => assert(false)
       }
-      !(upstreamConnector.currentState == (if (ix == failedCalls) "HEALTHY" else "TRIAL"))
+      !(downstreamConnector.currentState == (if (ix == failedCalls) "HEALTHY" else "TRIAL"))
     } shouldBe None
   }
 }

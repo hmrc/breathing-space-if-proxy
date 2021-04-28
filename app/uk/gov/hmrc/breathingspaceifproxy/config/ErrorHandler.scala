@@ -26,7 +26,7 @@ import play.api.http.Status.NOT_FOUND
 import play.api.libs.json.{JsArray, Json}
 import play.api.mvc.{RequestHeader, Result}
 import play.api.routing.Router
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -42,7 +42,7 @@ class ErrorHandler @Inject()(
     with Logging {
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    val correlationId = request.headers.get(Header.CorrelationId)
+    val correlationId = request.headers.get(UpstreamHeader.CorrelationId)
     val endpoint = s"${request.method} ${request.path} has status code"
     if (statusCode == NOT_FOUND) sendInvalidEndpoint(correlationId, endpoint)
     else {
@@ -53,7 +53,7 @@ class ErrorHandler @Inject()(
   }
 
   override def onServerError(request: RequestHeader, throwable: Throwable): Future[Result] = {
-    val correlationId = request.headers.get(Header.CorrelationId)
+    val correlationId = request.headers.get(UpstreamHeader.CorrelationId)
     val endpoint = s"${request.method} ${request.path}"
     logger.error(s"${logCorrelationId(correlationId)} $endpoint", throwable)
     HttpError(correlationId, ErrorItem(SERVER_ERROR)).send
