@@ -19,7 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.config
 import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
@@ -31,7 +31,7 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
     "return an error message as response's body according to the expected format (a list of errors)" in {
       val statusCode = BAD_REQUEST
       val expectedMessage = "Invalid Json."
-      val request = attendedRequestFilteredOutOneHeader(Header.CorrelationId)
+      val request = attendedRequestFilteredOutOneHeader(UpstreamHeader.CorrelationId)
 
       val response = errorHandler.onClientError(request, statusCode, expectedMessage)
 

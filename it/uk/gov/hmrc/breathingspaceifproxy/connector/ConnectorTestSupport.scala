@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import cats.syntax.option._
 import play.api.http.MimeTypes
-import uk.gov.hmrc.breathingspaceifproxy.Header
+import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 
 trait ConnectorTestSupport { this: BaseISpec =>
 
@@ -30,10 +29,10 @@ trait ConnectorTestSupport { this: BaseISpec =>
     authorization = Authorization(appConfig.integrationframeworkAuthToken).some,
     extraHeaders = List(
       CONTENT_TYPE -> MimeTypes.JSON,
-      Header.Environment -> appConfig.integrationFrameworkEnvironment,
-      retrieveHeaderMapping(Header.CorrelationId) -> correlationIdAsString,
-      retrieveHeaderMapping(Header.RequestType) -> Attended.DA2_BS_ATTENDED.entryName,
-      retrieveHeaderMapping(Header.StaffPid) -> attendedStaffPid
+      DownstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment,
+      DownstreamHeader.CorrelationId -> correlationIdAsString,
+      DownstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.entryName,
+      DownstreamHeader.StaffPid -> attendedStaffPid
     )
   )
 

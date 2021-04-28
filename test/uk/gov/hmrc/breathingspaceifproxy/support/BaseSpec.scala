@@ -34,7 +34,7 @@ import play.api.test.{DefaultAwaitTimeout, Injecting}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
-import uk.gov.hmrc.breathingspaceifproxy.{unit, Header}
+import uk.gov.hmrc.breathingspaceifproxy.{unit, UpstreamHeader}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -77,7 +77,7 @@ trait BaseSpec
 
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
-      headers.get(Header.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
+      headers.get(UpstreamHeader.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
       headers.size shouldBe 2
     }
 

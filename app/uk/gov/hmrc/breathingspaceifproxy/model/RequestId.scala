@@ -18,12 +18,13 @@ package uk.gov.hmrc.breathingspaceifproxy.model
 
 import java.util.UUID
 
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.DownstreamConnector
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 
 final case class RequestId(
   endpointId: EndpointId,
   correlationId: UUID,
+  requestType: Attended,
   staffId: String,
-  upstreamConnector: UpstreamConnector
+  downstreamConnector: DownstreamConnector
 )

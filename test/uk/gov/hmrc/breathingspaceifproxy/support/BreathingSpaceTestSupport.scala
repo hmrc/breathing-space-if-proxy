@@ -30,7 +30,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.DownstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
@@ -63,16 +63,16 @@ trait BreathingSpaceTestSupport {
 
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    Header.CorrelationId -> correlationIdAsString,
-    Header.RequestType -> Attended.DA2_BS_ATTENDED.toString,
-    Header.StaffPid -> attendedStaffPid
+    UpstreamHeader.CorrelationId -> correlationIdAsString,
+    UpstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.toString,
+    UpstreamHeader.StaffPid -> attendedStaffPid
   )
 
   lazy val requestHeadersForUnattended = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    Header.CorrelationId -> correlationIdAsString,
-    Header.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
-    Header.StaffPid -> unattendedStaffPid
+    UpstreamHeader.CorrelationId -> correlationIdAsString,
+    UpstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
+    UpstreamHeader.StaffPid -> unattendedStaffPid
   )
 
   lazy val validPostPeriod = PostPeriodInRequest(
@@ -158,8 +158,8 @@ trait BreathingSpaceTestSupport {
     Nino(f"$prefix$number%06d$suffix")
   }
 
-  def genRequestId(endpointId: EndpointId, uc: UpstreamConnector): RequestId =
-    RequestId(endpointId, correlationId, attendedStaffPid, uc)
+  def genRequestId(endpointId: EndpointId, downstreamConnector: DownstreamConnector): RequestId =
+    RequestId(endpointId, correlationId, Attended.DA2_BS_ATTENDED, attendedStaffPid, downstreamConnector)
 
   def attendedRequestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     attendedRequestFilteredOutOneHeader("", method)
@@ -233,7 +233,4 @@ trait BreathingSpaceTestSupport {
       .foldLeft(Map.empty[String, String]) { (map, pair) =>
         map + (pair(0) -> pair(1))
       }
-
-  def retrieveHeaderMapping(header: String): String =
-    appConfig.headerMapping.filter(_.nameToMap == header).head.nameMapped
 }

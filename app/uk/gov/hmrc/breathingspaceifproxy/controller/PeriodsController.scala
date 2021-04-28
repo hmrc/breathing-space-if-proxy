@@ -126,7 +126,7 @@ class PeriodsController @Inject()(
       Either
         .catchNonFatal(UUID.fromString(crId))
         .fold(
-          _ => ErrorItem(INVALID_CONSUMER_REQUEST_ID, s"(${Header.CorrelationId})".some).invalidNec[UUID],
+          _ => ErrorItem(INVALID_CONSUMER_REQUEST_ID, s"(${UpstreamHeader.CorrelationId})".some).invalidNec[UUID],
           _.validNec[ErrorItem]
         )
     }

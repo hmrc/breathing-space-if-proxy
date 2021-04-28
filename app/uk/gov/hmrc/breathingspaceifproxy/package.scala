@@ -30,12 +30,18 @@ package object breathingspaceifproxy {
   type Validation[T] = ValidatedNec[ErrorItem, T]
   type ResponseValidation[T] = Future[Validation[T]]
 
-  object Header {
-    lazy val Authorization = "Authorization"
-    lazy val Environment = "Environment"
+  object UpstreamHeader {
     lazy val CorrelationId = "Correlation-Id"
     lazy val RequestType = "Request-Type"
     lazy val StaffPid = "Pid"
-    lazy val UpstreamState = "Upstream-State"
+    lazy val DownstreamState = "Downstream-State"
+  }
+
+  object DownstreamHeader {
+    lazy val Authorization = "Authorization"
+    lazy val Environment = "Environment"
+    lazy val CorrelationId = "CorrelationId"
+    lazy val RequestType = "OriginatorId"
+    lazy val StaffPid = "UserId"
   }
 }

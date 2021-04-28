@@ -19,18 +19,18 @@ package uk.gov.hmrc.breathingspaceifproxy.controller.service
 import scala.concurrent.Future
 
 import cats.syntax.either._
+import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.config.{AppConfig, HeaderMapping}
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 abstract class AbstractBaseController(
@@ -69,7 +69,7 @@ abstract class AbstractBaseController(
     auditEvent(errorList.head.baseError.httpCode, payload)
     Future.successful {
       HttpError(requestId.correlationId, errors).value
-        .withHeaders(Header.UpstreamState -> requestId.upstreamConnector.currentState)
+        .withHeaders(UpstreamHeader.DownstreamState -> requestId.downstreamConnector.currentState)
     }
   }
 
@@ -85,30 +85,22 @@ abstract class AbstractBaseController(
   def logHeaders(implicit request: RequestHeader): Unit =
     logger.info(request.headers.headers.toList.mkString("Headers[", ":", "]"))
 
+  protected implicit def hc(implicit requestId: RequestId): HeaderCarrier = {
+    val extraHeaders = List(
+      (DownstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment).some,
+      (DownstreamHeader.CorrelationId -> requestId.correlationId.toString).some,
+      (DownstreamHeader.RequestType -> requestId.requestType.entryName).some,
+      (if (requestId.staffId == unattendedStaffPid) none else (DownstreamHeader.StaffPid -> requestId.staffId).some)
+    ).flatMap(identity(_))
+
+    HeaderCarrier(
+      authorization = Some(Authorization(appConfig.integrationframeworkAuthToken)),
+      extraHeaders = extraHeaders
+    )
+  }
+
   private def errorOnBody[T](error: BaseError): BodyParser[Validation[T]] =
     parse.ignore[Validation[T]](ErrorItem(error).invalidNec)
-
-  override protected implicit def hc(implicit requestFromClient: RequestHeader): HeaderCarrier = {
-    val headers = requestFromClient.headers
-      .replace(List(Header.Authorization -> appConfig.integrationframeworkAuthToken): _*)
-
-    // Presence of the headers to map (by using "appConfig.headerMapping") was already validated
-    // in RequestValidation. The mapping only takes place on the header's name, not on the value.
-    val extraHeaders =
-      (Header.Environment -> appConfig.integrationFrameworkEnvironment) +: appConfig.headerMapping
-        .map(mapAndReturnHeader(_, headers.headers))
-        .filter(header => header._1 != appConfig.staffPidMapped || header._2 != unattendedStaffPid)
-
-    HeaderCarrierConverter
-      .fromHeadersAndSessionAndRequest(headers, request = Some(requestFromClient))
-      .withExtraHeaders(extraHeaders: _*)
-  }
-
-  private def mapAndReturnHeader(hdrMapping: HeaderMapping, hdrs: Seq[(String, String)]): (String, String) = {
-    val hdrValue =
-      hdrs.filter(hdrFromClient => hdrFromClient._1.toLowerCase == hdrMapping.nameToMap.toLowerCase).head._2
-    hdrMapping.nameMapped -> hdrValue
-  }
 
   private def sendResponse[T](status: Int, payload: JsValue)(implicit requestId: RequestId): Future[Result] = {
     logger.debug(s"Response to $requestId has status(${status})")
@@ -116,8 +108,8 @@ abstract class AbstractBaseController(
       Status(status)(payload)
         .withHeaders(
           HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-          Header.CorrelationId -> requestId.correlationId.toString,
-          Header.UpstreamState -> requestId.upstreamConnector.currentState
+          UpstreamHeader.CorrelationId -> requestId.correlationId.toString,
+          UpstreamHeader.DownstreamState -> requestId.downstreamConnector.currentState
         )
         .as(MimeTypes.JSON)
     }

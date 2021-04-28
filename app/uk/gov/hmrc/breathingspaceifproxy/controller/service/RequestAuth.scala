@@ -25,7 +25,7 @@ import uk.gov.hmrc.auth.core.{AuthProviders, _}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, HttpError}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{NOT_AUTHORISED, SERVER_ERROR}
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
 
@@ -40,7 +40,7 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
       override protected def executionContext: ExecutionContext = controllerComponents.executionContext
 
       override def invokeBlock[A](request: Request[A], f: Request[A] => Future[Result]): Future[Result] = {
-        val headerCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers, none)
+        val headerCarrier = HeaderCarrierConverter.fromRequest(request)
         authorised(authProviders.and(Enrolment(scope)))(f(request))(headerCarrier, executionContext)
           .recoverWith {
             case exc: AuthorisationException =>

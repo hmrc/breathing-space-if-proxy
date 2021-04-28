@@ -30,7 +30,7 @@ import uk.gov.hmrc.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpException}
 import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
 
-trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
+trait DownstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
 
   override def breakOnException(throwable: Throwable): Boolean =
     throwable match {

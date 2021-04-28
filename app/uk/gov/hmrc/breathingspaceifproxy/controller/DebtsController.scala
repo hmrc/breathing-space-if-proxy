@@ -70,7 +70,7 @@ class DebtsController @Inject()(
     Either
       .catchNonFatal(UUID.fromString(maybePeriodId))
       .fold(
-        _ => ErrorItem(INVALID_PERIOD_ID, s"(${Header.CorrelationId})".some).invalidNec[UUID],
+        _ => ErrorItem(INVALID_PERIOD_ID, s"(${UpstreamHeader.CorrelationId})".some).invalidNec[UUID],
         _.validNec[ErrorItem]
       )
 }
