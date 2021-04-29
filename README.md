@@ -17,7 +17,7 @@ This &#xb5;service enables interaction between PEGA Cloud, the platform controll
 
 Start a terminal and enter:
 ```
-$ sm --start AUTH
+$ sm --start AUTH AUTH_LOGIN_API AUTH_LOGIN_STUB USER_DETAILS IDENTITY_VERIFICATION ASSETS_FRONTEND -f
 $ sbt run
 ```
 
