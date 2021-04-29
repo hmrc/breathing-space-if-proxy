@@ -54,6 +54,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
     s"""Bearer ${config.get[String]("microservice.services.integration-framework.auth-token")}"""
 
   // Must be 'lazy'
-  lazy val v1WhitelistedApplicationIds =
-    config.get[Seq[String]]("api.access.version-1.0.whitelistedApplicationIds")
+  lazy val v1AllowlistedApplicationIds =
+    config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
 }

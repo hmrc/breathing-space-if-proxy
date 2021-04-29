@@ -56,8 +56,8 @@ abstract class BaseISpec
     with WireMockSupport {
 
   val configProperties: Map[String, Any] = Map(
-    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
-    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321",
+    "api.access.version-1.0.allowlistedApplicationIds.0" -> "123456789",
+    "api.access.version-1.0.allowlistedApplicationIds.1" -> "987654321",
     "auditing.enabled" -> true,
     "auditing.consumer.baseUri.host" -> wireMockHost,
     "auditing.consumer.baseUri.port" -> wireMockPort,
