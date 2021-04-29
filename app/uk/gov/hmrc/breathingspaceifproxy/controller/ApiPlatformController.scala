@@ -32,7 +32,7 @@ class ApiPlatformController @Inject()(appConfig: AppConfig, cc: ControllerCompon
 
   val getDefinition: Action[AnyContent] = Action {
     logger.debug(s"ApiPlatformController definition endpoint has been called")
-    Ok(views.txt.definition(appConfig.v1WhitelistedApplicationIds)).as(MimeTypes.JSON)
+    Ok(views.txt.definition(appConfig.v1AllowlistedApplicationIds)).as(MimeTypes.JSON)
   }
 
   def conf(version: String, file: String): Action[AnyContent] =

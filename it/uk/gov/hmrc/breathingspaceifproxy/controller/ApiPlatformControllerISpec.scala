@@ -31,7 +31,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
 
       status(response) shouldBe Status.OK
 
-      val appId = appConfig.v1WhitelistedApplicationIds.head
+      val appId = appConfig.v1AllowlistedApplicationIds.head
       contentAsString(response) should include(s""""whitelistedApplicationIds": ["${appId}"""")
     }
   }

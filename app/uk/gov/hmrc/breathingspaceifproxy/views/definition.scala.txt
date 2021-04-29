@@ -1,6 +1,6 @@
 @import play.api.libs.json.Json
 
-@(v1WhitelistedApplicationIds:  Seq[String])
+@(v1AllowlistedApplicationIds:  Seq[String])
 
 {
   "scopes": [
@@ -37,7 +37,7 @@
         "endpointsEnabled": false,
         "access": {
           "type": "PRIVATE",
-          "whitelistedApplicationIds": @{Json.toJson(v1WhitelistedApplicationIds)}
+          "whitelistedApplicationIds": @{Json.toJson(v1AllowlistedApplicationIds)}
         }
       }
     ]

@@ -33,8 +33,8 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
   def configProperties: Map[String, Any] = Map(
-    "api.access.version-1.0.whitelistedApplicationIds.0" -> "123456789",
-    "api.access.version-1.0.whitelistedApplicationIds.1" -> "987654321"
+    "api.access.version-1.0.allowlistedApplicationIds.0" -> "123456789",
+    "api.access.version-1.0.allowlistedApplicationIds.1" -> "987654321"
   )
 
   override lazy val fakeApplication: Application = GuiceApplicationBuilder().configure(configProperties).build()
@@ -45,7 +45,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
   private val controller = new ApiPlatformController(appConfig, Helpers.stubControllerComponents(), mockAssets)
 
   "getDefinition" should {
-    "return a definitions.json object with the whitelisted applicationIds included" in {
+    "return a definitions.json object with the allowlisted applicationIds included" in {
       Given("a request from the API Platform is received")
       val result = controller.getDefinition()(fakeGetRequest)
 
@@ -55,10 +55,10 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
       And(s"a response body with a mime type of ${MimeTypes.JSON}")
       contentType(result) shouldBe Some(MimeTypes.JSON)
 
-      And(s"the response body should contain the correct 'whitelistedApplicationIds' values")
+      And(s"the response body should contain the correct 'allowlistedApplicationIds' values")
       val versions = (contentAsJson(result) \ "api" \ "versions")
       (versions.head \ "access" \ "whitelistedApplicationIds").as[Seq[String]] shouldBe
-        appConfig.v1WhitelistedApplicationIds
+        appConfig.v1AllowlistedApplicationIds
     }
   }
 
