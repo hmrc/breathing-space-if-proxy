@@ -9,7 +9,7 @@ val silencerVersion = "1.7.1"
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
   .settings(
-    majorVersion := 0,
+    majorVersion := 1,
     scalaVersion := "2.12.12",
     libraryDependencies ++= Dependencies.compile ++ Dependencies.test,
     PlayKeys.playDefaultPort := 9501,
