@@ -19,7 +19,6 @@ package uk.gov.hmrc.breathingspaceifproxy.controller.service
 import scala.concurrent.Future
 
 import cats.syntax.either._
-import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.Logging
 import play.api.http.{HeaderNames, MimeTypes}
@@ -30,7 +29,6 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 abstract class AbstractBaseController(
@@ -84,20 +82,6 @@ abstract class AbstractBaseController(
 
   def logHeaders(implicit request: RequestHeader): Unit =
     logger.info(request.headers.headers.toList.mkString("Headers[", ":", "]"))
-
-  protected implicit def hc(implicit requestId: RequestId): HeaderCarrier = {
-    val extraHeaders = List(
-      (DownstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment).some,
-      (DownstreamHeader.CorrelationId -> requestId.correlationId.toString).some,
-      (DownstreamHeader.RequestType -> requestId.requestType.entryName).some,
-      (if (requestId.staffId == unattendedStaffPid) none else (DownstreamHeader.StaffPid -> requestId.staffId).some)
-    ).flatMap(identity(_))
-
-    HeaderCarrier(
-      authorization = Some(Authorization(appConfig.integrationframeworkAuthToken)),
-      extraHeaders = extraHeaders
-    )
-  }
 
   private def errorOnBody[T](error: BaseError): BodyParser[Validation[T]] =
     parse.ignore[Validation[T]](ErrorItem(error).invalidNec)

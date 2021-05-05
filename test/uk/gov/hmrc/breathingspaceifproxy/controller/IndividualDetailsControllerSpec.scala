@@ -34,7 +34,6 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
@@ -87,7 +86,7 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
   private def verifyResponse(request: Request[_]): Assertion = {
     val nino = genNino
     val bsDetails = details(nino)
-    when(mockConnector.getDetails(any[Nino])(any[RequestId], any[HeaderCarrier]))
+    when(mockConnector.getDetails(any[Nino])(any[RequestId]))
       .thenReturn(Future.successful(bsDetails.validNec[ErrorItem]))
 
     val response = controller.getDetails(nino.value)(request)

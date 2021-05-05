@@ -25,10 +25,10 @@ import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
@@ -36,17 +36,18 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
-) extends HttpAPIMonitor {
+) extends HttpAPIMonitor
+    with HeaderHandler {
 
   import IndividualDetailsConnector._
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
   // Breathing Space Population
-  def getDetails(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[IndividualDetails] =
+  def getDetails(nino: Nino)(implicit requestId: RequestId): ResponseValidation[IndividualDetails] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[IndividualDetails](Url(url(nino, IndividualDetails.fields)).value).map(_.validNec)
+        http.GET[IndividualDetails](Url(url(nino, IndividualDetails.fields)).value, headers = headers).map(_.validNec)
       }
     }
 }
