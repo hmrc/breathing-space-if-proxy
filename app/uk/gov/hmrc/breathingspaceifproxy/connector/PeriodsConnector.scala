@@ -38,7 +38,8 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
-) extends HttpAPIMonitor with Logging {
+) extends HttpAPIMonitor
+    with Logging {
 
   import PeriodsConnector._
 
