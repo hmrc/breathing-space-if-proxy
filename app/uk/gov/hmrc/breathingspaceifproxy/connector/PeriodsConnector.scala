@@ -24,6 +24,7 @@ import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json._
+import play.api.Logging
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
@@ -37,18 +38,20 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
-) extends HttpAPIMonitor {
+) extends HttpAPIMonitor with Logging {
 
   import PeriodsConnector._
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] =
+  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] = {
+    logger.error(s"$hc")
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http.GET[PeriodsInResponse](Url(url(nino)).value).map(_.validNec)
       }
     }
+  }
 
   def post(nino: Nino, postPeriods: PostPeriodsInRequest)(
     implicit requestId: RequestId,
