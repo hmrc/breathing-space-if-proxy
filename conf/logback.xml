@@ -34,9 +34,6 @@
         </encoder>
     </appender>
 
-
-    <logger name="uk.gov.hmrc.http.logging.connector" level="DEBUG" />
-
     <logger name="accesslog" level="INFO" additivity="false">
         <appender-ref ref="ACCESS_LOG_FILE" />
     </logger>

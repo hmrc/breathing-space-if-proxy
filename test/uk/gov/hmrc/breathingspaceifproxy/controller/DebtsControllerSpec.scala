@@ -32,7 +32,6 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.EtmpConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
@@ -55,7 +54,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
     "return 200(OK) when the Nino is valid and all required headers are present" in {
       Given(s"a GET request with a valid Nino and all required headers")
-      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
       val response = controller.get(genNinoString, periodIdAsString)(fakeGetRequest)
@@ -64,7 +63,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
     s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
       Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
-      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Debts(listOfDebts).validNec))
 
       val response = controller.get(genNinoString, periodIdAsString)(attendedRequestFilteredOutOneHeader(CONTENT_TYPE))

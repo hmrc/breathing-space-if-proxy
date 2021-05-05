@@ -36,7 +36,6 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
@@ -58,7 +57,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
   "put" should {
 
     "return 200(OK) when all required headers are present and the body is valid Json" in {
-      when(mockConnector.put(any[Nino], any[PutPeriodsInRequest])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.put(any[Nino], any[PutPeriodsInRequest])(any[RequestId]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a request with all required headers and a valid Json body")
@@ -69,7 +68,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 200(OK) when for a period the endDate is not present" in {
-      when(mockConnector.put(any[Nino], any[PutPeriodsInRequest])(any[RequestId], any[HeaderCarrier]))
+      when(mockConnector.put(any[Nino], any[PutPeriodsInRequest])(any[RequestId]))
         .thenReturn(Future.successful(validPeriodsResponse.validNec))
 
       Given("a Period where the endDate is missing")

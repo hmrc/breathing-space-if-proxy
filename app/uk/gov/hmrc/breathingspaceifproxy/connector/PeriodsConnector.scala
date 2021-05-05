@@ -24,13 +24,12 @@ import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json._
-import play.api.Logging
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
@@ -38,41 +37,38 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
-) extends HttpAPIMonitor with Logging {
+) extends HttpAPIMonitor
+    with HeaderHandler {
 
   import PeriodsConnector._
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
-  def get(nino: Nino)(implicit requestId: RequestId, hc: HeaderCarrier): ResponseValidation[PeriodsInResponse] = {
-    logger.error(s"$hc")
+  def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[PeriodsInResponse](Url(url(nino)).value).map(_.validNec)
+        http.GET[PeriodsInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
       }
     }
-  }
 
   def post(nino: Nino, postPeriods: PostPeriodsInRequest)(
-    implicit requestId: RequestId,
-    hc: HeaderCarrier
+    implicit requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http
-          .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods))
+          .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods), headers)
           .map(_.validNec)
       }
     }
 
   def put(nino: Nino, putPeriods: PutPeriodsInRequest)(
-    implicit requestId: RequestId,
-    hc: HeaderCarrier
+    implicit requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http
-          .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> putPeriods))
+          .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> putPeriods), headers)
           .map(_.validNec)
       }
     }
