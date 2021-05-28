@@ -40,11 +40,11 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockDownstreamConnector = mock[EisConnector]
-  when(mockDownstreamConnector.currentState).thenReturn("HEALTHY")
+  val mockUpstreamConnector = mock[EisConnector]
+  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: PeriodsConnector = mock[PeriodsConnector]
-  when(mockConnector.eisConnector).thenReturn(mockDownstreamConnector)
+  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
 
   val controller = new PeriodsController(
     appConfig,

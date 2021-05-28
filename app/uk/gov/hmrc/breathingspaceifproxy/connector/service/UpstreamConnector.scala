@@ -30,7 +30,7 @@ import uk.gov.hmrc.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpException}
 import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
 
-trait DownstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
+trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
 
   override def breakOnException(throwable: Throwable): Boolean =
     throwable match {
@@ -77,20 +77,20 @@ trait DownstreamConnector extends HttpErrorFunctions with Logging with UsingCirc
   ): ResponseValidation[T] =
     statusCode match {
       case NOT_FOUND => notFound(message)
-      case FORBIDDEN => logErrorAndGenUpstreamResponse(FORBIDDEN, message, BREATHING_SPACE_EXPIRED)
-      case CONFLICT => logErrorAndGenUpstreamResponse(CONFLICT, message, CONFLICTING_REQUEST)
-      case _ => logErrorAndGenUpstreamResponse(statusCode, message, SERVER_ERROR)
+      case FORBIDDEN => logWarningAndGenDownstreamResponse(FORBIDDEN, message, BREATHING_SPACE_EXPIRED)
+      case CONFLICT => logInfoAndGenDownstreamResponse(CONFLICT, message, CONFLICTING_REQUEST)
+      case _ => logWarningAndGenDownstreamResponse(statusCode, message, SERVER_ERROR)
     }
 
   private def handleUpstream5xxError[T](statusCode: Int, message: String)(
     implicit r: RequestId
   ): ResponseValidation[T] =
     statusCode match {
-      case BAD_GATEWAY => logErrorAndGenUpstreamResponse(BAD_GATEWAY, message, UPSTREAM_BAD_GATEWAY)
+      case BAD_GATEWAY => logErrorAndGenDownstreamResponse(BAD_GATEWAY, message, UPSTREAM_BAD_GATEWAY)
       case SERVICE_UNAVAILABLE =>
-        logErrorAndGenUpstreamResponse(SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
-      case GATEWAY_TIMEOUT => logErrorAndGenUpstreamResponse(GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
-      case _ => logErrorAndGenUpstreamResponse(statusCode, message, SERVER_ERROR)
+        logErrorAndGenDownstreamResponse(SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
+      case GATEWAY_TIMEOUT => logErrorAndGenDownstreamResponse(GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
+      case _ => logErrorAndGenDownstreamResponse(statusCode, message, SERVER_ERROR)
     }
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
@@ -106,13 +106,27 @@ trait DownstreamConnector extends HttpErrorFunctions with Logging with UsingCirc
       else if (message.contains(noPeriodIdFound)) PERIOD_ID_NOT_FOUND
       else RESOURCE_NOT_FOUND
 
-    logErrorAndGenUpstreamResponse(NOT_FOUND, response, baseError)
+    logInfoAndGenDownstreamResponse(NOT_FOUND, response, baseError)
   }
 
-  private def logErrorAndGenUpstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
+  private def logErrorAndGenDownstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
     implicit requestId: RequestId
   ): ResponseValidation[T] = {
     logger.error(s"Error($statusCode) for $requestId. $message")
+    Future.successful(ErrorItem(baseError).invalidNec)
+  }
+
+  private def logInfoAndGenDownstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
+    implicit requestId: RequestId
+  ): ResponseValidation[T] = {
+    logger.info(s"Error($statusCode) for $requestId. $message")
+    Future.successful(ErrorItem(baseError).invalidNec)
+  }
+
+  private def logWarningAndGenDownstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
+    implicit requestId: RequestId
+  ): ResponseValidation[T] = {
+    logger.warn(s"Error($statusCode) for $requestId. $message")
     Future.successful(ErrorItem(baseError).invalidNec)
   }
 }

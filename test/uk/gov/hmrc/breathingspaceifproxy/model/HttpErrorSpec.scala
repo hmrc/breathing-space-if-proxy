@@ -23,7 +23,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import play.api.http.{MimeTypes, Status}
 import play.api.libs.json.Json
 import play.api.mvc.Result
-import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
+import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, TestingErrorItem}
 
@@ -71,7 +71,7 @@ class HttpErrorSpec extends AnyFunSuite with BaseSpec {
     response.header.status shouldBe httpErrorCode
 
     And("a \"Correlation-Id\" header")
-    response.header.headers.get(UpstreamHeader.CorrelationId) shouldBe correlationIdAsString.some
+    response.header.headers.get(DownstreamHeader.CorrelationId) shouldBe correlationIdAsString.some
 
     And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)

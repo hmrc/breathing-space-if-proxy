@@ -17,10 +17,10 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
 import play.api.mvc.Request
-import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
+import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 
 trait Helpers {
 
   def retrieveCorrelationId(implicit request: Request[_]): Option[String] =
-    request.headers.get(UpstreamHeader.CorrelationId)
+    request.headers.get(DownstreamHeader.CorrelationId)
 }

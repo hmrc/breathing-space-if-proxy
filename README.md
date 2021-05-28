@@ -23,6 +23,7 @@ $ sbt run
 
 !!**IMPORTANT**!!
 Before committing, always run from the console: `./precheck.sh`
+`sbt-bobby` should be installed in your local .sbt folder for this to work.
 
 ### Highlighted SBT Tasks
 

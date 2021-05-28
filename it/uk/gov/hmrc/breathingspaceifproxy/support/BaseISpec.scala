@@ -37,7 +37,7 @@ import play.api.mvc.{AnyContentAsEmpty, Request, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import play.api.test.Helpers.{await, route}
 import play.mvc.Http.MimeTypes
-import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, UpstreamHeader}
+import uk.gov.hmrc.breathingspaceifproxy.{UpstreamHeader, DownstreamHeader}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.NOT_AUTHORISED
@@ -126,20 +126,20 @@ abstract class BaseISpec
 
   private def verifyHeadersForAttended(requestPatternBuilder: RequestPatternBuilder): Unit =
     verify(1, requestPatternBuilder
-      .withHeader(DownstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
-      .withHeader(DownstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
-      .withHeader(DownstreamHeader.CorrelationId, equalTo(correlationIdAsString))
-      .withHeader(DownstreamHeader.RequestType, equalTo(Attended.DA2_BS_ATTENDED.entryName))
-      .withHeader(DownstreamHeader.StaffPid, equalTo(attendedStaffPid))
+      .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
+      .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
+      .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
+      .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_ATTENDED.entryName))
+      .withHeader(UpstreamHeader.StaffPid, equalTo(attendedStaffPid))
     )
 
   private def verifyHeadersForUnattended(requestPatternBuilder: RequestPatternBuilder): Unit =
     verify(1, requestPatternBuilder
-      .withHeader(DownstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
-      .withHeader(DownstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
-      .withHeader(DownstreamHeader.CorrelationId, equalTo(correlationIdAsString))
-      .withHeader(DownstreamHeader.RequestType, equalTo(Attended.DA2_BS_UNATTENDED.entryName))
-      .withoutHeader(DownstreamHeader.StaffPid)
+      .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
+      .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
+      .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
+      .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_UNATTENDED.entryName))
+      .withoutHeader(UpstreamHeader.StaffPid)
     )
 
   def verifyErrorResult(
@@ -157,7 +157,7 @@ abstract class BaseISpec
 
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
-      headers.get(UpstreamHeader.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
+      headers.get(DownstreamHeader.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
     }
 
     And("the body should be in Json format")

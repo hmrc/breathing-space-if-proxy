@@ -18,7 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import cats.syntax.option._
 import play.api.http.MimeTypes
-import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
+import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
@@ -29,10 +29,10 @@ trait ConnectorTestSupport { this: BaseISpec =>
     authorization = Authorization(appConfig.integrationframeworkAuthToken).some,
     extraHeaders = List(
       CONTENT_TYPE -> MimeTypes.JSON,
-      DownstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment,
-      DownstreamHeader.CorrelationId -> correlationIdAsString,
-      DownstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.entryName,
-      DownstreamHeader.StaffPid -> attendedStaffPid
+      UpstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment,
+      UpstreamHeader.CorrelationId -> correlationIdAsString,
+      UpstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.entryName,
+      UpstreamHeader.StaffPid -> attendedStaffPid
     )
   )
 

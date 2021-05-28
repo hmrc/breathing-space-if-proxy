@@ -24,7 +24,7 @@ import org.scalatest.funsuite.AnyFunSuite
 import play.api.mvc.Result
 import play.api.test._
 import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader._
+import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._

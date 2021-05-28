@@ -36,7 +36,7 @@ import play.api.test.Helpers.await
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.DownstreamConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
@@ -113,10 +113,10 @@ abstract class CircuitBreakerISpec
   protected def verifyCircuitBreaker[T](
     call: => ResponseValidation[T],
     expected: T,
-    downstreamConnector: DownstreamConnector
+    upstreamConnector: UpstreamConnector
   ): Assertion = {
 
-    downstreamConnector.currentState shouldBe "HEALTHY"
+    upstreamConnector.currentState shouldBe "HEALTHY"
 
     (1 to failedCalls).foreach { ix =>
       val shouldBeBadGatewayOnLeft = await(call).toEither
@@ -124,7 +124,7 @@ abstract class CircuitBreakerISpec
         case Left(error) => error.head.baseError shouldBe UPSTREAM_BAD_GATEWAY
         case _ => assert(false)
       }
-      downstreamConnector.currentState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")
+      upstreamConnector.currentState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")
     }
 
     val shouldBeBadGatewayOnLeft = await(call).toEither
@@ -132,14 +132,14 @@ abstract class CircuitBreakerISpec
       case Left(error) => error.head.baseError shouldBe SERVER_ERROR
       case _ => assert(false)
     }
-    downstreamConnector.currentState shouldBe "UNAVAILABLE"
+    upstreamConnector.currentState shouldBe "UNAVAILABLE"
 
     val shouldBeServerErrorOnLeft = await(call).toEither
     shouldBeServerErrorOnLeft match {
       case Left(error) => error.head.baseError shouldBe SERVER_ERROR
       case _ => assert(false)
     }
-    downstreamConnector.currentState shouldBe "UNAVAILABLE"
+    upstreamConnector.currentState shouldBe "UNAVAILABLE"
 
     Thread.sleep(unavailablePeriodDuration)
 
@@ -149,7 +149,7 @@ abstract class CircuitBreakerISpec
         case Right(actual) => actual shouldBe expected
         case _ => assert(false)
       }
-      !(downstreamConnector.currentState == (if (ix == failedCalls) "HEALTHY" else "TRIAL"))
+      !(upstreamConnector.currentState == (if (ix == failedCalls) "HEALTHY" else "TRIAL"))
     } shouldBe None
   }
 }

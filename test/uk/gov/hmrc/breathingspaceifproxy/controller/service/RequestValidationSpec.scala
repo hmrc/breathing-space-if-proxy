@@ -27,7 +27,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValidation with Helpers {
 
-  val downstreamConnector = inject[EisConnector]
+  val upstreamConnector = inject[EisConnector]
 
   "RequestValidation.validateNino" should {
     "assert that an empty Nino value is invalid" in {
@@ -53,70 +53,70 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
 
   "RequestValidation.validateCorrelationId" should {
     "capture missing CorrelationId header" in {
-      val request = attendedRequestFilteredOutOneHeader(UpstreamHeader.CorrelationId)
+      val request = attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId)
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, UpstreamHeader.CorrelationId)
+      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, DownstreamHeader.CorrelationId)
     }
 
     "capture empty value for the CorrelationId header" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.CorrelationId, ""))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.CorrelationId, ""))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.CorrelationId)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.CorrelationId)
     }
 
     "capture invalid value for the CorrelationId header" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.CorrelationId, "334534534534"))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.CorrelationId, "334534534534"))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.CorrelationId)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.CorrelationId)
     }
 
     "assert a valid CorrelationId value is valid" in {
-      assert(validateHeadersForNPS(BS_Details_GET, downstreamConnector)(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(fakeGetRequest).isValid)
     }
   }
 
   "RequestValidation.validateRequestType" should {
     "capture missing RequestType header" in {
-      val request = attendedRequestFilteredOutOneHeader(UpstreamHeader.RequestType)
+      val request = attendedRequestFilteredOutOneHeader(DownstreamHeader.RequestType)
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, UpstreamHeader.RequestType)
+      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, DownstreamHeader.RequestType)
     }
 
     "capture empty value for the RequestType header" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.RequestType, ""))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.RequestType, ""))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.RequestType)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.RequestType)
     }
 
     "capture invalid value for the RequestType header" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.RequestType, "334534534534"))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.RequestType, "334534534534"))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.RequestType)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.RequestType)
     }
 
     "assert a RequestType value of ATTENDED is valid" in {
-      assert(validateHeadersForNPS(BS_Details_GET, downstreamConnector)(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(fakeGetRequest).isValid)
     }
 
     "assert a RequestType value of UNATTENDED is valid" in {
       val request = fakeGetRequest.withHeaders(
-        (UpstreamHeader.RequestType, Attended.DA2_BS_UNATTENDED.toString),
-        (UpstreamHeader.StaffPid, unattendedStaffPid)
+        (DownstreamHeader.RequestType, Attended.DA2_BS_UNATTENDED.toString),
+        (DownstreamHeader.StaffPid, unattendedStaffPid)
       )
 
-      assert(validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request).isValid)
+      assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request).isValid)
     }
   }
 
@@ -125,7 +125,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
     "capture missing ContentType header for non-GET methods" in {
       val request = unattendedRequestFilteredOutOneHeader(CONTENT_TYPE, "POST")
 
-      val result = validateHeadersForNPS(BS_Periods_POST, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Periods_POST, upstreamConnector)(request)
 
       assertOnlyExpectedErrorPresent(result, MISSING_HEADER, CONTENT_TYPE)
     }
@@ -133,13 +133,13 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
     "allow missing ContentType header for GET methods" in {
       val request = attendedRequestFilteredOutOneHeader(CONTENT_TYPE)
 
-      assert(validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request).isValid)
+      assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request).isValid)
     }
 
     "capture empty value for the ContentType header" in {
       val request = unattendedRequestWithAllHeaders("POST").withHeaders((CONTENT_TYPE, ""))
 
-      val result = validateHeadersForNPS(BS_Periods_POST, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Periods_POST, upstreamConnector)(request)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, CONTENT_TYPE)
     }
@@ -147,80 +147,80 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
     "capture invalid value for the ContentType header" in {
       val request = unattendedRequestWithAllHeaders("POST").withHeaders((CONTENT_TYPE, "334534534534"))
 
-      val result = validateHeadersForNPS(BS_Periods_POST, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Periods_POST, upstreamConnector)(request)
 
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, CONTENT_TYPE)
     }
 
     "assert a valid ContentType value is valid" in {
       val request = unattendedRequestWithAllHeaders("POST")
-      assert(validateHeadersForNPS(BS_Periods_POST, downstreamConnector)(request).isValid)
+      assert(validateHeadersForNPS(BS_Periods_POST, upstreamConnector)(request).isValid)
     }
   }
 
   "RequestValidation.validateStaffPid" should {
     "capture missing StaffPid header" in {
-      val request = attendedRequestFilteredOutOneHeader(UpstreamHeader.StaffPid)
+      val request = attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid)
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, UpstreamHeader.StaffPid)
+      assertOnlyExpectedErrorPresent(result, MISSING_HEADER, DownstreamHeader.StaffPid)
     }
 
     "capture empty value for the StaffPid header" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.StaffPid, ""))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.StaffPid, ""))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.StaffPid)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.StaffPid)
     }
 
     "capture invalid value for the StaffPid header" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.StaffPid, "334534534534"))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.StaffPid, "334534534534"))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.StaffPid)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.StaffPid)
     }
   }
 
   "RequestValidation.validateStaffPidForRequestType" should {
     "capture invalid value for the StaffPid header when RequestType value is ATTENDED" in {
-      val request = fakeGetRequest.withHeaders((UpstreamHeader.StaffPid, unattendedStaffPid))
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.StaffPid, unattendedStaffPid))
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.StaffPid)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.StaffPid)
     }
 
     "capture invalid value for the StaffPid header when RequestType value is UNATTENDED" in {
       val request = fakeGetRequest.withHeaders(
-        (UpstreamHeader.RequestType, Attended.DA2_BS_UNATTENDED.toString),
-        (UpstreamHeader.StaffPid, attendedStaffPid)
+        (DownstreamHeader.RequestType, Attended.DA2_BS_UNATTENDED.toString),
+        (DownstreamHeader.StaffPid, attendedStaffPid)
       )
 
-      val result = validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request)
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
 
-      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, UpstreamHeader.StaffPid)
+      assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.StaffPid)
     }
 
     "assert a StaffPid value is valid when RequestType value is ATTENDED" in {
-      assert(validateHeadersForNPS(BS_Details_GET, downstreamConnector)(fakeGetRequest).isValid)
+      assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(fakeGetRequest).isValid)
     }
 
     "assert a StaffPid value is valid when RequestType value is UNATTENDED" in {
       val request = fakeGetRequest.withHeaders(
-        (UpstreamHeader.RequestType, Attended.DA2_BS_UNATTENDED.toString),
-        (UpstreamHeader.StaffPid, unattendedStaffPid)
+        (DownstreamHeader.RequestType, Attended.DA2_BS_UNATTENDED.toString),
+        (DownstreamHeader.StaffPid, unattendedStaffPid)
       )
 
-      assert(validateHeadersForNPS(BS_Details_GET, downstreamConnector)(request).isValid)
+      assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request).isValid)
     }
   }
 
   "RequestValidation.retrieveCorrelationId" should {
     "return None for missing CorrelationId header" in {
-      val request = attendedRequestFilteredOutOneHeader(UpstreamHeader.CorrelationId)
+      val request = attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId)
 
       assert(retrieveCorrelationId(request).isEmpty)
     }
