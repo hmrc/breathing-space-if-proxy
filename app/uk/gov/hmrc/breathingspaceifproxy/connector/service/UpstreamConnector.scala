@@ -77,20 +77,20 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
   ): ResponseValidation[T] =
     statusCode match {
       case NOT_FOUND => notFound(message)
-      case FORBIDDEN => logWarningAndGenDownstreamResponse(FORBIDDEN, message, BREATHING_SPACE_EXPIRED)
-      case CONFLICT => logInfoAndGenDownstreamResponse(CONFLICT, message, CONFLICTING_REQUEST)
-      case _ => logWarningAndGenDownstreamResponse(statusCode, message, SERVER_ERROR)
+      case FORBIDDEN => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BREATHING_SPACE_EXPIRED)
+      case CONFLICT => logAndGenDownstreamResponse(info, CONFLICT, message, CONFLICTING_REQUEST)
+      case _ => logAndGenDownstreamResponse(warning, statusCode, message, SERVER_ERROR)
     }
 
   private def handleUpstream5xxError[T](statusCode: Int, message: String)(
     implicit r: RequestId
   ): ResponseValidation[T] =
     statusCode match {
-      case BAD_GATEWAY => logErrorAndGenDownstreamResponse(BAD_GATEWAY, message, UPSTREAM_BAD_GATEWAY)
+      case BAD_GATEWAY => logAndGenDownstreamResponse(error, BAD_GATEWAY, message, UPSTREAM_BAD_GATEWAY)
       case SERVICE_UNAVAILABLE =>
-        logErrorAndGenDownstreamResponse(SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
-      case GATEWAY_TIMEOUT => logErrorAndGenDownstreamResponse(GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
-      case _ => logErrorAndGenDownstreamResponse(statusCode, message, SERVER_ERROR)
+        logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
+      case GATEWAY_TIMEOUT => logAndGenDownstreamResponse(error, GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
+      case _ => logAndGenDownstreamResponse(error, statusCode, message, SERVER_ERROR)
     }
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
@@ -106,27 +106,22 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       else if (message.contains(noPeriodIdFound)) PERIOD_ID_NOT_FOUND
       else RESOURCE_NOT_FOUND
 
-    logInfoAndGenDownstreamResponse(NOT_FOUND, response, baseError)
+    logAndGenDownstreamResponse(info, NOT_FOUND, response, baseError)
   }
 
-  private def logErrorAndGenDownstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
+  private def logAndGenDownstreamResponse[T](
+    log: String => Unit,
+    statusCode: Int,
+    message: String,
+    baseError: BaseError
+  )(
     implicit requestId: RequestId
   ): ResponseValidation[T] = {
-    logger.error(s"Error($statusCode) for $requestId. $message")
+    log(s"Error($statusCode) for $requestId. $message")
     Future.successful(ErrorItem(baseError).invalidNec)
   }
 
-  private def logInfoAndGenDownstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
-    implicit requestId: RequestId
-  ): ResponseValidation[T] = {
-    logger.info(s"Error($statusCode) for $requestId. $message")
-    Future.successful(ErrorItem(baseError).invalidNec)
-  }
-
-  private def logWarningAndGenDownstreamResponse[T](statusCode: Int, message: String, baseError: BaseError)(
-    implicit requestId: RequestId
-  ): ResponseValidation[T] = {
-    logger.warn(s"Error($statusCode) for $requestId. $message")
-    Future.successful(ErrorItem(baseError).invalidNec)
-  }
+  private val error = (message: String) => logger.error(message)
+  private val info = (message: String) => logger.info(message)
+  private val warning = (message: String) => logger.warn(message)
 }
