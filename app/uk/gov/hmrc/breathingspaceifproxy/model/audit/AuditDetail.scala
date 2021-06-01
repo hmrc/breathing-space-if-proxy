@@ -25,7 +25,7 @@ case class AuditDetail(
   nino: String,
   staffId: String,
   clientRequest: JsValue,
-  downstreamResponse: JsValue
+  upstreamResponse: JsValue
 )
 
 object AuditDetail { implicit val writes = Json.writes[AuditDetail] }

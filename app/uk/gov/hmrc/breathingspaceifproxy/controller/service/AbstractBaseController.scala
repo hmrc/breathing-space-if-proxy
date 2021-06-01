@@ -67,7 +67,7 @@ abstract class AbstractBaseController(
     auditEvent(errorList.head.baseError.httpCode, payload)
     Future.successful {
       HttpError(requestId.correlationId, errors).value
-        .withHeaders(UpstreamHeader.DownstreamState -> requestId.downstreamConnector.currentState)
+        .withHeaders(DownstreamHeader.UpstreamState -> requestId.upstreamConnector.currentState)
     }
   }
 
@@ -92,8 +92,8 @@ abstract class AbstractBaseController(
       Status(status)(payload)
         .withHeaders(
           HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
-          UpstreamHeader.CorrelationId -> requestId.correlationId.toString,
-          UpstreamHeader.DownstreamState -> requestId.downstreamConnector.currentState
+          DownstreamHeader.CorrelationId -> requestId.correlationId.toString,
+          DownstreamHeader.UpstreamState -> requestId.upstreamConnector.currentState
         )
         .as(MimeTypes.JSON)
     }

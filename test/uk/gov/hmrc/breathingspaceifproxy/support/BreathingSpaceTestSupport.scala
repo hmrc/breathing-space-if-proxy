@@ -30,7 +30,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.DownstreamConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
@@ -63,16 +63,16 @@ trait BreathingSpaceTestSupport {
 
   lazy val requestHeaders = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    UpstreamHeader.CorrelationId -> correlationIdAsString,
-    UpstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.toString,
-    UpstreamHeader.StaffPid -> attendedStaffPid
+    DownstreamHeader.CorrelationId -> correlationIdAsString,
+    DownstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.toString,
+    DownstreamHeader.StaffPid -> attendedStaffPid
   )
 
   lazy val requestHeadersForUnattended = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    UpstreamHeader.CorrelationId -> correlationIdAsString,
-    UpstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
-    UpstreamHeader.StaffPid -> unattendedStaffPid
+    DownstreamHeader.CorrelationId -> correlationIdAsString,
+    DownstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
+    DownstreamHeader.StaffPid -> unattendedStaffPid
   )
 
   lazy val validPostPeriod = PostPeriodInRequest(
@@ -158,8 +158,8 @@ trait BreathingSpaceTestSupport {
     Nino(f"$prefix$number%06d$suffix")
   }
 
-  def genRequestId(endpointId: EndpointId, downstreamConnector: DownstreamConnector): RequestId =
-    RequestId(endpointId, correlationId, Attended.DA2_BS_ATTENDED, attendedStaffPid, downstreamConnector)
+  def genRequestId(endpointId: EndpointId, upstreamConnector: UpstreamConnector): RequestId =
+    RequestId(endpointId, correlationId, Attended.DA2_BS_ATTENDED, attendedStaffPid, upstreamConnector)
 
   def attendedRequestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     attendedRequestFilteredOutOneHeader("", method)

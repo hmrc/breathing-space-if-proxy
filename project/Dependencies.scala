@@ -20,7 +20,7 @@ object Dependencies {
     "com.google.inject"            % "guice"                % "5.0.1",
     "com.google.inject.extensions" % "guice-assistedinject" % "5.0.1",
 
-    "uk.gov.hmrc"   %% "bootstrap-backend-play-27" % "5.0.0",
+    "uk.gov.hmrc"   %% "bootstrap-backend-play-27" % "5.3.0",
     "org.typelevel" %% "cats-core"                 % "2.6.0",
     "com.beachape"  %% "enumeratum"                % "1.6.1",
     "com.kenshoo"   %% "metrics-play"              % "2.7.3_0.8.2",

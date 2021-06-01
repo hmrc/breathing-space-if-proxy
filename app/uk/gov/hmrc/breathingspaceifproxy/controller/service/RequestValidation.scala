@@ -27,7 +27,7 @@ import play.api.http.HeaderNames._
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.DownstreamConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
@@ -35,7 +35,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST
 
 trait RequestValidation {
 
-  def validateHeadersForNPS(endpointId: EndpointId, downstreamConnector: DownstreamConnector)(
+  def validateHeadersForNPS(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
     implicit request: Request[_]
   ): Validation[RequestId] = {
     val headers = request.headers
@@ -45,7 +45,7 @@ trait RequestValidation {
       validateRequestType(headers, endpointId),
       validateStaffPid(headers)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
-      .andThen(validateStaffPidForRequestType(endpointId, downstreamConnector))
+      .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
   }
 
   def validateNino(maybeNino: String): Validation[Nino] =
@@ -109,29 +109,29 @@ trait RequestValidation {
 
   private def validateCorrelationId(headers: Headers): Validation[UUID] =
     headers
-      .get(UpstreamHeader.CorrelationId)
+      .get(DownstreamHeader.CorrelationId)
       .fold[Validation[UUID]] {
-        ErrorItem(MISSING_HEADER, s"(${UpstreamHeader.CorrelationId})".some).invalidNec
+        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.CorrelationId})".some).invalidNec
       } { correlationId =>
         Either
           .catchNonFatal(UUID.fromString(correlationId))
           .fold[Validation[UUID]](
-            _ => ErrorItem(INVALID_HEADER, s"(${UpstreamHeader.CorrelationId})".some).invalidNec,
+            _ => ErrorItem(INVALID_HEADER, s"(${DownstreamHeader.CorrelationId})".some).invalidNec,
             _.validNec
           )
       }
 
   private def illegalRequestTypeHeader(requestType: String): Option[String] =
-    s"(${UpstreamHeader.RequestType}). $requestType is an illegal value for this endpoint".some
+    s"(${DownstreamHeader.RequestType}). $requestType is an illegal value for this endpoint".some
 
   private def invalidRequestTypeHeader(requestType: String): Option[String] =
-    s"(${UpstreamHeader.RequestType}). Was $requestType but valid values are only: ${Attended.values.mkString(", ")}".some
+    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: ${Attended.values.mkString(", ")}".some
 
   private def validateRequestType(headers: Headers, endpointId: EndpointId): Validation[Attended] =
     headers
-      .get(UpstreamHeader.RequestType)
+      .get(DownstreamHeader.RequestType)
       .fold[Validation[Attended]] {
-        ErrorItem(MISSING_HEADER, s"(${UpstreamHeader.RequestType})".some).invalidNec
+        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.RequestType})".some).invalidNec
       } { requestType =>
         Attended
           .withNameOption(requestType.toUpperCase)
@@ -149,31 +149,34 @@ trait RequestValidation {
 
   private def validateStaffPid(headers: Headers): Validation[String] =
     headers
-      .get(UpstreamHeader.StaffPid)
+      .get(DownstreamHeader.StaffPid)
       .fold[Validation[String]] {
-        ErrorItem(MISSING_HEADER, s"(${UpstreamHeader.StaffPid})".some).invalidNec
+        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.StaffPid})".some).invalidNec
       } { staffPid =>
         staffPidRegex
           .findFirstIn(staffPid)
           .fold[Validation[String]] {
-            ErrorItem(INVALID_HEADER, s"(${UpstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some).invalidNec
+            ErrorItem(
+              INVALID_HEADER,
+              s"(${DownstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some
+            ).invalidNec
           } { _.validNec }
       }
 
   private def validateStaffPidForRequestType(
     endpointId: EndpointId,
-    downstreamConnector: DownstreamConnector
+    upstreamConnector: UpstreamConnector
   )(headerValues: (UUID, Attended, String)): Validation[RequestId] = {
     val requestType = headerValues._2
     val staffPid = headerValues._3
     if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
       || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
-      RequestId(endpointId, correlationId = headerValues._1, requestType, staffPid, downstreamConnector)
+      RequestId(endpointId, correlationId = headerValues._1, requestType, staffPid, upstreamConnector)
         .validNec[ErrorItem]
     } else {
       ErrorItem(
         INVALID_HEADER,
-        s"(${UpstreamHeader.StaffPid}). Cannot be '$staffPid' for ${requestType.entryName}".some
+        s"(${DownstreamHeader.StaffPid}). Cannot be '$staffPid' for ${requestType.entryName}".some
       ).invalidNec[RequestId]
     }
   }

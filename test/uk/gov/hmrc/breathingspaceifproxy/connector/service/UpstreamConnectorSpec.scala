@@ -28,7 +28,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 
-class DownstreamConnectorSpec extends AnyWordSpec with BaseSpec with DownstreamConnector {
+class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConnector {
 
   val config = inject[Configuration]
 
@@ -92,11 +92,11 @@ class DownstreamConnectorSpec extends AnyWordSpec with BaseSpec with DownstreamC
     }
   }
 
-  val downstreamConnector = inject[EisConnector]
+  val upstreamConnector = inject[EisConnector]
 
   private def verifyResponse(throwable: Throwable, baseError: BaseError): Assertion = {
     val result =
-      handleUpstreamError[Unit](genRequestId(BS_Periods_POST, downstreamConnector)).apply(throwable).futureValue
+      handleUpstreamError[Unit](genRequestId(BS_Periods_POST, upstreamConnector)).apply(throwable).futureValue
 
     assert(result.isInvalid)
     assert(result.fold(_.head.baseError == baseError, _ => false))

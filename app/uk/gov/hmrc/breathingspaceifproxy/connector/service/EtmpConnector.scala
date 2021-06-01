@@ -21,4 +21,4 @@ import javax.inject.{Inject, Singleton}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
 @Singleton
-class EtmpConnector @Inject()(val appConfig: AppConfig) extends DownstreamConnector
+class EtmpConnector @Inject()(val appConfig: AppConfig) extends UpstreamConnector

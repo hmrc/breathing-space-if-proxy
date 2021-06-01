@@ -36,11 +36,11 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockDownstreamConnector = mock[EtmpConnector]
-  when(mockDownstreamConnector.currentState).thenReturn("HEALTHY")
+  val mockUpstreamConnector = mock[EtmpConnector]
+  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: DebtsConnector = mock[DebtsConnector]
-  when(mockConnector.etmpConnector).thenReturn(mockDownstreamConnector)
+  when(mockConnector.etmpConnector).thenReturn(mockUpstreamConnector)
 
   val controller = new DebtsController(
     appConfig,
@@ -94,11 +94,11 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
     "return 400(BAD_REQUEST) with multiple errors when the URI params are invalid and one required header is missing" in {
       Given(
-        s"a GET request with an invalid Nino, an invalid periodId and without the ${UpstreamHeader.StaffPid} request header"
+        s"a GET request with an invalid Nino, an invalid periodId and without the ${DownstreamHeader.StaffPid} request header"
       )
       val response =
         controller
-          .get("HT1234B", "An invalid periodId")(attendedRequestFilteredOutOneHeader(UpstreamHeader.StaffPid))
+          .get("HT1234B", "An invalid periodId")(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid))
           .run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 3)
