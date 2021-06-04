@@ -29,10 +29,9 @@ Before committing, always run from the console: `./precheck.sh`
 
 Task | Description | Command
 :-------|:------------|:-----
-test | Runs the standard unit tests | ```$ sbt test```
-it:test  | Runs the integration tests | ```$ sbt it:test ```
-dependencyUpdates |  Shows a list of project dependencies that can be updated | ```$ sbt dependencyUpdates```
-dependencyUpdatesReport | Writes a list of project dependencies to a file | ```$ sbt dependencyUpdatesReport```
+test | runs the standard unit tests | ```$ sbt test```
+it:test  | runs the integration tests | ```$ sbt it:test ```
+dependencyTree |  prints the tree of the dependencies for the project | ```$ sbt dependencyTree```
 
 ### Reporting Issues
 
