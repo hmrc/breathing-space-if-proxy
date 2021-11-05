@@ -4,7 +4,7 @@ import sbt._
 object Dependencies {
 
   val compile = Seq(
-    "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % "5.3.0",
+    "uk.gov.hmrc"                  %% "bootstrap-backend-play-28" % "5.14.0",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"      % "2.12.3",
     "org.typelevel"                %% "cats-core"                 % "2.6.1",
     "com.beachape"                 %% "enumeratum"                % "1.6.1",
