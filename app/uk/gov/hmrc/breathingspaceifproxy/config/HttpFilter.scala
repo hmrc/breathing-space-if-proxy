@@ -24,12 +24,11 @@ import play.api.mvc._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 
-class HttpFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext) extends Filter {
-  def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] = {
+class HttpFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext, appConfig: AppConfig) extends Filter {
+  def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] =
     nextFilter(requestHeader).map { result =>
-      result.withHeaders("Cache-Control" -> "no-cache, no-store, must-revalidate")
+      result.discardingHeader("Cache-Control").withHeaders("Cache-Control" -> appConfig.httpHeaderCacheControl)
     }
-  }
 }
 
 class Filters @Inject()(

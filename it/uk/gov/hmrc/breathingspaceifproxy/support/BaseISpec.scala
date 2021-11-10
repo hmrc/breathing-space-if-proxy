@@ -140,6 +140,7 @@ abstract class BaseISpec
       .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
       .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_UNATTENDED.entryName))
       .withoutHeader(UpstreamHeader.StaffPid)
+      .withHeader("Cache-Control", equalTo("no-cache, no-store, must-revalidate"))
     )
 
   def verifyErrorResult(
