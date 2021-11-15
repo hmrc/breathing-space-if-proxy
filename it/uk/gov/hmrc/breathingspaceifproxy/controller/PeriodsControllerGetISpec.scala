@@ -58,6 +58,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
       verifyHeaders(HttpMethod.Get, connectorUrl)
       verifyAuditEventCall(BS_Periods_GET)
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
 
     "return 200(OK) and an empty list of periods for the valid Nino provided" in {
@@ -70,6 +71,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
       verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
       verifyAuditEventCall(BS_Periods_GET)
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
 
     "return 200(OK) for an ATTENDED request" in {
@@ -106,6 +108,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
       verifyHeaders(HttpMethod.Get, url)
       verifyAuditEventCall(BS_Periods_GET)
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
 

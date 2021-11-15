@@ -33,6 +33,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
 
       val appId = appConfig.v1AllowlistedApplicationIds.head
       contentAsString(response) should include(s""""whitelistedApplicationIds": ["${appId}"""")
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
 
@@ -43,6 +44,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
 
       status(response) shouldBe Status.OK
       contentAsString(response) should include("title: Breathing Space")
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
 }

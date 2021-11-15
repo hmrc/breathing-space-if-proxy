@@ -87,6 +87,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
       verifyHeadersForUnattended(HttpMethod.Post, url)
       verifyAuditEventCall(BS_Periods_POST)
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
 
@@ -105,5 +106,6 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
     verifyHeadersForUnattended(HttpMethod.Post, url)
     verifyAuditEventCall(BS_Periods_POST)
+    headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
   }
 }

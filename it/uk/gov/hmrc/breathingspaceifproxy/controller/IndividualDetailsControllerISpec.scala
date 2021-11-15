@@ -92,6 +92,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     val response = route(app, request).get
     status(response) shouldBe expectedStatus
     contentAsString(response) shouldBe expectedResponseBody
+    headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, path, queryParams)
     else verifyHeadersForUnattended(HttpMethod.Get, path, queryParams)
