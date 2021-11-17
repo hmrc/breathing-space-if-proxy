@@ -20,6 +20,7 @@ import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.http.Status
 import play.api.libs.json.Json
+import play.api.mvc.Result
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
@@ -54,6 +55,7 @@ class DebtsControllerISpec extends BaseISpec {
 
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe debts
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
 
       verifyHeaders(HttpMethod.Get, connectorUrl)
       verifyAuditEventCall(BS_Debts_GET)
@@ -71,7 +73,7 @@ class DebtsControllerISpec extends BaseISpec {
       val body = Json.obj("aName" -> "aValue")
       val request = fakeAttendedRequest(Helpers.GET, getPathWithValidNino).withBody(body)
 
-      val response = await(route(app, request).get)
+      val response: Result = await(route(app, request).get)
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 

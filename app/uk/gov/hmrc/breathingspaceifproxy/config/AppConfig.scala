@@ -53,6 +53,8 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   val integrationframeworkAuthToken =
     s"""Bearer ${config.get[String]("microservice.services.integration-framework.auth-token")}"""
 
+  val httpHeaderCacheControl = config.get[String]("httpHeaders.cacheControl")
+
   // Must be 'lazy'
   lazy val v1AllowlistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")

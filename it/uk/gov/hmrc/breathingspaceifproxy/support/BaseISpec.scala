@@ -17,7 +17,6 @@
 package uk.gov.hmrc.breathingspaceifproxy.support
 
 import scala.concurrent.duration._
-
 import akka.stream.Materializer
 import cats.syntax.option._
 import com.github.tomakehurst.wiremock.client.WireMock._
@@ -35,9 +34,9 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Request, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
-import play.api.test.Helpers.{await, route}
+import play.api.test.Helpers.{await, headers, route}
 import play.mvc.Http.MimeTypes
-import uk.gov.hmrc.breathingspaceifproxy.{UpstreamHeader, DownstreamHeader}
+import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, UpstreamHeader}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.NOT_AUTHORISED
@@ -130,7 +129,6 @@ abstract class BaseISpec
       .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
       .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_ATTENDED.entryName))
-      .withHeader(UpstreamHeader.StaffPid, equalTo(attendedStaffPid))
     )
 
   private def verifyHeadersForUnattended(requestPatternBuilder: RequestPatternBuilder): Unit =
@@ -161,6 +159,7 @@ abstract class BaseISpec
     }
 
     And("the body should be in Json format")
+    headers.get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     headers.get(CONTENT_TYPE).get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
@@ -180,5 +179,6 @@ abstract class BaseISpec
     And(s"the error code should be $NOT_AUTHORISED")
     errorList.head.code shouldBe NOT_AUTHORISED.entryName
     assert(errorList.head.message.startsWith(NOT_AUTHORISED.message))
+    response.header.headers.get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
   }
 }

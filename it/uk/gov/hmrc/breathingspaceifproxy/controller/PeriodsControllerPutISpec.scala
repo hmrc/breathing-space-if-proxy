@@ -57,6 +57,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
       verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
       verifyAuditEventCall(BS_Periods_PUT)
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
 
     "return 400(BAD_REQUEST) when no body is provided" in {
@@ -104,6 +105,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
       verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
       verifyAuditEventCall(BS_Periods_PUT)
+      headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
 
@@ -123,5 +125,6 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
     verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
     verifyAuditEventCall(BS_Periods_PUT)
+    headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
   }
 }
