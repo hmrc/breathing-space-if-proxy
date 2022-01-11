@@ -1,0 +1,54 @@
+{
+  "underPayments": [
+    {
+      "taxYear": "2011",
+      "amount": 33212.23,
+      "source": "SA UP"
+    },
+    {
+      "taxYear": "1999",
+      "amount": 95959.23,
+      "source": "PAYE UP"
+    },
+    {
+      "taxYear": "2000",
+      "amount": 1232.12,
+      "source": "PAYE UP"
+    },
+    {
+      "taxYear": "2001",
+      "amount": 248325.47,
+      "source": "PAYE UP"
+    },
+    {
+      "taxYear": "2017",
+      "amount": 81357.65,
+      "source": "SA UP"
+    },
+    {
+      "taxYear": "2020",
+      "amount": 95895.99,
+      "source": "PAYE UP"
+    },
+    {
+      "taxYear": "2021",
+      "amount": 775841.25,
+      "source": "PAYE UP"
+    },
+    {
+      "taxYear": "2005",
+      "amount": 154.20,
+      "source": "SA UP"
+    },
+    {
+      "taxYear": "2010",
+      "amount": 12.36,
+      "source": "SA UP"
+    },
+    {
+      "taxYear": "2019",
+      "amount": 38748.23,
+      "source": "PAYE UP"
+    }
+  ]
+}

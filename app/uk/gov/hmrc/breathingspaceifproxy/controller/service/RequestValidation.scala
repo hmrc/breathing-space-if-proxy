@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
 import java.util.UUID
-
 import cats.syntax.apply._
 import cats.syntax.either._
 import cats.syntax.option._
@@ -32,6 +31,8 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST, BS_Periods_PUT}
+
+import java.lang.Integer.parseInt
 
 trait RequestValidation {
 
@@ -91,6 +92,14 @@ trait RequestValidation {
         }
         .reduceLeft(_.combine(_))
     }
+
+  def validatePeriodId(maybePeriodId: String): Validation[UUID] =
+    Either
+      .catchNonFatal(UUID.fromString(maybePeriodId))
+      .fold(
+        _ => ErrorItem(INVALID_PERIOD_ID, s"(${DownstreamHeader.CorrelationId})".some).invalidNec[UUID],
+        _.validNec[ErrorItem]
+      )
 
   private def validateContentType(request: Request[_]): Validation[Unit] =
     request.headers
