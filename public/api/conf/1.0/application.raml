@@ -72,6 +72,93 @@ traits:
         type: string
         example: "MZ006526C, MZ006526"
 
+    /{periodId}/coding-out-debts:
+      uriParameters:
+        periodId:
+          description: |
+            Breathing Space Period Unique Reference
+
+            Must conform to the regular expression
+
+            <code>^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fAF]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$</code>
+          type: string
+          example: "7957547e-1619-4f22-82bb-f12138ec2f8b"
+      get:
+        displayName: Use a nino to get a person's HMRC coded-out debts
+        description: Get a person in breathing space's coded-out debts. **Not** available in production.
+        (annotations.scope): "read:breathing-space-debts"
+        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-debts" ] } ]
+        is: [applicationHeaders]
+        responses:
+          200:
+            headers:
+              Correlation-Id:
+                description: A unique UUID for this request
+                type: string
+                required: true
+                example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+            body:
+              application/json:
+                type: !include schemas/GET-BS-CodedOutDebts-Response.json
+                examples:
+                  examples-1:
+                    description: Multiple debts returned
+                    value: !include examples/GET-BS-CodedOutDebts-Response.json
+
+          400:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  invalidBody:
+                    description: Not expected a body to this endpoint
+                    value:
+                      code: INVALID_BODY
+                  invalidHeader:
+                    description: One or more of the header values are invalid
+                    value:
+                      code: INVALID_HEADER
+                  invalidNino:
+                    description: Invalid Nino format
+                    value:
+                      code: INVALID_NINO
+                  invalidPeriodId:
+                    description: Invalid PeriodId format
+                    value:
+                      code: INVALID_PERIOD_ID
+                  missingHeader:
+                    description: One or more of the required headers are missing
+                    value:
+                      code: MISSING_HEADER
+                  invalidMethod:
+                    description: A request for coded-out underpayments is made using an invalid HTTP method
+                    value:
+                      code: INVALID_ENDPOINT
+
+          403:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  resourceNotFound:
+                    description: Breathing Space has expired for the given Nino
+                    value:
+                      code: BREATHING_SPACE_EXPIRED
+
+          404:
+            body:
+              application/json:
+                type: types.errorResponse
+                examples:
+                  dataNotFound:
+                    description: No records found for the given Nino
+                    value:
+                      code: NO_DATA_FOUND
+                  periodIdNotFound:
+                    description: The provided PeriodId for that Nino was not found
+                    value:
+                      code: NO_DATA_FOUND
+
     /{periodId}/debts:
       uriParameters:
         periodId:
