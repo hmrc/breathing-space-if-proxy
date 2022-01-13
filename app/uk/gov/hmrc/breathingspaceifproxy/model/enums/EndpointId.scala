@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ object EndpointId extends Enum[EndpointId] {
   case object BS_Periods_GET extends EndpointId("RetrieveBreathingSpacePeriods")
   case object BS_Periods_POST extends EndpointId("CreateBreathingSpacePeriods")
   case object BS_Periods_PUT extends EndpointId("AmendBreathingSpacePeriods")
+  case object BS_Underpayments_GET extends EndpointId("RetrieveUnderpayments")
 
   override val values = findValues
 }

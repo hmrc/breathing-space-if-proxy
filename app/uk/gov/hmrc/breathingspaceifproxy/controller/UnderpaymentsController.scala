@@ -16,51 +16,48 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import javax.inject.{Inject, Singleton}
 import cats.syntax.apply._
-import cats.syntax.either._
-import cats.syntax.option._
-import cats.syntax.validated._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
+import uk.gov.hmrc.breathingspaceifproxy.model.HttpError
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Underpayments_GET
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
+import javax.inject.{Inject, Singleton}
+
 @Singleton()
-class DebtsController @Inject()(
+class UnderpaymentsController @Inject()(
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
   cc: ControllerComponents,
-  debtsConnector: DebtsConnector
+  underpaymentsConnector: UnderpaymentsConnector
 ) extends AbstractBaseController(cc) {
 
   val action = authAction("read:breathing-space-debts")
 
-  def get(maybeNino: String, maybePeriodId: String): Action[Validation[AnyContent]] = action.async(withoutBody) {
+  def get(nino: String, periodId: String): Action[Validation[AnyContent]] = action.async(withoutBody) {
     implicit request =>
       (
-        validateHeadersForNPS(BS_Debts_GET, debtsConnector.etmpConnector),
-        validateNino(maybeNino),
-        validatePeriodId(maybePeriodId),
+        validateHeadersForNPS(BS_Underpayments_GET, underpaymentsConnector.eisConnector),
+        validateNino(nino),
+        validatePeriodId(periodId),
         request.body
       ).mapN((requestId, nino, periodId, _) => (requestId, nino, periodId))
         .fold(
           HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
-          validationTuple => {
-            implicit val (requestId, nino, periodId) = validationTuple
-            logger.debug(s"$requestId for Nino(${nino.value})")
+          validParams => {
+            implicit val (requestId, nino, periodId) = validParams
+            logger.debug(s"$requestId for Nino(${nino.value}")
             if (appConfig.onDevEnvironment) logHeaders
-            debtsConnector.get(nino, periodId).flatMap {
+            underpaymentsConnector.get(nino, periodId).flatMap {
               _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
             }
           }
         )
   }
-
 }
