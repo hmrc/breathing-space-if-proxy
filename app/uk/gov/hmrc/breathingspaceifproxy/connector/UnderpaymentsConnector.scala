@@ -51,7 +51,7 @@ class UnderpaymentsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
 object UnderpaymentsConnector {
   def path(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/${periodId}/coding-out-debts"
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/${nino.value}/${periodId}/coding-out-debts"
 
   def url(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino, periodId)}"
