@@ -27,7 +27,7 @@ class UnderpaymentsConnectorSpec extends AnyWordSpec with BaseSpec {
       val nino = genNino
       val expectedUrl =
         s"http://localhost:9601/${appConfig.integrationFrameworkContext}" +
-          s"/breathing-space/NINO/${nino.value}/$periodIdAsString/coding-out-debts"
+          s"/breathing-space/${nino.value}/$periodIdAsString/coding-out-debts"
 
       Then(s"then the composed url should be equal to $expectedUrl")
       UnderpaymentsConnector.url(nino, periodId) shouldBe expectedUrl
