@@ -17,12 +17,16 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.implicits.{catsSyntaxOptionId, catsSyntaxValidatedIdBinCompat0}
+import com.typesafe.config.ConfigFactory
+import org.fluentlenium.configuration.ConfigurationFactory
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.Configuration
 import play.api.libs.json.JsSuccess
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
@@ -34,6 +38,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -77,7 +82,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
       status(response) shouldBe OK
     }
-    
+
     "return 3 underpayments" in {
       Given("valid GET request -> 3 Underpayments payload")
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
@@ -153,6 +158,50 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       And(s"the 2nd error code should be $INVALID_NINO")
       errorList.last.code shouldBe INVALID_NINO.entryName
       assert(errorList.last.message.startsWith(INVALID_NINO.message))
+    }
+
+    "Underpayments feature switch should return 501 when flag set to false" in {
+      val servicesConfig = inject[ServicesConfig]
+      val featureConfig = Configuration.from(Map("feature.flag.underpayments.enabled" -> false))
+      val flaggedOffConfig = featureConfig.withFallback(inject[Configuration])
+      val flaggedOffAppConfig = new AppConfig(flaggedOffConfig, servicesConfig)
+      val flaggedOffProxy = new UnderpaymentsController(
+        flaggedOffAppConfig,
+        inject[AuditConnector],
+        authConnector,
+        Helpers.stubControllerComponents(),
+        mockUnderpaymentsConnector
+      )
+
+      Given(s"Underpayments Feature flag set to false")
+      when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
+        .thenReturn(Future.successful(Underpayments(underpayments).validNec))
+
+      val response = flaggedOffProxy.get(validNino, validPeriodId)(fakeGetRequest)
+
+      status(response) shouldBe NOT_IMPLEMENTED
+    }
+
+    "Underpayments feature switch should return 200 when flag set to true" in {
+      val servicesConfig = inject[ServicesConfig]
+      val featureConfig = Configuration.from(Map("feature.flag.underpayments.enabled" -> true))
+      val flaggedOnConfig = featureConfig.withFallback(inject[Configuration])
+      val flaggedOnAppConfig = new AppConfig(flaggedOnConfig, servicesConfig)
+      val flaggedOnProxy = new UnderpaymentsController(
+        flaggedOnAppConfig,
+        inject[AuditConnector],
+        authConnector,
+        Helpers.stubControllerComponents(),
+        mockUnderpaymentsConnector
+      )
+
+      Given(s"Underpayments Feature flag set to true")
+      when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
+        .thenReturn(Future.successful(Underpayments(underpayments).validNec))
+
+      val response = flaggedOnProxy.get(validNino, validPeriodId)(fakeGetRequest)
+
+      status(response) shouldBe OK
     }
   }
 }

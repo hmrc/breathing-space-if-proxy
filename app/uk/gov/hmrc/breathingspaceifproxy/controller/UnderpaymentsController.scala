@@ -17,17 +17,20 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.syntax.apply._
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
+import play.api.libs.json.Writes
+import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model.HttpError
+import uk.gov.hmrc.breathingspaceifproxy.model.{HttpError, Nino, RequestId, Underpayments}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Underpayments_GET
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.Future
 
 @Singleton()
 class UnderpaymentsController @Inject()(
@@ -53,11 +56,23 @@ class UnderpaymentsController @Inject()(
           validParams => {
             implicit val (requestId, nino, periodId) = validParams
             logger.debug(s"$requestId for Nino(${nino.value}")
+            // TODO: remove after 6 week handover period to LiveServices (Ops)
+            logger.info(s"Underpayments feature enabled : ${appConfig.underpaymentsFeatureEnabled}")
             if (appConfig.onDevEnvironment) logHeaders
-            underpaymentsConnector.get(nino, periodId).flatMap {
-              _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
-            }
+            if (appConfig.underpaymentsFeatureEnabled) getFromUpstream
+            else Future(NotImplemented)
           }
         )
   }
+
+  private def getFromUpstream(
+    implicit nino: Nino,
+    periodId: UUID,
+    request: Request[Validation[AnyContent]],
+    requestId: RequestId,
+    format: Writes[Underpayments]
+  ): Future[Result] =
+    underpaymentsConnector.get(nino, periodId).flatMap {
+      _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+    }
 }
