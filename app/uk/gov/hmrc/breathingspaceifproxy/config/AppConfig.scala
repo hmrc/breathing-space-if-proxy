@@ -58,4 +58,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   // Must be 'lazy'
   lazy val v1AllowlistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
+
+  val underpaymentsFeatureEnabled = config.get[Boolean]("feature.flag.underpayments.enabled")
 }
