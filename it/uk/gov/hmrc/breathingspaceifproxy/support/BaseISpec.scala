@@ -34,7 +34,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Request, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
-import play.api.test.Helpers.{await, headers, route}
+import play.api.test.Helpers.{await, route}
 import play.mvc.Http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, UpstreamHeader}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig

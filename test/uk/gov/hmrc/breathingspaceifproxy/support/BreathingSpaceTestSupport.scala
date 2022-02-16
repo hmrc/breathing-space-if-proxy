@@ -134,6 +134,7 @@ trait BreathingSpaceTestSupport {
   lazy val debts = Json.toJson(Debts(listOfDebts)).toString
 
   lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
+  lazy val fakeUnAttendedGetRequest = FakeRequest().withHeaders(requestHeadersForUnattended: _*)
 
   lazy val random: Random = new Random
 

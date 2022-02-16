@@ -30,7 +30,7 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST, BS_Periods_PUT}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST, BS_Periods_PUT, BS_Underpayments_GET}
 
 import java.lang.Integer.parseInt
 
@@ -147,7 +147,8 @@ trait RequestValidation {
           .fold[Validation[Attended]] {
             ErrorItem(INVALID_HEADER, invalidRequestTypeHeader(requestType)).invalidNec
           } {
-            case Attended.DA2_BS_ATTENDED if (endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT) =>
+            case Attended.DA2_BS_ATTENDED
+                if endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT || endpointId == BS_Underpayments_GET =>
               ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
 
             case attended => attended.validNec

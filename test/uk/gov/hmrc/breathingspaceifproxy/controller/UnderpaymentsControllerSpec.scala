@@ -17,8 +17,6 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.implicits.{catsSyntaxOptionId, catsSyntaxValidatedIdBinCompat0}
-import com.typesafe.config.ConfigFactory
-import org.fluentlenium.configuration.ConfigurationFactory
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
@@ -30,6 +28,7 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
+  INVALID_HEADER,
   INVALID_NINO,
   INVALID_PERIOD_ID,
   MISSING_HEADER,
@@ -78,7 +77,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Underpayments(underpayments).validNec))
 
-      val response = subject.get(validNino, validPeriodId)(fakeGetRequest)
+      val response = subject.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
       status(response) shouldBe OK
     }
@@ -88,7 +87,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Underpayments(underpayments).validNec))
 
-      val response = subject.get(validNino, validPeriodId)(fakeGetRequest)
+      val response = subject.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
       val content = contentAsJson(response)
       val actualUnderpayments = content.validate[Underpayments] match {
@@ -101,7 +100,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"invalid GET request -> 400 bad nino")
 
-      val response = subject.get(invalidNino, validPeriodId)(fakeGetRequest).run
+      val response = subject.get(invalidNino, validPeriodId)(fakeUnAttendedGetRequest).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
       And(s"the error code should be $INVALID_NINO")
@@ -109,10 +108,21 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       assert(errorList.head.message.startsWith(INVALID_NINO.message))
     }
 
+    "return 400(BAD_REQUEST) when the Request type is ATTENDED" in {
+      Given(s"invalid GET request -> 400 invalid request type")
+
+      val response = subject.get(validNino, validPeriodId)(fakeGetRequest).run
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+      And(s"the error code should be $INVALID_HEADER")
+      errorList.head.code shouldBe INVALID_HEADER.entryName
+      assert(errorList.head.message.startsWith(INVALID_HEADER.message))
+    }
+
     "return 400(BAD_REQUEST) when the Period ID is invalid" in {
       Given(s"invalid GET request -> 400 bad Period ID")
 
-      val response = subject.get(validNino, invalidPeriodId)(fakeGetRequest).run
+      val response = subject.get(validNino, invalidPeriodId)(fakeUnAttendedGetRequest).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
       And(s"the error code should be $INVALID_PERIOD_ID")
@@ -126,7 +136,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
         .thenReturn(Future.successful(ErrorItem(RESOURCE_NOT_FOUND).invalidNec))
 
       // Because these parameters are valid they get through validation, we receive a 404
-      val response = subject.get(nonExistentNino, validPeriodId)(fakeGetRequest).run
+      val response = subject.get(nonExistentNino, validPeriodId)(fakeUnAttendedGetRequest).run
 
       val result = Await.result(response, Duration(1, TimeUnit.SECONDS))
       result.header.status shouldBe 404
@@ -138,7 +148,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
         .thenReturn(Future.successful(ErrorItem(RESOURCE_NOT_FOUND).invalidNec))
 
       // Because these parameters are valid they get through validation, we receive a 404
-      val response = subject.get(validNino, nonExistentPeriodId)(fakeGetRequest).run
+      val response = subject.get(validNino, nonExistentPeriodId)(fakeUnAttendedGetRequest).run
 
       val result = Await.result(response, Duration(1, TimeUnit.SECONDS))
       result.header.status shouldBe 404
@@ -147,7 +157,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
       Given(s"a GET request with an invalid Nino and without the ${DownstreamHeader.StaffPid} request header")
       val response =
-        subject.get("HT1234B", validPeriodId)(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid)).run
+        subject.get("HT1234B", validPeriodId)(unattendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid)).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 
@@ -177,7 +187,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Underpayments(underpayments).validNec))
 
-      val response = flaggedOffProxy.get(validNino, validPeriodId)(fakeGetRequest)
+      val response = flaggedOffProxy.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
       status(response) shouldBe NOT_IMPLEMENTED
     }
@@ -199,7 +209,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Underpayments(underpayments).validNec))
 
-      val response = flaggedOnProxy.get(validNino, validPeriodId)(fakeGetRequest)
+      val response = flaggedOnProxy.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
       status(response) shouldBe OK
     }

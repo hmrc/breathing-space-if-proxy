@@ -88,7 +88,22 @@ traits:
         description: Get a person in breathing space's coded-out debts. **Not** available in production.
         (annotations.scope): "read:breathing-space-debts"
         securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-debts" ] } ]
-        is: [applicationHeaders]
+        headers:
+          Correlation-Id:
+            description: A unique UUID for this request
+            type: string
+            required: true
+            example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          Request-Type:
+            description: Context flag for this request. Must be same as the example given.
+            type: string
+            required: true
+            example: DA2_BS_UNATTENDED
+          Pid:
+            description: The Staff identifier. Must be same as the example given.
+            type: string
+            required: true
+            example: "0000000"
         responses:
           200:
             headers:
