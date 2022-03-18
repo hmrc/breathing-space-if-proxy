@@ -97,6 +97,19 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       actualUnderpayments shouldBe Underpayments(underpayments)
     }
 
+    "return 503(SERVICE_UNAVAILABLE) when upstream is unavailable" in {
+      Given(s"unavailable upstream service")
+
+      when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(UPSTREAM_SERVICE_UNAVAILABLE).invalidNec))
+
+      val resp = subject.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
+
+      val content = contentAsJson(resp)
+
+      status(resp) shouldBe SERVICE_UNAVAILABLE
+    }
+
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"invalid GET request -> 400 bad nino")
 
