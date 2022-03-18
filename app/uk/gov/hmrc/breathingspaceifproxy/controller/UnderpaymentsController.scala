@@ -52,12 +52,15 @@ class UnderpaymentsController @Inject()(
         request.body
       ).mapN((requestId, nino, periodId, _) => (requestId, nino, periodId))
         .fold(
-          HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
+          e => {
+            logger.error(e.toString)
+            HttpError(retrieveCorrelationId, BAD_REQUEST, e).send
+          },
           validParams => {
             implicit val (requestId, nino, periodId) = validParams
             logger.debug(s"$requestId for Nino(${nino.value}")
             // TODO: remove after 6 week handover period to LiveServices (Ops)
-            logger.info(s"Underpayments feature enabled : ${appConfig.underpaymentsFeatureEnabled}")
+            logger.debug(s"Underpayments feature enabled : ${appConfig.underpaymentsFeatureEnabled}")
             if (appConfig.onDevEnvironment) logHeaders
             if (appConfig.underpaymentsFeatureEnabled) getFromUpstream
             else Future(NotImplemented)

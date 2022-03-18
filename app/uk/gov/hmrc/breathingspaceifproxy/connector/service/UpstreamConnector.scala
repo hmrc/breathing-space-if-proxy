@@ -106,7 +106,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       else if (message.contains(noPeriodIdFound)) PERIOD_ID_NOT_FOUND
       else RESOURCE_NOT_FOUND
 
-    logAndGenDownstreamResponse(info, NOT_FOUND, response, baseError)
+    logAndGenDownstreamResponse(error, NOT_FOUND, response, baseError)
   }
 
   private def logAndGenDownstreamResponse[T](
