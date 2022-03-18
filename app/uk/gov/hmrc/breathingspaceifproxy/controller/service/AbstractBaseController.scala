@@ -21,7 +21,7 @@ import scala.concurrent.Future
 import cats.syntax.either._
 import cats.syntax.validated._
 import play.api.Logging
-import play.api.http.{HeaderNames, MimeTypes}
+import play.api.http.MimeTypes
 import play.api.libs.json._
 import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
@@ -91,7 +91,6 @@ abstract class AbstractBaseController(
     Future.successful {
       Status(status)(payload)
         .withHeaders(
-          HeaderNames.CONTENT_TYPE -> MimeTypes.JSON,
           DownstreamHeader.CorrelationId -> requestId.correlationId.toString,
           DownstreamHeader.UpstreamState -> requestId.upstreamConnector.currentState
         )
