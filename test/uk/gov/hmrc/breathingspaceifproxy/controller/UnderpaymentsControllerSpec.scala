@@ -32,7 +32,8 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
   INVALID_NINO,
   INVALID_PERIOD_ID,
   MISSING_HEADER,
-  RESOURCE_NOT_FOUND
+  RESOURCE_NOT_FOUND,
+  UPSTREAM_SERVICE_UNAVAILABLE
 }
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
