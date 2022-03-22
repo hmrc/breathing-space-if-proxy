@@ -62,8 +62,7 @@ object BaseError extends Enum[BaseError] {
       )
 
   case object UPSTREAM_BAD_GATEWAY extends BaseError(INTERNAL_SERVER_ERROR, "The upstream service is not responding")
-  case object UPSTREAM_SERVICE_UNAVAILABLE
-      extends BaseError(SERVICE_UNAVAILABLE, "The upstream service is unavailable")
+  case object UPSTREAM_SERVICE_UNAVAILABLE extends BaseError(SERVICE_UNAVAILABLE, "The upstream service is unavailable")
   case object UPSTREAM_TIMEOUT extends BaseError(INTERNAL_SERVER_ERROR, "Request timed out")
 
   override val values = findValues
