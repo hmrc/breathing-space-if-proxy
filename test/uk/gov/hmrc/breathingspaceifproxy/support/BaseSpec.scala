@@ -78,7 +78,6 @@ trait BaseSpec
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
       headers.get(DownstreamHeader.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
-      headers.size shouldBe 2
     }
 
     And("the body should be in Json format")
