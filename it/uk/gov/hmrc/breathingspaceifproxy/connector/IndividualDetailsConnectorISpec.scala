@@ -85,7 +85,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
     }
 
     "return SERVER_ERROR for any 5xx error (excluding 502,503,504)" in {
-      verifyErrorResponse(genNino, NOT_IMPLEMENTED, SERVER_ERROR)
+      verifyErrorResponse(genNino, NOT_IMPLEMENTED, UPSTREAM_SERVICE_UNAVAILABLE)
     }
   }
 
