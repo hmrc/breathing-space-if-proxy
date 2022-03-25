@@ -90,7 +90,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       case SERVICE_UNAVAILABLE =>
         logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
       case GATEWAY_TIMEOUT => logAndGenDownstreamResponse(error, GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
-      case _ => logAndGenDownstreamResponse(error, statusCode, message, SERVER_ERROR)
+      case _ => logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
     }
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
