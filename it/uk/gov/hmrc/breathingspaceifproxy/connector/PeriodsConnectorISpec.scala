@@ -56,7 +56,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
-      verifyGetResponse(NOT_IMPLEMENTED, SERVER_ERROR)
+      verifyGetResponse(NOT_IMPLEMENTED, UPSTREAM_SERVICE_UNAVAILABLE)
     }
   }
 
