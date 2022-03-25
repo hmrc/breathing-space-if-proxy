@@ -19,6 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.connector.service
 import scala.concurrent.{ExecutionContext, Future}
 
 import cats.syntax.validated._
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
@@ -65,6 +66,10 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
 
     case Upstream4xxResponse(res) => handleUpstream4xxError(res.statusCode, res.message)
     case Upstream5xxResponse(res) => handleUpstream5xxError(res.statusCode, res.message)
+
+    case exc: MismatchedInputException =>
+      logger.info(s"=======$exc\n\n\n\n\n\n")
+      Future.successful(ErrorItem(NO_CONTENT_STATUS).invalidNec)
 
     case throwable: Throwable =>
       val name = throwable.getClass.getSimpleName

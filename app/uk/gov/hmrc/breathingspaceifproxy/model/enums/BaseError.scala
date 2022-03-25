@@ -40,6 +40,7 @@ object BaseError extends Enum[BaseError] {
   case object INVALID_PERIOD_ID extends BaseError(BAD_REQUEST, "Invalid PeriodId format")
   case object INVALID_UTR extends BaseError(BAD_REQUEST, "Invalid UTR format")
   case object MISSING_BODY extends BaseError(BAD_REQUEST, "The request must have a body")
+  case object NO_CONTENT_STATUS extends BaseError(NO_CONTENT, "no content")
 
   case object MISSING_CONSUMER_REQUEST_ID
       extends BaseError(BAD_REQUEST, "Payload does not contain a 'consumerRequestId' value?")
