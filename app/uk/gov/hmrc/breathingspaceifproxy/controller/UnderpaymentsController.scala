@@ -68,6 +68,9 @@ class UnderpaymentsController @Inject()(
         )
   }
 
+  // The Upstream service generate a 204 with no body in case of an empty underpayment list
+  // When the Upstream response is received, it generates a MismatchInputException and is handled by the Upstream Connector Error Handler
+  // The Connector send a 204 response with empty body
   private def getFromUpstream(
     implicit nino: Nino,
     periodId: UUID,

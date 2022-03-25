@@ -67,8 +67,9 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
     case Upstream4xxResponse(res) => handleUpstream4xxError(res.statusCode, res.message)
     case Upstream5xxResponse(res) => handleUpstream5xxError(res.statusCode, res.message)
 
+    // 204 Upstream response with no body generates MismatchedInputException.
+    // To return a 204 No Content Downstream the response as Error Item has been added
     case exc: MismatchedInputException =>
-      logger.info(s"=======$exc\n\n\n\n\n\n")
       Future.successful(ErrorItem(NO_CONTENT_STATUS).invalidNec)
 
     case throwable: Throwable =>
