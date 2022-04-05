@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import play.api.libs.json.{JsNull, JsValue, Json, Writes}
+import play.api.libs.json.{JsObject, Json, Writes}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 
 final case class ErrorItem(baseError: BaseError, details: Option[String] = None)
@@ -24,13 +24,10 @@ final case class ErrorItem(baseError: BaseError, details: Option[String] = None)
 object ErrorItem {
 
   implicit val writes = new Writes[ErrorItem] {
-    def writes(error: ErrorItem): JsValue = error.baseError match {
-      case BaseError.NO_CONTENT_STATUS => JsNull
-      case _ =>
-        Json.obj(
-          "code" -> error.baseError.entryName,
-          "message" -> s"${error.baseError.message}${error.details.fold("")(identity)}"
-        )
-    }
+    def writes(error: ErrorItem): JsObject =
+      Json.obj(
+        "code" -> error.baseError.entryName,
+        "message" -> s"${error.baseError.message}${error.details.fold("")(identity)}"
+      )
   }
 }

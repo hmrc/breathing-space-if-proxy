@@ -19,12 +19,14 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
+import play.api.http.Status.NO_CONTENT
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HttpClient, HttpErrorFunctions, HttpReads, HttpResponse}
+
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -41,10 +43,26 @@ class UnderpaymentsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
+  object UnderpaymentsHttpReads extends HttpErrorFunctions {
+    def reads(implicit rds: HttpReads[Underpayments]): HttpReads[Underpayments] = new HttpReads[Underpayments] {
+      override def read(method: String, url: String, response: HttpResponse): Underpayments =
+        response.status match {
+          case NO_CONTENT => Underpayments(List())
+          case _ => rds.read(method, url, response)
+        }
+    }
+  }
+
   def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId): ResponseValidation[Underpayments] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[Underpayments](Url(url(nino, periodId)).value, headers = headers).map(_.validNec)
+        http
+          .GET[Underpayments](Url(url(nino, periodId)).value, headers = headers)(
+            UnderpaymentsHttpReads.reads,
+            implicitly,
+            implicitly
+          )
+          .map(_.validNec)
       }
     }
 }
