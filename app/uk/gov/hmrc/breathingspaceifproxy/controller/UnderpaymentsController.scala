@@ -76,6 +76,11 @@ class UnderpaymentsController @Inject()(
     format: Writes[Underpayments]
   ): Future[Result] =
     underpaymentsConnector.get(nino, periodId).flatMap {
-      _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+      _.fold(
+        auditEventAndSendErrorResponse[AnyContent], {
+          case ups if (ups.underPayments.isEmpty) => auditEventAndSendResponse(NO_CONTENT, ups)
+          case ups => auditEventAndSendResponse(OK, ups)
+        }
+      )
     }
 }

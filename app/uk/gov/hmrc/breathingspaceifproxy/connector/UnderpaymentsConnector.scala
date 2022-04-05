@@ -19,12 +19,14 @@ package uk.gov.hmrc.breathingspaceifproxy.connector
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
+import play.api.http.Status.NO_CONTENT
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HttpClient, HttpReads, HttpResponse}
+
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
@@ -44,15 +46,30 @@ class UnderpaymentsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId): ResponseValidation[Underpayments] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[Underpayments](Url(url(nino, periodId)).value, headers = headers).map(_.validNec)
+        http
+          .GET[Underpayments](Url(url(nino, periodId)).value, headers = headers)(
+            UnderpaymentsHttpReads.reads,
+            implicitly,
+            implicitly
+          )
+          .map(_.validNec)
       }
     }
+
+  object UnderpaymentsHttpReads {
+    def reads(implicit rds: HttpReads[Underpayments]): HttpReads[Underpayments] =
+      (method: String, url: String, response: HttpResponse) =>
+        response.status match {
+          case NO_CONTENT => Underpayments(List())
+          case _ => rds.read(method, url, response)
+        }
+  }
 }
 
 object UnderpaymentsConnector {
-  def path(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/breathing-space/${nino.value}/${periodId}/coding-out-debts"
-
   def url(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino, periodId)}"
+
+  def path(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/${nino.value}/$periodId/coding-out-debts"
 }
