@@ -83,14 +83,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
 
   private def handleUpstream5xxError[T](statusCode: Int, message: String)(
     implicit r: RequestId
-  ): ResponseValidation[T] =
-    statusCode match {
-      case BAD_GATEWAY => logAndGenDownstreamResponse(error, BAD_GATEWAY, message, BaseError.SERVER_ERROR)
-      case SERVICE_UNAVAILABLE =>
-        logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, BaseError.SERVER_ERROR)
-      case GATEWAY_TIMEOUT => logAndGenDownstreamResponse(error, GATEWAY_TIMEOUT, message, BaseError.SERVER_ERROR)
-      case _ => logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, BaseError.SERVER_ERROR)
-    }
+  ): ResponseValidation[T] = logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, BaseError.SERVER_ERROR)
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
   val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
