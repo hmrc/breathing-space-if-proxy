@@ -28,7 +28,7 @@ import play.api.mvc.{RequestHeader, Result}
 import play.api.routing.Router
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_ENDPOINT, SERVER_ERROR}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INTERNAL_SERVER_ERROR, INVALID_ENDPOINT}
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
@@ -56,7 +56,7 @@ class ErrorHandler @Inject()(
     val correlationId = request.headers.get(DownstreamHeader.CorrelationId)
     val endpoint = s"${request.method} ${request.path}"
     logger.error(s"${logCorrelationId(correlationId)} $endpoint", throwable)
-    HttpError(correlationId, ErrorItem(SERVER_ERROR)).send
+    HttpError(correlationId, ErrorItem(INTERNAL_SERVER_ERROR)).send
   }
 
   private def logCorrelationId(correlationId: Option[String]): String =

@@ -88,7 +88,7 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
     }
 
     "return SERVER_ERROR for any Throwable caught while sending upstream a request" in {
-      verifyResponse(new IllegalArgumentException("Some illegal argument"), SERVER_ERROR)
+      verifyResponse(new IllegalArgumentException("Some illegal argument"), INTERNAL_SERVER_ERROR)
     }
   }
 

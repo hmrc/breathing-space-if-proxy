@@ -24,7 +24,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthProviders, _}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, HttpError}
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{NOT_AUTHORISED, SERVER_ERROR}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INTERNAL_SERVER_ERROR, NOT_AUTHORISED}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
 trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
@@ -49,7 +49,7 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
             case throwable: Throwable =>
               val name = throwable.getClass.getSimpleName
               logger.error(s"Exception($name) caught while authorising a request. ${throwable.getMessage}")
-              HttpError(retrieveCorrelationId(request), ErrorItem(SERVER_ERROR)).send
+              HttpError(retrieveCorrelationId(request), ErrorItem(INTERNAL_SERVER_ERROR)).send
           }(executionContext)
       }
     }

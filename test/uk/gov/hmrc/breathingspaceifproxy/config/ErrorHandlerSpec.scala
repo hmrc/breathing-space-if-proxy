@@ -20,7 +20,7 @@ import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
@@ -61,9 +61,9 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
-      And(s"the error code should be $INVALID_ENDPOINT")
-      errorList.head.code shouldBe INVALID_ENDPOINT.entryName
-      assert(errorList.head.message.startsWith(INVALID_ENDPOINT.message))
+      And(s"the error code should be ${BaseError.INVALID_ENDPOINT}")
+      errorList.head.code shouldBe BaseError.INVALID_ENDPOINT.entryName
+      assert(errorList.head.message.startsWith(BaseError.INVALID_ENDPOINT.message))
     }
   }
 
@@ -72,7 +72,7 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
       val response = inject[ErrorHandler].onServerError(fakeGetRequest, new NoSuchElementException())
 
       status(response) shouldBe INTERNAL_SERVER_ERROR
-      (contentAsJson(response) \ "errors" \\ "code").head.as[String] shouldBe SERVER_ERROR.entryName
+      (contentAsJson(response) \ "errors" \\ "code").head.as[String] shouldBe BaseError.INTERNAL_SERVER_ERROR.entryName
     }
   }
 }

@@ -65,11 +65,11 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       val response = await(connector.getDetails(nino))
 
       verifyHeaders(HttpMethod.Get, path, queryParams)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+      response.fold(_.head.baseError shouldBe INTERNAL_SERVER_ERROR, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      verifyErrorResponse(genNino, BAD_REQUEST, SERVER_ERROR)
+      verifyErrorResponse(genNino, BAD_REQUEST, INTERNAL_SERVER_ERROR)
     }
 
     "return UPSTREAM_BAD_GATEWAY for a 502(BAD_GATEWAY) error" in {
