@@ -121,7 +121,7 @@ abstract class CircuitBreakerISpec
     (1 to failedCalls).foreach { ix =>
       val shouldBeBadGatewayOnLeft = await(call).toEither
       shouldBeBadGatewayOnLeft match {
-        case Left(error) => error.head.baseError shouldBe BaseError.UPSTREAM_BAD_GATEWAY
+        case Left(error) => error.head.baseError shouldBe BaseError.SERVER_ERROR
         case _ => assert(false)
       }
       upstreamConnector.currentState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")

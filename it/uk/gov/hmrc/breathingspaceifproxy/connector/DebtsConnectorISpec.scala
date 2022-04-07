@@ -67,11 +67,11 @@ class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return SERVER_ERROR for any 4xx error, 403, 404 and 409 excluded" in {
-      verifyGetResponse(BAD_REQUEST, INTERNAL_SERVER_ERROR)
+      verifyGetResponse(BAD_REQUEST, BaseError.INTERNAL_SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
-      verifyGetResponse(NOT_IMPLEMENTED, UPSTREAM_SERVICE_UNAVAILABLE)
+      verifyGetResponse(NOT_IMPLEMENTED, BaseError.SERVER_ERROR)
     }
   }
 
