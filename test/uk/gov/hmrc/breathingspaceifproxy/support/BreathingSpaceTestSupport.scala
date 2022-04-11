@@ -111,8 +111,6 @@ trait BreathingSpaceTestSupport {
       )
     )
 
-  lazy val validUnderpaymentsResponse = Underpayments(List(Underpayment("2022", 100.01, "PAYE UP")))
-
   lazy val debt1 = Debt(
     chargeReference = "ETMP ref01",
     chargeDescription = "100 chars long charge description as exist in ETMP",
