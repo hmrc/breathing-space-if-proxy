@@ -20,7 +20,7 @@ import org.scalatest.Assertion
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model.RequestId
+import uk.gov.hmrc.breathingspaceifproxy.model.{RequestId, Underpayment, Underpayments}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Underpayments_GET
@@ -38,6 +38,7 @@ class UnderpaymentsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val nino = genNino
       val periodId = UUID.randomUUID()
       val url = UnderpaymentsConnector.path(nino, periodId)
+      val validUnderpaymentsResponse = Underpayments(List(Underpayment("2022", 100.01, "PAYE UP")))
       val responsePayload = Json.toJson(validUnderpaymentsResponse).toString
       stubCall(HttpMethod.Get, url, OK, responsePayload)
 
