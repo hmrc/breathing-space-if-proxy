@@ -25,6 +25,12 @@ $ sbt run
 Before committing, always run from the console: `./precheck.sh`
 `sbt-bobby` should be installed in your local .sbt folder for this to work.
 
+### Debugging the service
+```
+$ sbt -jvm-debug 5005
+```
+* Then create a remote jvm debug run config targeting this port
+
 ### Highlighted SBT Tasks
 
 Task | Description | Command
