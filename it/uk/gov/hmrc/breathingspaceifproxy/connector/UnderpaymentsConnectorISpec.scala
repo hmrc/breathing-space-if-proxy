@@ -22,7 +22,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model.{RequestId, Underpayment, Underpayments}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INTERNAL_SERVER_ERROR, _}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Underpayments_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
@@ -69,11 +69,11 @@ class UnderpaymentsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      verifyGetResponse(BAD_REQUEST, SERVER_ERROR)
+      verifyGetResponse(BAD_REQUEST, INTERNAL_SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
-      verifyGetResponse(NOT_IMPLEMENTED, UPSTREAM_SERVICE_UNAVAILABLE)
+      verifyGetResponse(NOT_IMPLEMENTED, SERVER_ERROR)
     }
   }
 

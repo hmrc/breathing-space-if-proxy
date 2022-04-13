@@ -18,6 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.model.enums
 
 import enumeratum._
 import play.api.http.Status._
+import play.api.http.Status
 
 sealed abstract class BaseError(val httpCode: Int, val message: String) extends EnumEntry
 
@@ -55,15 +56,13 @@ object BaseError extends Enum[BaseError] {
   case object RESOURCE_NOT_FOUND
       extends BaseError(NOT_FOUND, "The upstream service has indicated that the provided resource was not found")
 
-  case object SERVER_ERROR
+  case object INTERNAL_SERVER_ERROR
       extends BaseError(
-        INTERNAL_SERVER_ERROR,
+        Status.INTERNAL_SERVER_ERROR,
         "We are currently experiencing problems that require live service intervention"
       )
 
-  case object UPSTREAM_BAD_GATEWAY extends BaseError(SERVICE_UNAVAILABLE, "The upstream service is not responding")
-  case object UPSTREAM_SERVICE_UNAVAILABLE extends BaseError(SERVICE_UNAVAILABLE, "The upstream service is unavailable")
-  case object UPSTREAM_TIMEOUT extends BaseError(GATEWAY_TIMEOUT, "Request timed out")
+  case object SERVER_ERROR extends BaseError(SERVICE_UNAVAILABLE, "Service unavailable")
 
   override val values = findValues
 }

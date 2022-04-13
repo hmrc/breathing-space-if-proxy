@@ -38,7 +38,7 @@ class HttpErrorSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("HttpError with an 'Errors' list with 1 'Error' item") {
-    genAndTestHttpError(false, Nec(ErrorItem(SERVER_ERROR)))
+    genAndTestHttpError(false, Nec(ErrorItem(INTERNAL_SERVER_ERROR)))
   }
 
   test("HttpError with an 'Errors' list with 2 'Error' items") {

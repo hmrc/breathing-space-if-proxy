@@ -22,7 +22,6 @@ import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
 import play.api.http.Status
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_POST
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
@@ -39,56 +38,56 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
 
   "handleUpstreamError" should {
     "return RESOURCE_NOT_FOUND for a NOT_FOUND response" in {
-      verifyResponse(new NotFoundException("Some error message"), RESOURCE_NOT_FOUND)
+      verifyResponse(new NotFoundException("Some error message"), BaseError.RESOURCE_NOT_FOUND)
     }
 
     "return NO_DATA_FOUND for a NOT_FOUND response with specific message" in {
-      verifyResponse(new NotFoundException(noDataFound), NO_DATA_FOUND)
+      verifyResponse(new NotFoundException(noDataFound), BaseError.NO_DATA_FOUND)
     }
 
     "return NOT_IN_BREATHING_SPACE for a NOT_FOUND response with specific message" in {
-      verifyResponse(new NotFoundException(notInBS), NOT_IN_BREATHING_SPACE)
+      verifyResponse(new NotFoundException(notInBS), BaseError.NOT_IN_BREATHING_SPACE)
     }
 
     "return BREATHING_SPACE_EXPIRED for a FORBIDDEN response" in {
-      verifyResponse(new ForbiddenException("Some error message"), BREATHING_SPACE_EXPIRED)
+      verifyResponse(new ForbiddenException("Some error message"), BaseError.BREATHING_SPACE_EXPIRED)
     }
 
     "return CONFLICTING_REQUEST for a CONFLICT response" in {
-      verifyResponse(new ConflictException("Some error message"), CONFLICTING_REQUEST)
+      verifyResponse(new ConflictException("Some error message"), BaseError.CONFLICTING_REQUEST)
     }
 
     "return UPSTREAM_SERVICE_UNAVAILABLE for a SERVICE_UNAVAILABLE(HttpException) response" in {
       verifyResponse(
         new ServiceUnavailableException("The upstream service is unavailable"),
-        UPSTREAM_SERVICE_UNAVAILABLE
+        BaseError.SERVER_ERROR
       )
     }
 
     "return UPSTREAM_TIMEOUT for a GATEWAY_TIMEOUT(HttpException) response" in {
-      verifyResponse(new GatewayTimeoutException("Request timed out"), UPSTREAM_TIMEOUT)
+      verifyResponse(new GatewayTimeoutException("Request timed out"), BaseError.SERVER_ERROR)
     }
 
     "return UPSTREAM_BAD_GATEWAY for a BAD_GATEWAY(Upstream5xxResponse) response" in {
       verifyResponse(
         UpstreamErrorResponse("The upstream service is not responding", Status.BAD_GATEWAY),
-        UPSTREAM_BAD_GATEWAY
+        BaseError.SERVER_ERROR
       )
     }
 
     "return UPSTREAM_SERVICE_UNAVAILABLE for a SERVICE_UNAVAILABLE(Upstream5xxResponse) response" in {
       verifyResponse(
         UpstreamErrorResponse("The upstream service is unavailable", Status.SERVICE_UNAVAILABLE),
-        UPSTREAM_SERVICE_UNAVAILABLE
+        BaseError.SERVER_ERROR
       )
     }
 
     "return UPSTREAM_TIMEOUT for a GATEWAY_TIMEOUT(Upstream5xxResponse) response" in {
-      verifyResponse(UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT), UPSTREAM_TIMEOUT)
+      verifyResponse(UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT), BaseError.SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any Throwable caught while sending upstream a request" in {
-      verifyResponse(new IllegalArgumentException("Some illegal argument"), SERVER_ERROR)
+      verifyResponse(new IllegalArgumentException("Some illegal argument"), BaseError.INTERNAL_SERVER_ERROR)
     }
   }
 

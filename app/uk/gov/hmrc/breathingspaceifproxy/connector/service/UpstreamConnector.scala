@@ -25,7 +25,6 @@ import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpException}
 import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
@@ -69,7 +68,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
     case throwable: Throwable =>
       val name = throwable.getClass.getSimpleName
       logger.error(s"Exception($name) caught for upstream request $requestId. ${throwable.getMessage}")
-      Future.successful(ErrorItem(SERVER_ERROR).invalidNec)
+      Future.successful(ErrorItem(BaseError.INTERNAL_SERVER_ERROR).invalidNec)
   }
 
   private def handleUpstream4xxError[T](statusCode: Int, message: String)(
@@ -77,21 +76,14 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
   ): ResponseValidation[T] =
     statusCode match {
       case NOT_FOUND => notFound(message)
-      case FORBIDDEN => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BREATHING_SPACE_EXPIRED)
-      case CONFLICT => logAndGenDownstreamResponse(info, CONFLICT, message, CONFLICTING_REQUEST)
-      case _ => logAndGenDownstreamResponse(warning, statusCode, message, SERVER_ERROR)
+      case FORBIDDEN => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BaseError.BREATHING_SPACE_EXPIRED)
+      case CONFLICT => logAndGenDownstreamResponse(info, CONFLICT, message, BaseError.CONFLICTING_REQUEST)
+      case _ => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.INTERNAL_SERVER_ERROR)
     }
 
   private def handleUpstream5xxError[T](statusCode: Int, message: String)(
     implicit r: RequestId
-  ): ResponseValidation[T] =
-    statusCode match {
-      case BAD_GATEWAY => logAndGenDownstreamResponse(error, BAD_GATEWAY, message, UPSTREAM_BAD_GATEWAY)
-      case SERVICE_UNAVAILABLE =>
-        logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
-      case GATEWAY_TIMEOUT => logAndGenDownstreamResponse(error, GATEWAY_TIMEOUT, message, UPSTREAM_TIMEOUT)
-      case _ => logAndGenDownstreamResponse(error, SERVICE_UNAVAILABLE, message, UPSTREAM_SERVICE_UNAVAILABLE)
-    }
+  ): ResponseValidation[T] = logAndGenDownstreamResponse(error, statusCode, message, BaseError.SERVER_ERROR)
 
   val noDataFound = """"code":"NO_DATA_FOUND""""
   val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
@@ -101,10 +93,10 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
     val message = response.replaceAll("\\s", "")
 
     val baseError =
-      if (message.contains(noDataFound)) NO_DATA_FOUND
-      else if (message.contains(notInBS)) NOT_IN_BREATHING_SPACE
-      else if (message.contains(noPeriodIdFound)) PERIOD_ID_NOT_FOUND
-      else RESOURCE_NOT_FOUND
+      if (message.contains(noDataFound)) BaseError.NO_DATA_FOUND
+      else if (message.contains(notInBS)) BaseError.NOT_IN_BREATHING_SPACE
+      else if (message.contains(noPeriodIdFound)) BaseError.PERIOD_ID_NOT_FOUND
+      else BaseError.RESOURCE_NOT_FOUND
 
     logAndGenDownstreamResponse(error, NOT_FOUND, response, baseError)
   }

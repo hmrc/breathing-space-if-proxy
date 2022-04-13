@@ -65,27 +65,27 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       val response = await(connector.getDetails(nino))
 
       verifyHeaders(HttpMethod.Get, path, queryParams)
-      response.fold(_.head.baseError shouldBe SERVER_ERROR, _ => notAnErrorInstance)
+      response.fold(_.head.baseError shouldBe BaseError.INTERNAL_SERVER_ERROR, _ => notAnErrorInstance)
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      verifyErrorResponse(genNino, BAD_REQUEST, SERVER_ERROR)
+      verifyErrorResponse(genNino, BAD_REQUEST, BaseError.INTERNAL_SERVER_ERROR)
     }
 
     "return UPSTREAM_BAD_GATEWAY for a 502(BAD_GATEWAY) error" in {
-      verifyErrorResponse(genNino, BAD_GATEWAY, UPSTREAM_BAD_GATEWAY)
+      verifyErrorResponse(genNino, BAD_GATEWAY, BaseError.SERVER_ERROR)
     }
 
     "return UPSTREAM_SERVICE_UNAVAILABLE for a 503(SERVICE_UNAVAILABLE) error" in {
-      verifyErrorResponse(genNino, SERVICE_UNAVAILABLE, UPSTREAM_SERVICE_UNAVAILABLE)
+      verifyErrorResponse(genNino, SERVICE_UNAVAILABLE, BaseError.SERVER_ERROR)
     }
 
     "return UPSTREAM_TIMEOUT for a 504(GATEWAY_TIMEOUT) error" in {
-      verifyErrorResponse(genNino, GATEWAY_TIMEOUT, UPSTREAM_TIMEOUT)
+      verifyErrorResponse(genNino, GATEWAY_TIMEOUT, BaseError.SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error (excluding 502,503,504)" in {
-      verifyErrorResponse(genNino, NOT_IMPLEMENTED, UPSTREAM_SERVICE_UNAVAILABLE)
+      verifyErrorResponse(genNino, NOT_IMPLEMENTED, BaseError.SERVER_ERROR)
     }
   }
 

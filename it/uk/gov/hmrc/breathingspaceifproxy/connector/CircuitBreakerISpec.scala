@@ -38,7 +38,7 @@ import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
 import uk.gov.hmrc.breathingspaceifproxy.support.{BreathingSpaceTestSupport, HttpMethod, WireMockSupport}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -121,7 +121,7 @@ abstract class CircuitBreakerISpec
     (1 to failedCalls).foreach { ix =>
       val shouldBeBadGatewayOnLeft = await(call).toEither
       shouldBeBadGatewayOnLeft match {
-        case Left(error) => error.head.baseError shouldBe UPSTREAM_BAD_GATEWAY
+        case Left(error) => error.head.baseError shouldBe BaseError.SERVER_ERROR
         case _ => assert(false)
       }
       upstreamConnector.currentState shouldBe (if (ix == failedCalls) "UNAVAILABLE" else "UNSTABLE")
@@ -129,14 +129,14 @@ abstract class CircuitBreakerISpec
 
     val shouldBeBadGatewayOnLeft = await(call).toEither
     shouldBeBadGatewayOnLeft match {
-      case Left(error) => error.head.baseError shouldBe SERVER_ERROR
+      case Left(error) => error.head.baseError shouldBe BaseError.INTERNAL_SERVER_ERROR
       case _ => assert(false)
     }
     upstreamConnector.currentState shouldBe "UNAVAILABLE"
 
     val shouldBeServerErrorOnLeft = await(call).toEither
     shouldBeServerErrorOnLeft match {
-      case Left(error) => error.head.baseError shouldBe SERVER_ERROR
+      case Left(error) => error.head.baseError shouldBe BaseError.INTERNAL_SERVER_ERROR
       case _ => assert(false)
     }
     upstreamConnector.currentState shouldBe "UNAVAILABLE"

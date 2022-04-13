@@ -27,14 +27,7 @@ import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
-  INVALID_HEADER,
-  INVALID_NINO,
-  INVALID_PERIOD_ID,
-  MISSING_HEADER,
-  RESOURCE_NOT_FOUND,
-  UPSTREAM_SERVICE_UNAVAILABLE
-}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -102,14 +95,14 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       Given(s"unavailable upstream service")
 
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
-        .thenReturn(Future.successful(ErrorItem(UPSTREAM_SERVICE_UNAVAILABLE).invalidNec))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
 
       val resp = subject.get(validNino, validPeriodId)(fakeUnAttendedGetRequest).run()
 
       val errorList = verifyErrorResult(resp, SERVICE_UNAVAILABLE, correlationIdAsString.some, 1)
 
-      errorList.head.code shouldBe UPSTREAM_SERVICE_UNAVAILABLE.entryName
-      assert(errorList.head.message.startsWith(UPSTREAM_SERVICE_UNAVAILABLE.message))
+      errorList.head.code shouldBe SERVER_ERROR.entryName
+      assert(errorList.head.message.startsWith(SERVER_ERROR.message))
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
