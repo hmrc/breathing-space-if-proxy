@@ -120,6 +120,19 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       assert(errorList.head.message.startsWith(MISSING_PERIODS.message))
     }
 
+    "return 400(BAD_REQUEST) when 'periods' does not contain a period" in {
+      val body = Json.obj("periods" -> Seq("unknown")).validNec[ErrorItem]
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
+
+      val response = controller.put(genNinoString)(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_JSON_ITEM")
+      errorList.head.code shouldBe INVALID_JSON_ITEM.entryName
+      errorList.head.message should include("period 0")
+    }
+
     "return 400(BAD_REQUEST) when format of periodID is invalid" in {
       verifyJsonItemValidation(INVALID_JSON_ITEM, "1234567890".some, "2020-04-30")
     }
