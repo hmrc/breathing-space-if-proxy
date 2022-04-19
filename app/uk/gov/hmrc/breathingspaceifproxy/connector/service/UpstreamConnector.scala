@@ -31,10 +31,18 @@ import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxR
 
 trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
 
+  object Is5xx {
+    def unapply(throwable: Throwable): Option[Int] =
+      throwable match {
+        case exc: HttpException if is5xx(exc.responseCode) => Some(exc.responseCode)
+        case Upstream5xxResponse(error) => Some(error.statusCode)
+        case _ => None
+      }
+  }
+
   override def breakOnException(throwable: Throwable): Boolean =
     throwable match {
-      case exc: HttpException if is5xx(exc.responseCode) => true
-      case Upstream5xxResponse(_) => true
+      case Is5xx(_) => true
       case _ => false
     }
 

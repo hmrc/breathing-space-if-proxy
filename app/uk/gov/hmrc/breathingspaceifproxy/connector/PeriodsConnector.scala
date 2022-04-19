@@ -62,13 +62,13 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
       }
     }
 
-  def put(nino: Nino, putPeriods: PutPeriodsInRequest)(
+  def put(nino: Nino, putPeriods: List[PutPeriodInRequest])(
     implicit requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http
-          .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.obj("periods" -> putPeriods), headers)
+          .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(PutPeriodsInRequest(putPeriods)), headers)
           .map(_.validNec)
       }
     }

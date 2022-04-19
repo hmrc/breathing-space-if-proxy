@@ -101,7 +101,7 @@ trait BreathingSpaceTestSupport {
     ZonedDateTime.now
   )
 
-  lazy val putPeriodsRequest: PutPeriodsInRequest = List(validPutPeriod, validPutPeriod)
+  lazy val putPeriodsRequest: List[PutPeriodInRequest] = List(validPutPeriod, validPutPeriod)
 
   lazy val validPeriodsResponse =
     PeriodsInResponse(
@@ -162,6 +162,9 @@ trait BreathingSpaceTestSupport {
   def genRequestId(endpointId: EndpointId, upstreamConnector: UpstreamConnector): RequestId =
     RequestId(endpointId, correlationId, Attended.DA2_BS_ATTENDED, attendedStaffPid, upstreamConnector)
 
+  def genUnattendedRequestId(endpointId: EndpointId, upstreamConnector: UpstreamConnector): RequestId =
+    RequestId(endpointId, correlationId, Attended.DA2_BS_UNATTENDED, unattendedStaffPid, upstreamConnector)
+
   def attendedRequestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
     attendedRequestFilteredOutOneHeader("", method)
 
@@ -193,10 +196,10 @@ trait BreathingSpaceTestSupport {
   def postPeriodsRequestAsJson(postPeriods: PostPeriodsInRequest): Validation[JsValue] =
     Json.toJson(PostPeriodsRequest(genNinoString, randomUUID, postPeriods.utr, postPeriods.periods)).validNec[ErrorItem]
 
-  def putPeriodsRequestAsJson(putPeriods: PutPeriodsInRequest): JsValue =
+  def putPeriodsRequestAsJson(putPeriods: List[PutPeriodInRequest]): JsValue =
     Json.obj("periods" -> putPeriods)
 
-  def putPeriodsRequest(putPeriods: PutPeriodsInRequest): Validation[JsValue] =
+  def putPeriodsRequest(putPeriods: List[PutPeriodInRequest]): Validation[JsValue] =
     putPeriodsRequestAsJson(putPeriods).validNec[ErrorItem]
 
   def details(nino: Nino): IndividualDetails = IndividualDetails(
