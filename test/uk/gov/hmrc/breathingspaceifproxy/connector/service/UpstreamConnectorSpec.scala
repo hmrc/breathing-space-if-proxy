@@ -36,6 +36,28 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
     numberOfCallsToTriggerStateChange = Int.MaxValue.some
   )
 
+  "breakOnException" should {
+    "return true for HttpException and 5xx response code" in {
+      val throwable = new HttpException("message", 500)
+      breakOnException(throwable) shouldBe true
+    }
+
+    "return false for HttpException and 4xx response code" in {
+      val throwable = new HttpException("message", 400)
+      breakOnException(throwable) shouldBe false
+    }
+
+    "return true for Upstream5xxResponse" in {
+      val throwable = Upstream5xxResponse("message", 500, 500)
+      breakOnException(throwable) shouldBe true
+    }
+
+    "return false for any other Throwable" in {
+      val throwable = new Throwable()
+      breakOnException(throwable) shouldBe false
+    }
+  }
+
   "handleUpstreamError" should {
     "return RESOURCE_NOT_FOUND for a NOT_FOUND response" in {
       verifyResponse(new NotFoundException("Some error message"), BaseError.RESOURCE_NOT_FOUND)

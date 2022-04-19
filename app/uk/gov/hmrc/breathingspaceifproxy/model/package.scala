@@ -22,8 +22,6 @@ import cats.data.NonEmptyChain
 
 package object model {
 
-  type PutPeriodsInRequest = List[PutPeriodInRequest]
-
   type Errors = NonEmptyChain[ErrorItem]
 
   lazy val timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")

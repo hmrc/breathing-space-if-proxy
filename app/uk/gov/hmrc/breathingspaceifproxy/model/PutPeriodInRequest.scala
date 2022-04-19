@@ -42,3 +42,9 @@ object PutPeriodInRequest {
     }
   }
 }
+
+final case class PutPeriodsInRequest(periods: List[PutPeriodInRequest])
+
+object PutPeriodsInRequest {
+  implicit val format = Json.format[PutPeriodsInRequest]
+}

@@ -114,9 +114,9 @@ class PeriodsController @Inject()(
         }
     ).mapN((nino, consumerRequestId, utr, periods) => (nino, PostPeriodsInRequest(consumerRequestId, utr, periods)))
 
-  private def validateBodyOfPut(json: JsValue): Validation[PutPeriodsInRequest] =
+  private def validateBodyOfPut(json: JsValue): Validation[List[PutPeriodInRequest]] =
     parseJsValue[JsArray](json, "periods")
-      .fold(ErrorItem(MISSING_PERIODS).invalidNec[PutPeriodsInRequest]) {
+      .fold(ErrorItem(MISSING_PERIODS).invalidNec[List[PutPeriodInRequest]]) {
         validateJsArray[PutPeriodInRequest](_, "period")
       }
 
