@@ -215,6 +215,21 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       assert(errorList.head.message.startsWith(MISSING_PERIODS.message))
     }
 
+    "return 400(BAD_REQUEST) when 'periods' does not contain a valid type" in {
+      val body = Json
+        .obj("nino" -> genNinoString, "consumerRequestId" -> randomUUID, "periods" -> Seq("unknown"))
+        .validNec[ErrorItem]
+      val request = unattendedRequestWithAllHeaders(POST).withBody(body)
+
+      val response = controller.post(request)
+
+      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
+
+      And(s"the error code should be $INVALID_JSON_ITEM")
+      errorList.head.code shouldBe INVALID_JSON_ITEM.entryName
+      errorList.head.message should include("period 0")
+    }
+
     "return 400(BAD_REQUEST) when startDate is not a valid date" in {
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-31")
     }
