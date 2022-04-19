@@ -29,7 +29,7 @@ class HeaderHandlerSpec extends AnyWordSpec with HeaderHandler with BaseSpec wit
   val upstreamConnector: UpstreamConnector = mock[UpstreamConnector]
 
   "headers function" should {
-    "return the StuffId in the headers if it's different from the unattendedStaffPid" in {
+    "return the staffId in the headers if it's different from the unattendedStaffPid" in {
 
       val requestId: RequestId = genRequestId(endpointId, upstreamConnector)
 
@@ -44,7 +44,7 @@ class HeaderHandlerSpec extends AnyWordSpec with HeaderHandler with BaseSpec wit
       headers(appConfig, requestId) shouldBe expectedHeaders
     }
 
-    "not return the StuffId for unattended request" in {
+    "not return the staffId for unattended request" in {
 
       val requestId: RequestId = genUnattendedRequestId(endpointId, upstreamConnector)
 
