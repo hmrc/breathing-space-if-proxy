@@ -26,7 +26,7 @@ class DebtsConnectorSpec extends AnyWordSpec with BaseSpec {
       Given("a valid Nino")
       val nino = genNino
       val expectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/$periodIdAsString/debts"
+        s"http://localhost:9503/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/$periodIdAsString/debts"
 
       Then(s"then the composed url should be equal to $expectedUrl")
       DebtsConnector.url(nino, periodId) shouldBe expectedUrl
