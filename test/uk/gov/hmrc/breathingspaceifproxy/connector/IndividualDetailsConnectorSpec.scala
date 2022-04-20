@@ -28,7 +28,7 @@ class IndividualDetailsConnectorSpec extends AnyWordSpec with BaseSpec {
       val nino = genNino
       val fields = IndividualDetails.fields
       val expectedUrl =
-        s"http://localhost:9601/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}${fields}"
+        s"http://localhost:9503/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}${fields}"
 
       Then(s"the composed url should be equal to $expectedUrl")
       IndividualDetailsConnector.url(nino, IndividualDetails.fields) shouldBe expectedUrl
