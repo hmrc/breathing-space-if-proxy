@@ -19,6 +19,7 @@ object Dependencies {
     "com.typesafe.play"      %% "play-test"                % PlayVersion.current % Test,
     "org.mockito"            %% "mockito-scala-scalatest"  % "1.16.37"  % Test,
     "org.scalatest"          %% "scalatest"                % "3.2.9"    % Test,
+    "org.scalatestplus"      %% "scalacheck-1-15"          % "3.2.9.0"  % Test,
     "com.vladsch.flexmark"   %  "flexmark-all"             % "0.36.8"   % "test, it",
     "org.scalatestplus.play" %% "scalatestplus-play"       % "5.1.0"    % "test, it",
     "com.github.tomakehurst" %  "wiremock-jre8"            % "2.28.0"   % "test, it"

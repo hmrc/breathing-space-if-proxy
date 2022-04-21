@@ -32,21 +32,19 @@ case class Debt(
 )
 
 object Debt {
-  implicit val reads = Json.reads[Debt]
+  implicit val reads: Reads[Debt] = Json.reads[Debt]
 
-  implicit val writes = new Writes[Debt] {
-    def writes(debt: Debt): JsObject = {
-      val fields = List(
-        "chargeReference" -> JsString(debt.chargeReference),
-        "chargeDescription" -> JsString(debt.chargeDescription),
-        "chargeAmount" -> JsNumber(debt.chargeAmount.setScale(2, RoundingMode.HALF_EVEN)),
-        "chargeCreationDate" -> Json.toJson(debt.chargeCreationDate),
-        "chargeDueDate" -> Json.toJson(debt.chargeDueDate)
-      )
-      JsObject(debt.utrAssociatedWithCharge.fold(fields) { utrAwC =>
-        fields :+ ("utrAssociatedWithCharge" -> Json.toJson(utrAwC))
-      })
-    }
+  implicit val writes: Writes[Debt] = (debt: Debt) => {
+    val fields = List(
+      "chargeReference" -> JsString(debt.chargeReference),
+      "chargeDescription" -> JsString(debt.chargeDescription),
+      "chargeAmount" -> JsNumber(debt.chargeAmount.setScale(2, RoundingMode.HALF_EVEN)),
+      "chargeCreationDate" -> Json.toJson(debt.chargeCreationDate),
+      "chargeDueDate" -> Json.toJson(debt.chargeDueDate)
+    )
+    JsObject(debt.utrAssociatedWithCharge.fold(fields) { utrAwC =>
+      fields :+ ("utrAssociatedWithCharge" -> Json.toJson(utrAwC))
+    })
   }
 }
 
