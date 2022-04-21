@@ -16,68 +16,23 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.time.LocalDate
-
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._
-import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.breathingspaceifproxy.support.{Arbitraries, BaseSpec}
 
-class DebtSpec extends AnyFunSuite with BaseSpec {
+import scala.math.BigDecimal.RoundingMode
 
-  val chargeReference = "chargeReference"
-  val chargeDescription = "chargeDescription"
-  val chargeAmount: BigDecimal = BigDecimal(10)
-  val chargeCreationDate: LocalDate = LocalDate.now()
-  val chargeDueDate: LocalDate = LocalDate.now()
+class DebtSpec extends AnyFunSuite with BaseSpec with ScalaCheckPropertyChecks with Arbitraries {
 
-  test("the Debt objects should be deserialized correctly") {
+  test("Debt should serialize and deserialize only rounding chargeAmount") {
 
-    val utrAssociatedWithCharge = Some("utrAssociatedWithCharge")
+    forAll { (debt: Debt) =>
+      val expectedResult = debt.copy(
+        chargeAmount = debt.chargeAmount.setScale(2, RoundingMode.HALF_EVEN)
+      )
 
-    val debt = Debt(
-      chargeReference,
-      chargeDescription,
-      chargeAmount,
-      chargeCreationDate,
-      chargeDueDate,
-      utrAssociatedWithCharge
-    )
-
-    val expectedJson =
-      """{
-        |"chargeReference":"chargeReference",
-        |"chargeDescription":"chargeDescription",
-        |"chargeAmount":10,
-        |"chargeCreationDate":"2022-04-19",
-        |"chargeDueDate":"2022-04-19",
-        |"utrAssociatedWithCharge":"utrAssociatedWithCharge"
-        |}""".stripMargin
-
-    Json.parse(expectedJson) shouldBe Json.toJson(debt)
-  }
-
-  test("the Debt objects should be deserialized correctly with utrAssociatedWithCharge as None") {
-
-    val utrAssociatedWithCharge = None
-
-    val debt = Debt(
-      chargeReference,
-      chargeDescription,
-      chargeAmount,
-      chargeCreationDate,
-      chargeDueDate,
-      utrAssociatedWithCharge
-    )
-
-    val expectedJson =
-      """{
-        |"chargeReference":"chargeReference",
-        |"chargeDescription":"chargeDescription",
-        |"chargeAmount":10,
-        |"chargeCreationDate":"2022-04-19",
-        |"chargeDueDate":"2022-04-19"
-        |}""".stripMargin
-
-    Json.parse(expectedJson) shouldBe Json.toJson(debt)
+      Json.toJson(debt).as[Debt] shouldBe expectedResult
+    }
   }
 }
