@@ -40,6 +40,15 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
 
   private val authUrlPath = "/auth/authorise"
 
+  private val privilegedApplicationAuthBody = """{
+                   |  "clientId": "id-123232",
+                   |  "authProvider": "PrivilegedApplication",
+                   |  "applicationId":"app-1",
+                   |  "applicationName": "App 1",
+                   |  "enrolments": ["read:breathing-space-debts","read:breathing-space-individual","read:breathing-space-periods","write:breathing-space-periods"],
+                   |  "ttl": 5000
+                   |}""".stripMargin
+
   val wireMockServer = new WireMockServer(
     wireMockConfig().port(wireMockPort)
   )
@@ -58,7 +67,7 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   override protected def beforeEach(): Unit = {
     super.beforeEach()
     WireMock.reset()
-    stubCall(HttpMethod.Post, authUrlPath, Status.OK, """{"some":"json","with":"data"}""")
+    stubCall(HttpMethod.Post, authUrlPath, Status.OK, privilegedApplicationAuthBody)
   }
 
   def mapQueryParams(queryParams: Map[String, String]): java.util.Map[String, StringValuePattern] =
