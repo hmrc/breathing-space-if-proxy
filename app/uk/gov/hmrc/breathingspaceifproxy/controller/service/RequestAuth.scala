@@ -17,12 +17,12 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
 import scala.concurrent.{ExecutionContext, Future}
-
 import cats.syntax.option._
 import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthProviders, _}
 import uk.gov.hmrc.auth.core.AuthProvider.PrivilegedApplication
+import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals._
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, HttpError}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INTERNAL_SERVER_ERROR, NOT_AUTHORISED}
 import uk.gov.hmrc.play.http.HeaderCarrierConverter
@@ -41,7 +41,10 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
 
       override def invokeBlock[A](request: Request[A], f: Request[A] => Future[Result]): Future[Result] = {
         val headerCarrier = HeaderCarrierConverter.fromRequest(request)
-        authorised(authProviders.and(Enrolment(scope)))(f(request))(headerCarrier, executionContext)
+        authorised(authProviders.and(Enrolment(scope)))
+          .retrieve(nino.and(trustedHelper).and(clientId)) { _ =>
+            f(request)
+          }(headerCarrier, executionContext)
           .recoverWith {
             case exc: AuthorisationException =>
               HttpError(retrieveCorrelationId(request), ErrorItem(NOT_AUTHORISED, exc.reason.some)).send
