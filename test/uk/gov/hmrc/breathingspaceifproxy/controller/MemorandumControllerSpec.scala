@@ -24,7 +24,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_BODY, INVALID_NINO, MISSING_HEADER}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -48,7 +48,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
-      val response = controller.get("AA00A")(fakeGetRequest)
+      val response = controller.get("AA00A")(fakeGetRequest).run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -57,9 +57,10 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when correlation id is missing" in {
-      val response: Future[Result] =
+      val response =
         controller
           .get("AA000001A")(attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))
+          .run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, none, 1)
 
@@ -68,17 +69,19 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when request type is missing" in {
-      val response: Future[Result] =
+      val response =
         controller
           .get("AA000001A")(attendedRequestFilteredOutOneHeader(DownstreamHeader.RequestType))
+          .run
 
       verifyMissingHeader(response)
     }
 
     "return 400(BAD_REQUEST) when staff pid is missing" in {
-      val response: Future[Result] =
+      val response =
         controller
           .get("AA000001A")(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid))
+          .run
 
       verifyMissingHeader(response)
     }

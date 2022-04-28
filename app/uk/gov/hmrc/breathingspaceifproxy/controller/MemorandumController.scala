@@ -20,6 +20,7 @@ import cats.implicits._
 import com.google.inject.{Inject, Singleton}
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthConnector
+import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
@@ -39,7 +40,7 @@ class MemorandumController @Inject()(
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
 
-  def get(nino: String): Action[AnyContent] = action(nino.some) { implicit request =>
+  def get(nino: String): Action[Validation[AnyContent]] = action(nino.some).apply(withoutBody) { implicit request =>
     (
       validateHeadersForNPS(BS_Memorandum_GET, debtsConnector.etmpConnector),
       validateNino(nino)
