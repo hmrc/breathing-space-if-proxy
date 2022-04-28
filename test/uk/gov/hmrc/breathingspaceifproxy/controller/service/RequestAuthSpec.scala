@@ -68,6 +68,18 @@ class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Re
       status(result) shouldBe OK
     }
 
+    "return 200(OK) when a nino is specified and a client id is present" in {
+      val authResult: AuthRetrieval = None ~ None ~ Some("client-id")
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AA000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe OK
+    }
+
     "return 401(UNAUTHORIZED) when the nino in the request does not match the authenticated nino" in {
       val authResult: AuthRetrieval = Some("AA000000A") ~ None ~ None
       when(
