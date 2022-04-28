@@ -28,6 +28,7 @@ object EndpointId extends Enum[EndpointId] {
   case object BS_Periods_POST extends EndpointId("CreateBreathingSpacePeriods")
   case object BS_Periods_PUT extends EndpointId("AmendBreathingSpacePeriods")
   case object BS_Underpayments_GET extends EndpointId("RetrieveUnderpayments")
+  case object BS_Memorandum_GET extends EndpointId("RetrieveMemorandum")
 
   override val values = findValues
 }
