@@ -31,7 +31,7 @@ import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.{AuthConnector, Nino}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
@@ -65,9 +65,8 @@ trait BaseSpec
 
   val authConnector = mock[AuthConnector]
 
-  type AuthRetrieval = Option[Nino] ~ Option[TrustedHelper] ~ Option[String]
-  val result: AuthRetrieval =
-    Some(Nino(true, Some("AA000000A"))) ~ Some(TrustedHelper("", "", "", "AB000000A")) ~ Some("")
+  type AuthRetrieval = Option[String] ~ Option[TrustedHelper] ~ Option[String]
+  val result: AuthRetrieval = None ~ None ~ Some("client-id")
 
   when(authConnector.authorise[AuthRetrieval](any(), any())(any(), any()))
     .thenReturn(Future.successful(result))
