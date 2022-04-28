@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import scala.concurrent.{ExecutionContext, Future}
-
 import akka.stream.Materializer
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -31,12 +29,19 @@ import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
+import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.Retrieval
-import uk.gov.hmrc.breathingspaceifproxy.{unit, DownstreamHeader}
+import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.concurrent.Future
+
+object BaseSpec {
+  implicit class retrievalsTestingSyntax[A](val a: A) extends AnyVal {
+    def ~[B](b: B): A ~ B = new ~(a, b)
+  }
+}
 
 trait BaseSpec
     extends BreathingSpaceTestSupport
@@ -50,6 +55,8 @@ trait BaseSpec
     with OptionValues
     with ScalaFutures { this: TestSuite =>
 
+  import BaseSpec._
+
   implicit lazy val materializer: Materializer = inject[Materializer]
 
   implicit val defaultPatience = PatienceConfig(timeout = Span(1, Seconds), interval = Span(250, Millis))
@@ -58,8 +65,11 @@ trait BaseSpec
 
   val authConnector = mock[AuthConnector]
 
-  when(authConnector.authorise(any[Predicate], any[Retrieval[Unit]])(any[HeaderCarrier], any[ExecutionContext]))
-    .thenReturn(Future.successful(unit))
+  type AuthRetrieval = Option[String] ~ Option[TrustedHelper] ~ Option[String]
+  val result: AuthRetrieval = None ~ None ~ Some("client-id")
+
+  when(authConnector.authorise[AuthRetrieval](any(), any())(any(), any()))
+    .thenReturn(Future.successful(result))
 
   def verifyErrorResult(
     future: Future[Result],

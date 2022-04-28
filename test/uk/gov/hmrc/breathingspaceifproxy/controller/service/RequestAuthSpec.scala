@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
-import scala.concurrent.{ExecutionContext, Future}
-
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.wordspec.AnyWordSpec
@@ -28,8 +26,12 @@ import play.api.test.Helpers.status
 import uk.gov.hmrc.auth.core.UnsupportedAuthProvider
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec.retrievalsTestingSyntax
 import uk.gov.hmrc.http.{BadGatewayException, HeaderCarrier}
+
+import scala.concurrent.{ExecutionContext, Future}
 
 class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Results {
 
@@ -42,17 +44,105 @@ class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Re
       status(result) shouldBe OK
     }
 
+    "return 200(OK) when the nino in the request match the authenticated nino" in {
+      val authResult: AuthRetrieval = Some("AA000000A") ~ None ~ None
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AA000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe OK
+    }
+
+    "return 200(OK) when the nino in the request match the trusted helper principal nino" in {
+      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ Some("client-id")
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AA000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe OK
+    }
+
+    "return 200(OK) when a nino is specified and a client id is present" in {
+      val authResult: AuthRetrieval = None ~ None ~ Some("client-id")
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AA000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe OK
+    }
+
+    "return 401(UNAUTHORIZED) when the nino in the request does not match the authenticated nino" in {
+      val authResult: AuthRetrieval = Some("AA000000A") ~ None ~ None
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AB000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe UNAUTHORIZED
+    }
+
+    "return 401(UNAUTHORIZED) when the nino in the request does not match the trusted helper principal nino" in {
+      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ None
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AB000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe UNAUTHORIZED
+    }
+
+    "return 401(UNAUTHORIZED) when a client Id is specified and the nino in the request does not match the authenticated nino" in {
+      val authResult: AuthRetrieval = Some("AA000000A") ~ None ~ Some("client-id")
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AB000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe UNAUTHORIZED
+    }
+
+    "return 401(UNAUTHORIZED) when a client Id is specified the nino in the request does not match the trusted helper principal nino" in {
+      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ Some("client-id")
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.successful(authResult))
+
+      val result =
+        authAction("Some scope", Some("AB000000A")).invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
+      status(result) shouldBe UNAUTHORIZED
+    }
+
     "return 401(UNAUTHORIZED) when the request is not authorized" in {
-      when(authConnector.authorise(any[Predicate], any[Retrieval[Unit]])(any[HeaderCarrier], any[ExecutionContext]))
-        .thenReturn(Future.failed(UnsupportedAuthProvider()))
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.failed(UnsupportedAuthProvider()))
 
       val result = authAction("Some scope").invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
       status(result) shouldBe UNAUTHORIZED
     }
 
     "return 500(INTERNAL_SERVER_ERROR) when an exception is raised, excluding AuthorisationException instances" in {
-      when(authConnector.authorise(any[Predicate], any[Retrieval[Unit]])(any[HeaderCarrier], any[ExecutionContext]))
-        .thenReturn(Future.failed(new BadGatewayException("Auth service is down")))
+      when(
+        authConnector
+          .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
+      ).thenReturn(Future.failed(new BadGatewayException("Auth service is down")))
 
       val result = authAction("Some scope").invokeBlock[AnyContent](fakeGetRequest, _ => Future.successful(Ok))
       status(result) shouldBe INTERNAL_SERVER_ERROR
