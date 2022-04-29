@@ -22,7 +22,7 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
 import uk.gov.hmrc.breathingspaceifproxy.model.HttpError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
@@ -34,17 +34,27 @@ class MemorandumController @Inject()(
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
   cc: ControllerComponents,
-  debtsConnector: DebtsConnector
+  memorandumConnector: MemorandumConnector
 ) extends AbstractBaseController(cc) {
 
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
 
-  def get(nino: String): Action[Validation[AnyContent]] = action(nino.some).apply(withoutBody) { implicit request =>
+  def get(nino: String): Action[Validation[AnyContent]] = action(nino.some).async(withoutBody) { implicit request =>
     (
-      validateHeadersForNPS(BS_Memorandum_GET, debtsConnector.etmpConnector),
+      validateHeadersForNPS(BS_Memorandum_GET, memorandumConnector.eisConnector),
       validateNino(nino)
-    ).mapN((nino, requestId) => (nino, requestId))
-      .fold(HttpError(retrieveCorrelationId, BAD_REQUEST, _).value, _ => MethodNotAllowed(""))
+    ).mapN((requestId, nino) => (requestId, nino))
+      .fold(
+        HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
+        validationTuple => {
+          implicit val (requestId, nino) = validationTuple
+          logger.debug(s"$requestId for Nino(${nino.value})")
+          if (appConfig.onDevEnvironment) logHeaders
+          memorandumConnector.get(nino).flatMap {
+            _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+          }
+        }
+      )
   }
 }

@@ -19,12 +19,15 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 import cats.implicits._
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_BODY, INVALID_NINO, MISSING_HEADER}
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
+import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -32,19 +35,31 @@ import scala.concurrent.Future
 
 class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
+  val mockUpstreamConnector = mock[EisConnector]
+  when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
+
+  val mockConnector: MemorandumConnector = mock[MemorandumConnector]
+  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
+
   val controller = new MemorandumController(
     appConfig,
     inject[AuditConnector],
     authConnector,
     Helpers.stubControllerComponents(),
-    mock[DebtsConnector]
+    mockConnector
   )
 
   "get" should {
+    "return 200(OK) when the Nino is valid and all required headers are present" in {
+      val memorandum = MemorandumInResponse(true)
 
-    "return 405(METHOD_NOT_ALLOWED) when the Nino is valid and all required headers are present" in {
+      when(mockConnector.get(any[Nino])(any[RequestId]))
+        .thenReturn(Future.successful(memorandum.validNec))
+
       val response = controller.get(genNinoString)(fakeGetRequest)
-      status(response) shouldBe METHOD_NOT_ALLOWED
+
+      status(response) shouldBe OK
+      contentAsString(response) shouldBe Json.toJson(memorandum).toString
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
