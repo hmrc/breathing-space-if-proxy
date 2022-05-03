@@ -38,6 +38,7 @@ abstract class AbstractBaseController(
     with Helpers
     with Logging
     with RequestAuth
+    with RequestFeatureFlag
     with RequestValidation {
 
   val appConfig: AppConfig

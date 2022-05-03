@@ -179,45 +179,37 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
     }
 
     "Underpayments feature switch should return 501 when flag set to false" in {
-      val servicesConfig = inject[ServicesConfig]
-      val featureConfig = Configuration.from(Map("feature.flag.underpayments.enabled" -> false))
-      val flaggedOffConfig = featureConfig.withFallback(inject[Configuration])
-      val flaggedOffAppConfig = new AppConfig(flaggedOffConfig, servicesConfig)
-      val flaggedOffProxy = new UnderpaymentsController(
-        flaggedOffAppConfig,
+      val appConfig = mock[AppConfig]
+      when(appConfig.underpaymentsFeatureEnabled).thenReturn(false)
+      val controller = new UnderpaymentsController(
+        appConfig,
         inject[AuditConnector],
         authConnector,
         Helpers.stubControllerComponents(),
         mockUnderpaymentsConnector
       )
 
-      Given(s"Underpayments Feature flag set to false")
-      when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
-        .thenReturn(Future.successful(Underpayments(underpayments).validNec))
-
-      val response = flaggedOffProxy.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
+      val response = controller.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
       status(response) shouldBe NOT_IMPLEMENTED
     }
 
     "Underpayments feature switch should return 200 when flag set to true" in {
-      val servicesConfig = inject[ServicesConfig]
-      val featureConfig = Configuration.from(Map("feature.flag.underpayments.enabled" -> true))
-      val flaggedOnConfig = featureConfig.withFallback(inject[Configuration])
-      val flaggedOnAppConfig = new AppConfig(flaggedOnConfig, servicesConfig)
-      val flaggedOnProxy = new UnderpaymentsController(
-        flaggedOnAppConfig,
+      val mockAppConfig = mock[AppConfig]
+      when(mockAppConfig.underpaymentsFeatureEnabled).thenReturn(true)
+      when(mockAppConfig.onDevEnvironment).thenReturn(false)
+      val controller = new UnderpaymentsController(
+        mockAppConfig,
         inject[AuditConnector],
         authConnector,
         Helpers.stubControllerComponents(),
         mockUnderpaymentsConnector
       )
 
-      Given(s"Underpayments Feature flag set to true")
       when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
         .thenReturn(Future.successful(Underpayments(underpayments).validNec))
 
-      val response = flaggedOnProxy.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
+      val response = controller.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
       status(response) shouldBe OK
     }

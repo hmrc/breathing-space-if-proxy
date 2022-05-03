@@ -23,8 +23,8 @@ import play.api.mvc.Result
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_BODY, INVALID_NINO, MISSING_HEADER}
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -36,8 +36,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
     appConfig,
     inject[AuditConnector],
     authConnector,
-    Helpers.stubControllerComponents(),
-    mock[DebtsConnector]
+    Helpers.stubControllerComponents()
   )
 
   "get" should {
@@ -84,6 +83,34 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
           .run
 
       verifyMissingHeader(response)
+    }
+
+    "Memorandum feature switch should return 501 when flag set to false" in {
+      val mockAppConfig = mock[AppConfig]
+      when(mockAppConfig.memorandumFeatureEnabled).thenReturn(false)
+      val controller = new MemorandumController(
+        mockAppConfig,
+        inject[AuditConnector],
+        authConnector,
+        Helpers.stubControllerComponents()
+      )
+
+      val response = controller.get(genNinoString)(fakeGetRequest)
+      status(response) shouldBe NOT_IMPLEMENTED
+    }
+
+    "Memorandum feature switch should return 405 when flag set to true" in {
+      val mockAppConfig = mock[AppConfig]
+      when(mockAppConfig.memorandumFeatureEnabled).thenReturn(true)
+      val controller = new MemorandumController(
+        mockAppConfig,
+        inject[AuditConnector],
+        authConnector,
+        Helpers.stubControllerComponents()
+      )
+
+      val response = controller.get(genNinoString)(fakeGetRequest)
+      status(response) shouldBe METHOD_NOT_ALLOWED
     }
   }
 
