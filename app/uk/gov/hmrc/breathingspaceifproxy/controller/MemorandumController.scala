@@ -22,7 +22,6 @@ import play.api.mvc._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
 import uk.gov.hmrc.breathingspaceifproxy.model.HttpError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
@@ -33,18 +32,20 @@ class MemorandumController @Inject()(
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
-  cc: ControllerComponents,
-  debtsConnector: DebtsConnector
+  cc: ControllerComponents
 ) extends AbstractBaseController(cc) {
 
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
 
-  def get(nino: String): Action[Validation[AnyContent]] = action(nino.some).apply(withoutBody) { implicit request =>
-    (
-      validateHeadersForNPS(BS_Memorandum_GET, debtsConnector.etmpConnector),
-      validateNino(nino)
-    ).mapN((nino, requestId) => (nino, requestId))
-      .fold(HttpError(retrieveCorrelationId, BAD_REQUEST, _).value, _ => MethodNotAllowed(""))
-  }
+  def get(nino: String): Action[Validation[AnyContent]] =
+    enabled(_.memorandumFeatureEnabled)
+      .andThen(action(nino.some))
+      .apply(withoutBody) { implicit request =>
+        (
+          validateHeadersForNPS(BS_Memorandum_GET, null),
+          validateNino(nino)
+        ).mapN((nino, requestId) => (nino, requestId))
+          .fold(HttpError(retrieveCorrelationId, BAD_REQUEST, _).value, _ => MethodNotAllowed(""))
+      }
 }
