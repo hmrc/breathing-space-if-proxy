@@ -43,8 +43,8 @@ class UnderpaymentsController @Inject()(
 
   val action = authAction("read:breathing-space-debts")
 
-  def get(nino: String, periodId: String): Action[Validation[AnyContent]] = action.async(withoutBody) {
-    implicit request =>
+  def get(nino: String, periodId: String): Action[Validation[AnyContent]] =
+    enabled(_.underpaymentsFeatureEnabled).andThen(action).async(withoutBody) { implicit request =>
       (
         validateHeadersForNPS(BS_Underpayments_GET, underpaymentsConnector.eisConnector),
         validateNino(nino),
@@ -59,14 +59,11 @@ class UnderpaymentsController @Inject()(
           validParams => {
             implicit val (requestId, nino, periodId) = validParams
             logger.debug(s"$requestId for Nino(${nino.value}")
-            // TODO: remove after 6 week handover period to LiveServices (Ops)
-            logger.debug(s"Underpayments feature enabled : ${appConfig.underpaymentsFeatureEnabled}")
             if (appConfig.onDevEnvironment) logHeaders
-            if (appConfig.underpaymentsFeatureEnabled) getFromUpstream
-            else Future(NotImplemented)
+            getFromUpstream
           }
         )
-  }
+    }
 
   private def getFromUpstream(
     implicit nino: Nino,

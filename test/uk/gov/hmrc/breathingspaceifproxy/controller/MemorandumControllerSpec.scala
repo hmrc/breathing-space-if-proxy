@@ -24,16 +24,20 @@ import play.api.mvc.Result
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.Future
 
 class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
+
+  val mockAppConfig = mock[AppConfig]
+  when(mockAppConfig.memorandumFeatureEnabled).thenReturn(true)
 
   val mockUpstreamConnector = mock[EisConnector]
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
@@ -42,7 +46,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
   when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
 
   val controller = new MemorandumController(
-    appConfig,
+    mockAppConfig,
     inject[AuditConnector],
     authConnector,
     Helpers.stubControllerComponents(),
@@ -99,6 +103,17 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
           .run
 
       verifyMissingHeader(response)
+    }
+
+    "Memorandum feature switch should return 501 when flag set to false" in {
+      val memorandum = MemorandumInResponse(true)
+      when(mockConnector.get(any[Nino])(any[RequestId]))
+        .thenReturn(Future.successful(memorandum.validNec))
+
+      when(mockAppConfig.memorandumFeatureEnabled).thenReturn(false)
+
+      val response = controller.get(genNinoString)(fakeGetRequest)
+      status(response) shouldBe NOT_IMPLEMENTED
     }
   }
 

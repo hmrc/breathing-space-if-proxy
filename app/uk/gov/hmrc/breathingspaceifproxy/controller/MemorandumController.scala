@@ -40,21 +40,24 @@ class MemorandumController @Inject()(
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
 
-  def get(nino: String): Action[Validation[AnyContent]] = action(nino.some).async(withoutBody) { implicit request =>
-    (
-      validateHeadersForNPS(BS_Memorandum_GET, memorandumConnector.eisConnector),
-      validateNino(nino)
-    ).mapN((requestId, nino) => (requestId, nino))
-      .fold(
-        HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
-        validationTuple => {
-          implicit val (requestId, nino) = validationTuple
-          logger.debug(s"$requestId for Nino(${nino.value})")
-          if (appConfig.onDevEnvironment) logHeaders
-          memorandumConnector.get(nino).flatMap {
-            _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
-          }
-        }
-      )
-  }
+  def get(nino: String): Action[Validation[AnyContent]] =
+    enabled(_.memorandumFeatureEnabled)
+      .andThen(action(nino.some))
+      .async(withoutBody) { implicit request =>
+        (
+          validateHeadersForNPS(BS_Memorandum_GET, memorandumConnector.eisConnector),
+          validateNino(nino)
+        ).mapN((requestId, nino) => (requestId, nino))
+          .fold(
+            HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
+            validationTuple => {
+              implicit val (requestId, nino) = validationTuple
+              logger.debug(s"$requestId for Nino(${nino.value})")
+              if (appConfig.onDevEnvironment) logHeaders
+              memorandumConnector.get(nino).flatMap {
+                _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
+              }
+            }
+          )
+      }
 }

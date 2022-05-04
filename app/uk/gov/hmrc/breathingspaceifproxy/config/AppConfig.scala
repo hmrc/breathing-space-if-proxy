@@ -60,4 +60,5 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
     config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
 
   val underpaymentsFeatureEnabled = config.get[Boolean]("feature.flag.underpayments.enabled")
+  val memorandumFeatureEnabled = config.get[Boolean]("feature.flag.memorandum.enabled")
 }
