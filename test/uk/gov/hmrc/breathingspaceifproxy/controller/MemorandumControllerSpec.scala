@@ -106,10 +106,6 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "Memorandum feature switch should return 501 when flag set to false" in {
-      val memorandum = MemorandumInResponse(true)
-      when(mockConnector.get(any[Nino])(any[RequestId]))
-        .thenReturn(Future.successful(memorandum.validNec))
-
       when(mockAppConfig.memorandumFeatureEnabled).thenReturn(false)
 
       val response = controller.get(genNinoString)(fakeGetRequest)
