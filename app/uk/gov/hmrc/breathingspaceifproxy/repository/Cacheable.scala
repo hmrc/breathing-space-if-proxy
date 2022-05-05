@@ -24,8 +24,8 @@ import scala.concurrent.Future
 
 trait Cacheable {
 
-  val repository: CacheRepository
+  val cacheRepository: CacheRepository
 
   def cache[A: Writes: Reads](endpoint: String)(nino: Nino)(block: => Future[Validation[A]]): Future[Validation[A]] =
-    repository.fetch(endpoint, nino.value)(block)
+    cacheRepository.fetch(endpoint, nino.value)(block)
 }

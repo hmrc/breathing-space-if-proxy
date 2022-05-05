@@ -72,9 +72,9 @@ abstract class BaseISpec
       .configure(configProperties)
       .build()
 
-  implicit val materializer = inject[Materializer]
+  implicit lazy val materializer = inject[Materializer]
 
-  implicit val appConfig: AppConfig = inject[AppConfig]
+  implicit lazy val appConfig: AppConfig = inject[AppConfig]
 
   def fakeAttendedRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeaders: _*)
