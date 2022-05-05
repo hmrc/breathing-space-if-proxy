@@ -19,7 +19,6 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 import cats.implicits.{catsSyntaxOptionId, catsSyntaxValidatedIdBinCompat0}
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.Configuration
 import play.api.libs.json.JsSuccess
 import play.api.test.Helpers
 import play.api.test.Helpers._
@@ -31,7 +30,6 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
