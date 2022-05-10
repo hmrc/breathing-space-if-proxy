@@ -18,6 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.repository
 
 import cats.implicits._
 import play.api.Configuration
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.ErrorItem
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
@@ -30,7 +31,8 @@ import scala.concurrent.Future
 
 class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySupport[CacheItem] {
 
-  override lazy val repository = new CacheRepository(mongoComponent, inject[Configuration], inject[TimestampSupport])
+  override lazy val repository =
+    new CacheRepository(mongoComponent, inject[Configuration], inject[TimestampSupport], inject[AppConfig])
 
   private val cacheId = "memorandum"
   private val dataId = "AA000001A"

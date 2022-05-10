@@ -21,24 +21,24 @@ import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.libs.json.{Reads, Writes}
 import uk.gov.hmrc.breathingspaceifproxy.Validation
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
 import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
-import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CacheRepository @Inject()(
   mongoComponent: MongoComponent,
   configuration: Configuration,
-  timestampSupport: TimestampSupport
+  timestampSupport: TimestampSupport,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext)
     extends MongoCacheRepository(
       mongoComponent = mongoComponent,
       collectionName = "breathing-space-cache",
-      ttl = 24.hours,
+      ttl = appConfig.mongo.ttl,
       timestampSupport = timestampSupport,
       cacheIdType = SimpleCacheId
     ) {
