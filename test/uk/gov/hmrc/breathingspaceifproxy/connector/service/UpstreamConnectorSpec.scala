@@ -108,6 +108,18 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
       verifyResponse(UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT), BaseError.SERVER_ERROR)
     }
 
+    "return FORBIDDEN for a FORBIDDEN response" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.FORBIDDEN), BaseError.BREATHING_SPACE_EXPIRED)
+    }
+
+    "return CONFLICT for a CONFLICT response" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.CONFLICT), BaseError.CONFLICTING_REQUEST)
+    }
+
+    "return TOO_MANY_REQUESTS for a TOO_MANY_REQUESTS response" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.TOO_MANY_REQUESTS), BaseError.TOO_MANY_REQUESTS)
+    }
+
     "return SERVER_ERROR for any Throwable caught while sending upstream a request" in {
       verifyResponse(new IllegalArgumentException("Some illegal argument"), BaseError.INTERNAL_SERVER_ERROR)
     }

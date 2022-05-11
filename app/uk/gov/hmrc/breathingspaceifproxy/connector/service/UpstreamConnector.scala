@@ -86,6 +86,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       case NOT_FOUND => notFound(message)
       case FORBIDDEN => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BaseError.BREATHING_SPACE_EXPIRED)
       case CONFLICT => logAndGenDownstreamResponse(info, CONFLICT, message, BaseError.CONFLICTING_REQUEST)
+      case TOO_MANY_REQUESTS => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.TOO_MANY_REQUESTS)
       case _ => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.INTERNAL_SERVER_ERROR)
     }
 
