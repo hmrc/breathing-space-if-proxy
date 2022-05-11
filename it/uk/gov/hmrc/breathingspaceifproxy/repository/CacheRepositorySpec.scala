@@ -20,6 +20,8 @@ import cats.implicits._
 import play.api.Configuration
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.ErrorItem
+import uk.gov.hmrc.breathingspaceifproxy.model.HashedNino
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseISpec
 import uk.gov.hmrc.mongo.TimestampSupport
@@ -32,10 +34,10 @@ import scala.concurrent.Future
 class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySupport[CacheItem] {
 
   override lazy val repository =
-    new CacheRepository(mongoComponent, inject[Configuration], inject[TimestampSupport], inject[AppConfig])
+    new CacheRepository(mongoComponent, inject[Configuration], inject[TimestampSupport], inject[AppConfig], inject[HashedNinoCacheId])
 
-  private val cacheId = "memorandum"
-  private val dataId = "AA000001A"
+  private val cacheId = HashedNino(Nino("AA000001A"))
+  private val dataId = "memorandum"
   private val dataKey = DataKey[String](dataId)
 
   "fetch" should {

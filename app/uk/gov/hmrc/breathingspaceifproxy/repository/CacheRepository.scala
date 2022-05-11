@@ -22,37 +22,48 @@ import play.api.Configuration
 import play.api.libs.json.{Reads, Writes}
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.mongo.cache.CacheIdType.SimpleCacheId
-import uk.gov.hmrc.mongo.cache.{DataKey, MongoCacheRepository}
+import uk.gov.hmrc.breathingspaceifproxy.model.HashedNino
+import uk.gov.hmrc.mongo.cache.{CacheIdType, DataKey, MongoCacheRepository}
 import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 
 import scala.concurrent.{ExecutionContext, Future}
+
+@Singleton
+class HashedNinoCacheId @Inject()(implicit appConfig: AppConfig) extends CacheIdType[HashedNino] {
+  override def run: HashedNino => String = _.generateHash()
+}
 
 @Singleton
 class CacheRepository @Inject()(
   mongoComponent: MongoComponent,
   configuration: Configuration,
   timestampSupport: TimestampSupport,
-  appConfig: AppConfig
+  appConfig: AppConfig,
+  cacheIdType: HashedNinoCacheId
 )(implicit ec: ExecutionContext)
     extends MongoCacheRepository(
       mongoComponent = mongoComponent,
       collectionName = "breathing-space-cache",
       ttl = appConfig.mongo.ttl,
       timestampSupport = timestampSupport,
-      cacheIdType = SimpleCacheId
+      cacheIdType = cacheIdType
     ) {
 
-  def fetch[A: Writes: Reads](cacheId: String, dataId: String)(block: => Future[Validation[A]]): Future[Validation[A]] =
-    get[A](cacheId)(DataKey(dataId)).flatMap {
+  def fetch[A: Writes: Reads](nino: HashedNino, endpoint: String)(
+    block: => Future[Validation[A]]
+  ): Future[Validation[A]] =
+    get[A](nino)(DataKey(endpoint)).flatMap {
       case Some(value) => Future.successful(value.validNec)
       case None =>
         for {
           value <- block
           _ <- value.fold(
             _ => Future.successful(()),
-            put(cacheId)(DataKey(dataId), _).map(_ => ())
+            put(nino)(DataKey(endpoint), _).map(_ => ())
           )
         } yield value
     }
+
+  def clear(nino: HashedNino): Future[Unit] =
+    deleteEntity(nino)
 }

@@ -24,7 +24,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model.MemorandumInResponse
+import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{CONFLICTING_REQUEST, RESOURCE_NOT_FOUND}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
@@ -69,7 +69,7 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
     "return cached response when available" in {
       val nino = genNino
       val expectedBreathingSpaceIndicator = true
-      repository.put("memorandum")(DataKey(nino.value), MemorandumInResponse(expectedBreathingSpaceIndicator))
+      repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(expectedBreathingSpaceIndicator))
 
       val memorandum = MemorandumInResponse(false)
 

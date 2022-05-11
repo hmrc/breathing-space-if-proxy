@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.repository
+package uk.gov.hmrc.breathingspaceifproxy.model
 
-import play.api.libs.json.{Reads, Writes}
-import uk.gov.hmrc.breathingspaceifproxy.Validation
+import org.apache.commons.codec.binary.Base64
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, Nino}
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino
 
-import scala.concurrent.Future
+import java.security.MessageDigest
 
-trait Cacheable {
+case class HashedNino(nino: Nino) {
 
-  val cacheRepository: CacheRepository
+  private val shaDigest: MessageDigest = MessageDigest.getInstance("SHA-512")
 
-  def cache[A: Writes: Reads](
-    endpoint: String
-  )(nino: Nino)(block: => Future[Validation[A]]): Future[Validation[A]] =
-    cacheRepository.fetch(HashedNino(nino), endpoint)(block)
-
-  def clear(nino: Nino): Future[Unit] =
-    cacheRepository.clear(HashedNino(nino))
+  def generateHash()(implicit appConfig: AppConfig): String =
+    new String(
+      Base64.encodeBase64(shaDigest.digest(Base64.decodeBase64(appConfig.ninoHashingKey) ++ nino.value.getBytes()))
+    )
 }

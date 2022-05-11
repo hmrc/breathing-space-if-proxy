@@ -67,4 +67,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
     val ttl = config.get[Duration]("mongodb.ttl")
   }
+
+  val ninoHashingKey = config.get[String]("ninoHashingKey")
 }

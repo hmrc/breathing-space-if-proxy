@@ -17,16 +17,31 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import org.scalatest.Assertion
+import play.api.Application
 import play.api.http.Status._
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
+import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_GET
+import uk.gov.hmrc.breathingspaceifproxy.repository.CacheRepository
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
+class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport with DefaultPlayMongoRepositorySupport[CacheItem]  {
 
+  override val fakeApplication: Application =
+    GuiceApplicationBuilder()
+      .configure(configProperties)
+      .overrides(bind[MongoComponent].to(mongoComponent))
+      .build()
+
+  override lazy val repository = inject[CacheRepository]
   val connector = inject[PeriodsConnector]
   implicit val requestId = genRequestId(BS_Periods_GET, connector.eisConnector)
 
@@ -71,6 +86,21 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       verifyHeaders(HttpMethod.Post, url)
       assert(response.fold(_ => false, _ => true))
     }
+
+    "clear cache for nino when called" in {
+      val nino = genNino
+      repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(true))
+      val url = PeriodsConnector.path(nino)
+      val responsePayload = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Post, url, CREATED, responsePayload)
+
+      await(connector.post(nino, postPeriodsRequest()))
+
+      val cachedValue =
+        await(repository.get[MemorandumInResponse](HashedNino(nino))(DataKey("memorandum")))
+
+      cachedValue shouldBe None
+    }
   }
 
   "put" should {
@@ -83,6 +113,21 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val response = await(connector.put(nino, putPeriodsRequest))
       verifyHeaders(HttpMethod.Put, url)
       assert(response.fold(_ => false, _ => true))
+    }
+
+    "clear cache for nino when called" in {
+      val nino = genNino
+      repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(true))
+      val url = PeriodsConnector.path(nino)
+      val responsePayload = Json.toJson(validPeriodsResponse).toString
+      stubCall(HttpMethod.Put, url, OK, responsePayload)
+
+      await(connector.put(nino, putPeriodsRequest))
+
+      val cachedValue =
+        await(repository.get[MemorandumInResponse](HashedNino(nino))(DataKey("memorandum")))
+
+      cachedValue shouldBe None
     }
   }
 
