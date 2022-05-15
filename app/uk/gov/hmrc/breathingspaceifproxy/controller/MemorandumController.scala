@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model.HttpError
+import uk.gov.hmrc.breathingspaceifproxy.model.{HttpError, Nino}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -39,6 +39,10 @@ class MemorandumController @Inject()(
 
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
+
+  def test(n: Nino): Action[AnyContent] = Action { _ =>
+    ???
+  }
 
   def get(nino: String): Action[Validation[AnyContent]] =
     enabled(_.memorandumFeatureEnabled)

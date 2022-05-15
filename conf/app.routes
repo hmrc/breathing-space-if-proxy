@@ -12,3 +12,4 @@ POST  /periods                  uk.gov.hmrc.breathingspaceifproxy.controller.Per
 PUT   /:nino/periods            uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.put(nino)
 GET   /:nino/:periodId/coding-out-debts uk.gov.hmrc.breathingspaceifproxy.controller.UnderpaymentsController.get(nino, periodId)
 GET   /:nino/memorandum         uk.gov.hmrc.breathingspaceifproxy.controller.MemorandumController.get(nino)
+GET   /:nino/test               uk.gov.hmrc.breathingspaceifproxy.controller.MemorandumController.test(nino: uk.gov.hmrc.breathingspaceifproxy.model.Nino)
