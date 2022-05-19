@@ -17,13 +17,11 @@
 package uk.gov.hmrc.breathingspaceifproxy.config
 
 import javax.inject.{Inject, Provider}
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
 import play.api._
 import play.api.http.Status.NOT_FOUND
-import play.api.libs.json.{JsArray, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{RequestHeader, Result}
 import play.api.routing.Router
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
@@ -32,6 +30,8 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INTERNAL_SERVER_
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.backend.http.JsonErrorHandler
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
+
+import scala.util.Try
 
 class ErrorHandler @Inject()(
   routerProvider: Provider[Router],
@@ -47,7 +47,9 @@ class ErrorHandler @Inject()(
     if (statusCode == NOT_FOUND) sendInvalidEndpoint(correlationId, endpoint)
     else {
       logger.error(s"""${logCorrelationId(correlationId)} $endpoint($statusCode). Client error was: "$message"""")
-      val payload = Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message)))
+      val payload: JsValue = Try(Json.parse(message)).toOption
+        .getOrElse(Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message))))
+
       HttpError(correlationId, statusCode, payload).send
     }
   }
