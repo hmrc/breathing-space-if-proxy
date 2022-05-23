@@ -52,6 +52,8 @@ object BaseError extends Enum[BaseError] {
   case object NOT_AUTHORISED extends BaseError(UNAUTHORIZED, "Request is not authorised. ")
   case object NOT_IN_BREATHING_SPACE extends BaseError(NOT_FOUND, "The given Nino is not in Breathing Space")
   case object PERIOD_ID_NOT_FOUND extends BaseError(NOT_FOUND, "The given PeriodId was not found")
+  case object TOO_MANY_REQUESTS
+      extends BaseError(Status.TOO_MANY_REQUESTS, "Too many requests in a given amount of time")
 
   case object RESOURCE_NOT_FOUND
       extends BaseError(NOT_FOUND, "The upstream service has indicated that the provided resource was not found")

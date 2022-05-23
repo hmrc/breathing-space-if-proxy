@@ -59,8 +59,8 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
   }
 
   "handleUpstreamError" should {
-    "return RESOURCE_NOT_FOUND for a NOT_FOUND response" in {
-      verifyResponse(new NotFoundException("Some error message"), BaseError.RESOURCE_NOT_FOUND)
+    "return INTERNAL_SERVER_ERROR for a NOT_FOUND response" in {
+      verifyResponse(new NotFoundException("Some error message"), BaseError.INTERNAL_SERVER_ERROR)
     }
 
     "return NO_DATA_FOUND for a NOT_FOUND response with specific message" in {
@@ -69,6 +69,10 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
 
     "return NOT_IN_BREATHING_SPACE for a NOT_FOUND response with specific message" in {
       verifyResponse(new NotFoundException(notInBS), BaseError.NOT_IN_BREATHING_SPACE)
+    }
+
+    "return RESOURCE_NOT_FOUND for a NOT_FOUND response with specific message" in {
+      verifyResponse(new NotFoundException(noResourceFound), BaseError.RESOURCE_NOT_FOUND)
     }
 
     "return BREATHING_SPACE_EXPIRED for a FORBIDDEN response" in {
@@ -106,6 +110,18 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
 
     "return UPSTREAM_TIMEOUT for a GATEWAY_TIMEOUT(Upstream5xxResponse) response" in {
       verifyResponse(UpstreamErrorResponse("Request timed out", Status.GATEWAY_TIMEOUT), BaseError.SERVER_ERROR)
+    }
+
+    "return FORBIDDEN for a FORBIDDEN response" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.FORBIDDEN), BaseError.BREATHING_SPACE_EXPIRED)
+    }
+
+    "return CONFLICT for a CONFLICT response" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.CONFLICT), BaseError.CONFLICTING_REQUEST)
+    }
+
+    "return TOO_MANY_REQUESTS for a TOO_MANY_REQUESTS response" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.TOO_MANY_REQUESTS), BaseError.TOO_MANY_REQUESTS)
     }
 
     "return SERVER_ERROR for any Throwable caught while sending upstream a request" in {
