@@ -39,11 +39,11 @@ class MemorandumControllerISpec extends BaseISpec {
       val expectedResponseBody = Json.toJson(MemorandumInResponse(true)).toString
       stubCall(HttpMethod.Get, memorandumConnectorUrl, Status.OK, expectedResponseBody)
 
-     val response = route(app, fakeUnattendedRequest(Helpers.GET, getPathWithValidNino)).get
+     val response = route(app, fakeMemorandumRequest(Helpers.GET, getPathWithValidNino)).get
 
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe expectedResponseBody
-      verifyHeadersForUnattended(HttpMethod.Get, memorandumConnectorUrl)
+      verifyHeadersForMemorandum(HttpMethod.Get, memorandumConnectorUrl)
       verifyAuditEventCall(BS_Memorandum_GET)
     }
 

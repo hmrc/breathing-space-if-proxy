@@ -30,7 +30,12 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST, BS_Periods_PUT, BS_Underpayments_GET}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{
+  BS_Memorandum_GET,
+  BS_Periods_POST,
+  BS_Periods_PUT,
+  BS_Underpayments_GET
+}
 
 import java.lang.Integer.parseInt
 
@@ -44,7 +49,7 @@ trait RequestValidation {
       validateContentType(request),
       validateCorrelationId(headers),
       validateRequestType(headers, endpointId),
-      validateStaffPid(headers)
+      validateStaffPid(headers, endpointId)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
       .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
   }
@@ -140,7 +145,11 @@ trait RequestValidation {
     headers
       .get(DownstreamHeader.RequestType)
       .fold[Validation[Attended]] {
-        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.RequestType})".some).invalidNec
+        if (endpointId == BS_Memorandum_GET) {
+          Attended.DA2_PTA.validNec
+        } else {
+          ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.RequestType})".some).invalidNec
+        }
       } { requestType =>
         Attended
           .withNameOption(requestType.toUpperCase)
@@ -151,26 +160,43 @@ trait RequestValidation {
                 if endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT || endpointId == BS_Underpayments_GET =>
               ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
 
-            case attended => attended.validNec
+            case attended =>
+              if (endpointId == BS_Memorandum_GET) {
+                ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
+              }
+              attended.validNec
           }
       }
 
   private val staffPidRegex = "^[0-9]{7}$".r
 
-  private def validateStaffPid(headers: Headers): Validation[String] =
+  private def validateStaffPid(headers: Headers, endpointId: EndpointId): Validation[String] =
     headers
       .get(DownstreamHeader.StaffPid)
       .fold[Validation[String]] {
-        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.StaffPid})".some).invalidNec
+        if (endpointId == BS_Memorandum_GET) {
+          unattendedStaffPid.validNec
+        } else {
+          ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.StaffPid})".some).invalidNec
+        }
       } { staffPid =>
-        staffPidRegex
-          .findFirstIn(staffPid)
-          .fold[Validation[String]] {
-            ErrorItem(
-              INVALID_HEADER,
-              s"(${DownstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some
-            ).invalidNec
-          } { _.validNec }
+        if (endpointId == BS_Memorandum_GET)
+          ErrorItem(
+            INVALID_HEADER,
+            s"(${DownstreamHeader.StaffPid}). Cannot be '$staffPid' for Breathing Space Status".some
+          ).invalidNec
+        else {
+          staffPidRegex
+            .findFirstIn(staffPid)
+            .fold[Validation[String]] {
+              ErrorItem(
+                INVALID_HEADER,
+                s"(${DownstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some
+              ).invalidNec
+            } {
+              _.validNec
+            }
+        }
       }
 
   private def validateStaffPidForRequestType(
@@ -180,7 +206,8 @@ trait RequestValidation {
     val requestType = headerValues._2
     val staffPid = headerValues._3
     if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
-      || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
+      || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid
+      || requestType == Attended.DA2_PTA && staffPid == unattendedStaffPid) {
       RequestId(endpointId, correlationId = headerValues._1, requestType, staffPid, upstreamConnector)
         .validNec[ErrorItem]
     } else {

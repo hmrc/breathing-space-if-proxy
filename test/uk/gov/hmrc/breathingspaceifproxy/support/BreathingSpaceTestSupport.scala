@@ -18,9 +18,7 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
-
 import scala.util.Random
-
 import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.http.HeaderNames.CONTENT_TYPE
@@ -28,7 +26,7 @@ import play.api.http.MimeTypes
 import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, _}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
@@ -73,6 +71,12 @@ trait BreathingSpaceTestSupport {
     DownstreamHeader.CorrelationId -> correlationIdAsString,
     DownstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
     DownstreamHeader.StaffPid -> unattendedStaffPid
+  )
+
+  lazy val requestHeadersForMemorandum = List(
+    CONTENT_TYPE -> MimeTypes.JSON,
+    DownstreamHeader.CorrelationId -> correlationIdAsString,
+    DownstreamHeader.RequestType -> Attended.DA2_PTA.toString
   )
 
   lazy val validPostPeriod = PostPeriodInRequest(
@@ -135,6 +139,7 @@ trait BreathingSpaceTestSupport {
 
   lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
   lazy val fakeUnAttendedGetRequest = FakeRequest().withHeaders(requestHeadersForUnattended: _*)
+  lazy val fakeMemorandumGetRequest = FakeRequest().withHeaders(requestHeadersForMemorandum: _*)
 
   lazy val random: Random = new Random
 
@@ -174,6 +179,14 @@ trait BreathingSpaceTestSupport {
   ): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, "/").withHeaders(
       requestHeaders.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
+    )
+
+  def memorandumRequestFilteredOutOneHeader(
+    headerToFilterOut: String,
+    method: String = "GET"
+  ): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(method, "/").withHeaders(
+      requestHeadersForMemorandum.filter(_._1.toLowerCase != headerToFilterOut.toLowerCase): _*
     )
 
   def unattendedRequestWithAllHeaders(method: String = "GET"): FakeRequest[AnyContentAsEmpty.type] =
