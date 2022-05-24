@@ -66,16 +66,6 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
       contentAsString(response) shouldBe Json.toJson(memorandum).toString
     }
 
-    "return 400(BAD_REQUEST) when the Nino is invalid" in {
-      val invalidNino = Nino("AA00A")
-      val response = controller.get(invalidNino)(fakeGetRequest).run
-
-      val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
-
-      errorList.head.code shouldBe INVALID_NINO.entryName
-      assert(errorList.head.message.startsWith(INVALID_NINO.message))
-    }
-
     "return 400(BAD_REQUEST) when correlation id is missing" in {
       val nino = Nino("AA000001A")
       val response =
