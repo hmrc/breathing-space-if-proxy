@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -44,7 +45,7 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
-      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND)
+      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND, "RESOURCE_NOT_FOUND".some)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
@@ -86,10 +87,10 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
   }
 
-  private def verifyGetResponse(status: Int, baseError: BaseError): Assertion = {
+  private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
     val nino = genNino
     val url = PeriodsConnector.path(nino)
-    stubCall(HttpMethod.Get, url, status, errorResponseFromIF())
+    stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
     val response = await(connector.get(nino))
 

@@ -25,7 +25,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.MISSING_HEADER
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
@@ -70,7 +70,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val nino = Nino("AA000001A")
       val response =
         controller
-          .get(nino)(attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))
+          .get(nino)(memorandumRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))
           .run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, none, 1)
