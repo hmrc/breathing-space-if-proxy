@@ -29,7 +29,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 class MemorandumControllerISpec extends BaseISpec {
 
   val nino = genNino
-  val getPathWithValidNino = get(nino.value).url
+  val getPathWithValidNino = get(nino).url
   val memorandumConnectorUrl = MemorandumConnector.path(nino)
 
 
