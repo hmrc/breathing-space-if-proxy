@@ -75,8 +75,7 @@ trait BreathingSpaceTestSupport {
 
   lazy val requestHeadersForMemorandum = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    DownstreamHeader.CorrelationId -> correlationIdAsString,
-    DownstreamHeader.RequestType -> Attended.DA2_PTA.toString
+    DownstreamHeader.CorrelationId -> correlationIdAsString
   )
 
   lazy val validPostPeriod = PostPeriodInRequest(

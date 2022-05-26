@@ -139,7 +139,7 @@ trait RequestValidation {
     s"(${DownstreamHeader.RequestType}). $requestType is an illegal value for this endpoint".some
 
   private def invalidRequestTypeHeader(requestType: String): Option[String] =
-    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: ${Attended.values.mkString(", ")}".some
+    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: DA2_BS_ATTENDED, DA2_BS_UNATTENDED".some
 
   private def validateRequestType(headers: Headers, endpointId: EndpointId): Validation[Attended] =
     headers
@@ -151,21 +151,21 @@ trait RequestValidation {
           ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.RequestType})".some).invalidNec
         }
       } { requestType =>
-        Attended
-          .withNameOption(requestType.toUpperCase)
-          .fold[Validation[Attended]] {
-            ErrorItem(INVALID_HEADER, invalidRequestTypeHeader(requestType)).invalidNec
-          } {
-            case Attended.DA2_BS_ATTENDED
-                if endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT || endpointId == BS_Underpayments_GET =>
-              ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
-
-            case attended =>
-              if (endpointId == BS_Memorandum_GET) {
+        if (endpointId == BS_Memorandum_GET) {
+          ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
+        } else {
+          Attended
+            .withNameOption(requestType.toUpperCase)
+            .fold[Validation[Attended]] {
+              ErrorItem(INVALID_HEADER, invalidRequestTypeHeader(requestType)).invalidNec
+            } {
+              case Attended.DA2_BS_ATTENDED
+                  if endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT || endpointId == BS_Underpayments_GET =>
                 ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
-              }
-              attended.validNec
-          }
+
+              case attended => attended.validNec
+            }
+        }
       }
 
   private val staffPidRegex = "^[0-9]{7}$".r
@@ -180,12 +180,9 @@ trait RequestValidation {
           ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.StaffPid})".some).invalidNec
         }
       } { staffPid =>
-        if (endpointId == BS_Memorandum_GET)
-          ErrorItem(
-            INVALID_HEADER,
-            s"(${DownstreamHeader.StaffPid}). Cannot be '$staffPid' for Breathing Space Status".some
-          ).invalidNec
-        else {
+        if (endpointId == BS_Memorandum_GET) {
+          ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(staffPid)).invalidNec
+        } else {
           staffPidRegex
             .findFirstIn(staffPid)
             .fold[Validation[String]] {
