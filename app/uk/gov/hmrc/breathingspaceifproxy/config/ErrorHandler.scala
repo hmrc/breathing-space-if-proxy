@@ -50,6 +50,8 @@ class ErrorHandler @Inject()(
       val payload: JsValue = Try(Json.parse(message)).toOption
         .getOrElse(Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message))))
 
+      logger.error(s"==============================================================>>>>>>>>>>>>>>>>>>>>>> $payload")
+
       HttpError(correlationId, statusCode, payload).send
     }
   }
