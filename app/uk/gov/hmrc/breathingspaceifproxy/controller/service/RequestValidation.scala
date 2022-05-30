@@ -28,6 +28,7 @@ import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended.DA2_PTA
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{
@@ -37,11 +38,17 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{
   BS_Underpayments_GET
 }
 
-import java.lang.Integer.parseInt
-
 trait RequestValidation {
 
   def validateHeadersForNPS(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
+    implicit request: Request[_]
+  ): Validation[RequestId] =
+    endpointId match {
+      case BS_Memorandum_GET => validateMemorandumHeaders(endpointId, upstreamConnector)
+      case _ => validateAllHeaders(endpointId, upstreamConnector)
+    }
+
+  private def validateAllHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
     implicit request: Request[_]
   ): Validation[RequestId] = {
     val headers = request.headers
@@ -49,8 +56,19 @@ trait RequestValidation {
       validateContentType(request),
       validateCorrelationId(headers),
       validateRequestType(headers, endpointId),
-      validateStaffPid(headers, endpointId)
+      validateStaffPid(headers)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
+      .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
+  }
+
+  private def validateMemorandumHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
+    implicit request: Request[_]
+  ): Validation[RequestId] = {
+    val headers = request.headers
+    (
+      validateContentType(request),
+      validateCorrelationId(headers)
+    ).mapN((_, correlationId) => (correlationId, DA2_PTA, unattendedStaffPid))
       .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
   }
 
@@ -139,61 +157,43 @@ trait RequestValidation {
     s"(${DownstreamHeader.RequestType}). $requestType is an illegal value for this endpoint".some
 
   private def invalidRequestTypeHeader(requestType: String): Option[String] =
-    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: DA2_BS_ATTENDED, DA2_BS_UNATTENDED".some
+    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: ${Attended.values.mkString(", ")}".some
 
   private def validateRequestType(headers: Headers, endpointId: EndpointId): Validation[Attended] =
     headers
       .get(DownstreamHeader.RequestType)
       .fold[Validation[Attended]] {
-        if (endpointId == BS_Memorandum_GET) {
-          Attended.DA2_PTA.validNec
-        } else {
-          ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.RequestType})".some).invalidNec
-        }
+        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.RequestType})".some).invalidNec
       } { requestType =>
-        if (endpointId == BS_Memorandum_GET) {
-          ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
-        } else {
-          Attended
-            .withNameOption(requestType.toUpperCase)
-            .fold[Validation[Attended]] {
-              ErrorItem(INVALID_HEADER, invalidRequestTypeHeader(requestType)).invalidNec
-            } {
-              case Attended.DA2_BS_ATTENDED
-                  if endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT || endpointId == BS_Underpayments_GET =>
-                ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
+        Attended
+          .withNameOption(requestType.toUpperCase)
+          .fold[Validation[Attended]] {
+            ErrorItem(INVALID_HEADER, invalidRequestTypeHeader(requestType)).invalidNec
+          } {
+            case Attended.DA2_BS_ATTENDED
+                if endpointId == BS_Periods_POST || endpointId == BS_Periods_PUT || endpointId == BS_Underpayments_GET =>
+              ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(requestType)).invalidNec
 
-              case attended => attended.validNec
-            }
-        }
+            case attended => attended.validNec
+          }
       }
 
   private val staffPidRegex = "^[0-9]{7}$".r
 
-  private def validateStaffPid(headers: Headers, endpointId: EndpointId): Validation[String] =
+  private def validateStaffPid(headers: Headers): Validation[String] =
     headers
       .get(DownstreamHeader.StaffPid)
       .fold[Validation[String]] {
-        if (endpointId == BS_Memorandum_GET) {
-          unattendedStaffPid.validNec
-        } else {
-          ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.StaffPid})".some).invalidNec
-        }
+        ErrorItem(MISSING_HEADER, s"(${DownstreamHeader.StaffPid})".some).invalidNec
       } { staffPid =>
-        if (endpointId == BS_Memorandum_GET) {
-          ErrorItem(INVALID_HEADER, illegalRequestTypeHeader(staffPid)).invalidNec
-        } else {
-          staffPidRegex
-            .findFirstIn(staffPid)
-            .fold[Validation[String]] {
-              ErrorItem(
-                INVALID_HEADER,
-                s"(${DownstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some
-              ).invalidNec
-            } {
-              _.validNec
-            }
-        }
+        staffPidRegex
+          .findFirstIn(staffPid)
+          .fold[Validation[String]] {
+            ErrorItem(
+              INVALID_HEADER,
+              s"(${DownstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some
+            ).invalidNec
+          } { _.validNec }
       }
 
   private def validateStaffPidForRequestType(

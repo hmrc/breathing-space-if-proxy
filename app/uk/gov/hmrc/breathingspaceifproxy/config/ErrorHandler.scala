@@ -49,7 +49,7 @@ class ErrorHandler @Inject()(
       logger.error(s"""${logCorrelationId(correlationId)} $endpoint($statusCode). Client error was: "$message"""")
       val payload: JsValue = Try(Json.parse(message)).toOption
         .getOrElse(Json.obj("errors" -> listWithOneError(statusCode, removeCodeDetailIfAny(message))))
-      
+
       HttpError(correlationId, statusCode, payload).send
     }
   }
