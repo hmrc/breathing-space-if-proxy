@@ -268,14 +268,6 @@ traits:
                     value:
                       code: RESOURCE_NOT_FOUND
 
-    /memorandum:
-      get:
-        displayName: Use a nino to get a person's HMRC breathing space status
-        description: Get a person in breathing space status.
-        (annotations.scope): "read:breathing-space-memorandum"
-        securedBy: [ sec.oauth_2_0: { scopes: [ "read:breathing-space-memorandum" ] } ]
-        is: [applicationHeaders]
-
     /details:
       get:
         displayName: Use a Nino to get a person in Breathing Space's personal information
