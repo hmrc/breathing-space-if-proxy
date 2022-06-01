@@ -175,41 +175,5 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       errorList.last.code shouldBe INVALID_NINO.entryName
       assert(errorList.last.message.startsWith(INVALID_NINO.message))
     }
-
-    "Underpayments feature switch should return 501 when flag set to false" in {
-      val appConfig = mock[AppConfig]
-      when(appConfig.underpaymentsFeatureEnabled).thenReturn(false)
-      val controller = new UnderpaymentsController(
-        appConfig,
-        inject[AuditConnector],
-        authConnector,
-        Helpers.stubControllerComponents(),
-        mockUnderpaymentsConnector
-      )
-
-      val response = controller.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
-
-      status(response) shouldBe NOT_IMPLEMENTED
-    }
-
-    "Underpayments feature switch should return 200 when flag set to true" in {
-      val mockAppConfig = mock[AppConfig]
-      when(mockAppConfig.underpaymentsFeatureEnabled).thenReturn(true)
-      when(mockAppConfig.onDevEnvironment).thenReturn(false)
-      val controller = new UnderpaymentsController(
-        mockAppConfig,
-        inject[AuditConnector],
-        authConnector,
-        Helpers.stubControllerComponents(),
-        mockUnderpaymentsConnector
-      )
-
-      when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
-        .thenReturn(Future.successful(Underpayments(underpayments).validNec))
-
-      val response = controller.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
-
-      status(response) shouldBe OK
-    }
   }
 }
