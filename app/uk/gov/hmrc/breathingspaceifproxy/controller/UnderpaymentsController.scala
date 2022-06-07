@@ -44,7 +44,7 @@ class UnderpaymentsController @Inject()(
   val action = authAction("read:breathing-space-debts")
 
   def get(nino: String, periodId: String): Action[Validation[AnyContent]] =
-    enabled(_.underpaymentsFeatureEnabled).andThen(action).async(withoutBody) { implicit request =>
+    action.async(withoutBody) { implicit request =>
       (
         validateHeadersForNPS(BS_Underpayments_GET, underpaymentsConnector.eisConnector),
         validateNino(nino),
