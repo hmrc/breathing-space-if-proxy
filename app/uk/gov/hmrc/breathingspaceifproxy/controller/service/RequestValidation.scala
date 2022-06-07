@@ -28,15 +28,27 @@ import play.api.mvc._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended.DA2_PTA
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Periods_POST, BS_Periods_PUT, BS_Underpayments_GET}
-
-import java.lang.Integer.parseInt
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{
+  BS_Memorandum_GET,
+  BS_Periods_POST,
+  BS_Periods_PUT,
+  BS_Underpayments_GET
+}
 
 trait RequestValidation {
 
   def validateHeadersForNPS(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
+    implicit request: Request[_]
+  ): Validation[RequestId] =
+    endpointId match {
+      case BS_Memorandum_GET => validateMemorandumHeaders(endpointId, upstreamConnector)
+      case _ => validateAllHeaders(endpointId, upstreamConnector)
+    }
+
+  private def validateAllHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
     implicit request: Request[_]
   ): Validation[RequestId] = {
     val headers = request.headers
@@ -46,6 +58,17 @@ trait RequestValidation {
       validateRequestType(headers, endpointId),
       validateStaffPid(headers)
     ).mapN((_, correlationId, attended, staffPid) => (correlationId, attended, staffPid))
+      .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
+  }
+
+  private def validateMemorandumHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
+    implicit request: Request[_]
+  ): Validation[RequestId] = {
+    val headers = request.headers
+    (
+      validateContentType(request),
+      validateCorrelationId(headers)
+    ).mapN((_, correlationId) => (correlationId, DA2_PTA, unattendedStaffPid))
       .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
   }
 
@@ -180,7 +203,8 @@ trait RequestValidation {
     val requestType = headerValues._2
     val staffPid = headerValues._3
     if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
-      || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid) {
+      || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid
+      || requestType == Attended.DA2_PTA && staffPid == unattendedStaffPid) {
       RequestId(endpointId, correlationId = headerValues._1, requestType, staffPid, upstreamConnector)
         .validNec[ErrorItem]
     } else {

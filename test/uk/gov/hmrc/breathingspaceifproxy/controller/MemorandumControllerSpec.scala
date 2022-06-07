@@ -25,7 +25,7 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INVALID_NINO, MISSING_HEADER}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.MISSING_HEADER
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
@@ -60,7 +60,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
       when(mockConnector.get(any[Nino])(any[RequestId]))
         .thenReturn(Future.successful(memorandum.validNec))
 
-      val response = controller.get(genNino)(fakeGetRequest)
+      val response = controller.get(genNino)(fakeMemorandumGetRequest)
 
       status(response) shouldBe OK
       contentAsString(response) shouldBe Json.toJson(memorandum).toString
@@ -70,7 +70,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val nino = Nino("AA000001A")
       val response =
         controller
-          .get(nino)(attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))
+          .get(nino)(memorandumRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))
           .run
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, none, 1)
@@ -79,30 +79,10 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
       assert(errorList.head.message.startsWith(MISSING_HEADER.message))
     }
 
-    "return 400(BAD_REQUEST) when request type is missing" in {
-      val nino = Nino("AA000001A")
-      val response =
-        controller
-          .get(nino)(attendedRequestFilteredOutOneHeader(DownstreamHeader.RequestType))
-          .run
-
-      verifyMissingHeader(response)
-    }
-
-    "return 400(BAD_REQUEST) when staff pid is missing" in {
-      val nino = Nino("AA000001A")
-      val response =
-        controller
-          .get(nino)(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid))
-          .run
-
-      verifyMissingHeader(response)
-    }
-
     "Memorandum feature switch should return 501 when flag set to false" in {
       when(mockAppConfig.memorandumFeatureEnabled).thenReturn(false)
 
-      val response = controller.get(genNino)(fakeGetRequest)
+      val response = controller.get(genNino)(fakeMemorandumGetRequest)
       status(response) shouldBe NOT_IMPLEMENTED
     }
   }

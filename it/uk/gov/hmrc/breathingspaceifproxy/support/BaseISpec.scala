@@ -82,6 +82,9 @@ abstract class BaseISpec
   def fakeUnattendedRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(method, path).withHeaders(requestHeadersForUnattended: _*)
 
+  def fakeMemorandumRequest(method: String, path: String): FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest(method, path).withHeaders(requestHeadersForMemorandum: _*)
+
   def verifyAuditEventCall(endpointId: EndpointId): Assertion = {
     val body = s"""{"auditSource":"breathing-space-if-proxy", "auditType":"${endpointId.auditType}"}"""
     val requestedFor =
@@ -123,6 +126,11 @@ abstract class BaseISpec
       method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
     )
 
+  def verifyHeadersForMemorandum(method: HttpMethod, url: String): Unit =
+    verifyHeadersForMemorandum(
+      method.requestedFor(urlPathMatching(url))
+    )
+
   private def verifyHeadersForAttended(requestPatternBuilder: RequestPatternBuilder): Unit =
     verify(1, requestPatternBuilder
       .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
@@ -137,6 +145,15 @@ abstract class BaseISpec
       .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
       .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
       .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_UNATTENDED.entryName))
+      .withoutHeader(UpstreamHeader.StaffPid)
+    )
+
+  private def verifyHeadersForMemorandum(requestPatternBuilder: RequestPatternBuilder): Unit =
+    verify(1, requestPatternBuilder
+      .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
+      .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
+      .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
+      .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_PTA.entryName))
       .withoutHeader(UpstreamHeader.StaffPid)
     )
 

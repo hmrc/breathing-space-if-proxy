@@ -18,10 +18,8 @@ package uk.gov.hmrc.breathingspaceifproxy.config
 
 import play.api.libs.json.Json
 import play.api.mvc.PathBindable
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, Nino}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.INVALID_NINO
-import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, HttpError, Nino}
-
-import scala.util.{Failure, Success, Try}
 
 object Binders {
   implicit val ninoBinder: PathBindable[Nino] = new PathBindable[Nino] {
@@ -29,7 +27,12 @@ object Binders {
     override def bind(key: String, value: String): Either[String, Nino] =
       (Nino.fromString(value)) match {
         case Some(nino) => Right(nino)
-        case None => Left(Json.stringify(Json.toJson(ErrorItem(INVALID_NINO, Some("Unable to validate nino")))))
+        case None =>
+          Left(
+            Json.stringify(
+              Json.obj("errors" -> List(Json.toJson(ErrorItem(INVALID_NINO))))
+            )
+          )
       }
 
     override def unbind(key: String, value: Nino): String = value.value
