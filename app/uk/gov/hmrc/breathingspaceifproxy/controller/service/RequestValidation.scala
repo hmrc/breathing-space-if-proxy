@@ -157,7 +157,7 @@ trait RequestValidation {
     s"(${DownstreamHeader.RequestType}). $requestType is an illegal value for this endpoint".some
 
   private def invalidRequestTypeHeader(requestType: String): Option[String] =
-    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: ${Attended.values.mkString(", ")}".some
+    s"(${DownstreamHeader.RequestType}). Was $requestType but valid values are only: ${Attended.DA2_BS_ATTENDED}, ${Attended.DA2_BS_UNATTENDED}".some
 
   private def validateRequestType(headers: Headers, endpointId: EndpointId): Validation[Attended] =
     headers
