@@ -51,7 +51,7 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
 object MemorandumConnector {
   def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/memorandum"
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/${nino.value}/memorandum"
 
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"
