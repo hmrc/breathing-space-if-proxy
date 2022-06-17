@@ -30,7 +30,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
   val connector = inject[MemorandumConnector]
-  implicit val requestId = genRequestId(BS_Memorandum_GET, connector.eisConnector)
+  implicit val requestId = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
 
   "get" should {
     "return an MemorandumInResponse instance when it receives a 200(OK) response" in {

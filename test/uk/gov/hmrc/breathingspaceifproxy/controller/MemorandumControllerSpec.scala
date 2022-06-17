@@ -26,7 +26,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.MISSING_HEADER
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.MemConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
@@ -39,11 +39,11 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
   val mockAppConfig = mock[AppConfig]
   when(mockAppConfig.memorandumFeatureEnabled).thenReturn(true)
 
-  val mockUpstreamConnector = mock[EisConnector]
+  val mockUpstreamConnector = mock[MemConnector]
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: MemorandumConnector = mock[MemorandumConnector]
-  when(mockConnector.eisConnector).thenReturn(mockUpstreamConnector)
+  when(mockConnector.memorandumConnector).thenReturn(mockUpstreamConnector)
 
   val controller = new MemorandumController(
     mockAppConfig,
