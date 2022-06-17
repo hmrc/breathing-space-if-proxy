@@ -21,7 +21,7 @@ import com.kenshoo.play.metrics.Metrics
 import cats.syntax.validated._
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EmemConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
 import uk.gov.hmrc.http.HttpClient
@@ -32,7 +32,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
-  val eisConnector: EisConnector,
+  val ememConnector: EmemConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {
@@ -42,7 +42,7 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[MemorandumInResponse] =
-    eisConnector.monitor {
+    ememConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http.GET[MemorandumInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
       }

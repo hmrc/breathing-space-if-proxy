@@ -47,7 +47,7 @@ class MemorandumController @Inject()(
         (
           validateHeadersForNPS(
             BS_Memorandum_GET,
-            memorandumConnector.eisConnector
+            memorandumConnector.ememConnector
           )
         ).map(requestId => requestId)
           .fold(

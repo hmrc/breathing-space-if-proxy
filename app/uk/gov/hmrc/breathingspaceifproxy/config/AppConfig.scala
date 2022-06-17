@@ -60,4 +60,14 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
     config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
 
   val memorandumFeatureEnabled = config.get[Boolean]("feature.flag.memorandum.enabled")
+
+  lazy val unavailableMemorandumPeriodDuration =
+    config.get[Int]("circuit.breaker.unavailableMemorandumPeriodDurationInMillis")
+
+  lazy val unstableMemorandumPeriodDuration =
+    config.get[Int]("circuit.breaker.unstableMemorandumPeriodDurationInMillis")
+
+  lazy val numberOfMemCallsToTriggerStateChange =
+    if (onDevEnvironment) Int.MaxValue // Disable the Circuit Breaker on Dev
+    else config.get[Int]("circuit.breaker.failedMemorandumCallsInUnstableBeforeUnavailable")
 }

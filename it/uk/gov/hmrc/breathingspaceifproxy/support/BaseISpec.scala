@@ -64,7 +64,8 @@ abstract class BaseISpec
     "microservice.services.auth.host" -> wireMockHost,
     "microservice.services.auth.port" -> wireMockPort,
     "microservice.services.integration-framework.host" -> wireMockHost,
-    "microservice.services.integration-framework.port" -> wireMockPort
+    "microservice.services.integration-framework.port" -> wireMockPort,
+    "circuit.breaker.failedMemorandumCallsInUnstableBeforeUnavailable" -> Int.MaxValue
   )
 
   override val fakeApplication: Application =

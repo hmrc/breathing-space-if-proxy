@@ -59,6 +59,9 @@ abstract class CircuitBreakerISpec
     "circuit.breaker.failedCallsInUnstableBeforeUnavailable" -> failedCalls,
     "circuit.breaker.unavailablePeriodDurationInMillis" -> unavailablePeriodDuration,
     "circuit.breaker.unstablePeriodDurationInMillis" -> 500,
+    "circuit.breaker.failedMemorandumCallsInUnstableBeforeUnavailable" -> failedCalls,
+    "circuit.breaker.unavailableMemorandumPeriodDurationInMillis" -> unavailablePeriodDuration,
+    "circuit.breaker.unstableMemorandumPeriodDurationInMillis" -> 500,
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )
