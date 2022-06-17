@@ -34,7 +34,7 @@ class MemorandumController @Inject()(
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
   cc: ControllerComponents,
-  memorandumConnector: MemorandumConnector
+  connector: MemorandumConnector
 ) extends AbstractBaseController(cc) {
 
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
@@ -47,7 +47,7 @@ class MemorandumController @Inject()(
         (
           validateHeadersForNPS(
             BS_Memorandum_GET,
-            memorandumConnector.memorandumConnector
+            connector.memorandumConnector
           )
         ).map(requestId => requestId)
           .fold(
@@ -57,7 +57,7 @@ class MemorandumController @Inject()(
               implicit val nino: Nino = n
               logger.debug(s"$requestId for Nino(${nino.value})")
               if (appConfig.onDevEnvironment) logHeaders
-              memorandumConnector.get(nino).flatMap {
+              connector.get(nino).flatMap {
                 _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
               }
             }

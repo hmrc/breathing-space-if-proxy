@@ -22,7 +22,7 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 
 @Singleton
-class EmemConnector @Inject()(val appConfig: AppConfig) extends UpstreamConnector {
+class MemConnector @Inject()(val appConfig: AppConfig) extends UpstreamConnector {
 
   override protected def circuitBreakerConfig = CircuitBreakerConfig(
     appConfig.appName,

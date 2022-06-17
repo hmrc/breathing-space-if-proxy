@@ -25,7 +25,7 @@ import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EmemConnector, HeaderHandler}
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemConnector}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
 import uk.gov.hmrc.http.HttpClient
@@ -33,7 +33,7 @@ import uk.gov.hmrc.http.HttpClient
 @Singleton
 class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
-  val memorandumConnector: EmemConnector,
+  val memorandumConnector: MemConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {
