@@ -50,9 +50,9 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
 
   override protected def circuitBreakerConfig = CircuitBreakerConfig(
     appConfig.appName,
-    appConfig.numberOfCallsToTriggerStateChange,
-    appConfig.unavailablePeriodDuration,
-    appConfig.unstablePeriodDuration
+    appConfig.CircuitBreaker.IF.numberOfCallsToTriggerStateChange,
+    appConfig.CircuitBreaker.IF.unavailablePeriodDuration,
+    appConfig.CircuitBreaker.IF.unstablePeriodDuration
   )
 
   def currentState: String = circuitBreaker.currentState.name

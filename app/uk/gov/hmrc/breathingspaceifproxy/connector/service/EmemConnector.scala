@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
+import javax.inject.{Inject, Singleton}
+
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
-
-import javax.inject.{Inject, Singleton}
 
 @Singleton
 class EmemConnector @Inject()(val appConfig: AppConfig) extends UpstreamConnector {
 
   override protected def circuitBreakerConfig = CircuitBreakerConfig(
     appConfig.appName,
-    appConfig.numberOfMemCallsToTriggerStateChange,
-    appConfig.unavailableMemorandumPeriodDuration,
-    appConfig.unstableMemorandumPeriodDuration
+    appConfig.CircuitBreaker.Memorandum.numberOfCallsToTriggerStateChange,
+    appConfig.CircuitBreaker.Memorandum.unavailablePeriodDuration,
+    appConfig.CircuitBreaker.Memorandum.unstablePeriodDuration
   )
 
 }

@@ -56,12 +56,12 @@ abstract class CircuitBreakerISpec
   val unavailablePeriodDuration = 500
 
   val configProperties: Map[String, Any] = Map(
-    "circuit.breaker.failedCallsInUnstableBeforeUnavailable" -> failedCalls,
-    "circuit.breaker.unavailablePeriodDurationInMillis" -> unavailablePeriodDuration,
-    "circuit.breaker.unstablePeriodDurationInMillis" -> 500,
-    "circuit.breaker.failedMemorandumCallsInUnstableBeforeUnavailable" -> failedCalls,
-    "circuit.breaker.unavailableMemorandumPeriodDurationInMillis" -> unavailablePeriodDuration,
-    "circuit.breaker.unstableMemorandumPeriodDurationInMillis" -> 500,
+    "circuit.breaker.if.failedCallsInUnstableBeforeUnavailable" -> failedCalls,
+    "circuit.breaker.if.unavailablePeriodDurationInMillis" -> unavailablePeriodDuration,
+    "circuit.breaker.if.unstablePeriodDurationInMillis" -> 500,
+    "circuit.breaker.memorandum.failedCallsInUnstableBeforeUnavailable" -> failedCalls,
+    "circuit.breaker.memorandum.unavailablePeriodDurationInMillis" -> unavailablePeriodDuration,
+    "circuit.breaker.memorandum.unstablePeriodDurationInMillis" -> 500,
     "microservice.services.integration-framework.host" -> wireMockHost,
     "microservice.services.integration-framework.port" -> wireMockPort
   )

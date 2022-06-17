@@ -16,9 +16,13 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.ExecutionContext
+
+import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import cats.syntax.validated._
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EmemConnector, HeaderHandler}
@@ -26,13 +30,10 @@ import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
 import uk.gov.hmrc.http.HttpClient
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
-
 @Singleton
 class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
   implicit appConfig: AppConfig,
-  val ememConnector: EmemConnector,
+  val memorandumConnector: EmemConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {
@@ -42,7 +43,7 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[MemorandumInResponse] =
-    ememConnector.monitor {
+    memorandumConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         http.GET[MemorandumInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
       }

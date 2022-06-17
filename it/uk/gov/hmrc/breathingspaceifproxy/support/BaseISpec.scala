@@ -60,12 +60,12 @@ abstract class BaseISpec
     "auditing.enabled" -> true,
     "auditing.consumer.baseUri.host" -> wireMockHost,
     "auditing.consumer.baseUri.port" -> wireMockPort,
-    "circuit.breaker.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
+    "circuit.breaker.if.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
+    "circuit.breaker.memorandum.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
     "microservice.services.auth.host" -> wireMockHost,
     "microservice.services.auth.port" -> wireMockPort,
     "microservice.services.integration-framework.host" -> wireMockHost,
-    "microservice.services.integration-framework.port" -> wireMockPort,
-    "circuit.breaker.failedMemorandumCallsInUnstableBeforeUnavailable" -> Int.MaxValue
+    "microservice.services.integration-framework.port" -> wireMockPort
   )
 
   override val fakeApplication: Application =

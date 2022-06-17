@@ -43,7 +43,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: MemorandumConnector = mock[MemorandumConnector]
-  when(mockConnector.ememConnector).thenReturn(mockUpstreamConnector)
+  when(mockConnector.memorandumConnector).thenReturn(mockUpstreamConnector)
 
   val controller = new MemorandumController(
     mockAppConfig,
