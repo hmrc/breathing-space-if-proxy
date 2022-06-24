@@ -29,6 +29,7 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemCo
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
 import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
 class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(

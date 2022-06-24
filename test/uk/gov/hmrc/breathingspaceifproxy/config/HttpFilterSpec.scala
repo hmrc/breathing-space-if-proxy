@@ -17,16 +17,12 @@
 package uk.gov.hmrc.breathingspaceifproxy.config
 
 import akka.stream.Materializer
-import org.mockito.MockitoSugar.mock
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.mvc.{DefaultActionBuilder, EssentialAction}
 import play.api.mvc.Results.Ok
-import play.api.mvc.{Action, DefaultActionBuilder, EssentialAction, RequestHeader, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{call, headers}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
 
 class HttpFilterSpec extends AnyWordSpec with BaseSpec {
   val httpFilter = inject[HttpFilter]

@@ -48,7 +48,7 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
     }
 
     "return true for Upstream5xxResponse" in {
-      val throwable = Upstream5xxResponse("message", 500, 500)
+      val throwable = UpstreamErrorResponse("message", 500, 500)
       breakOnException(throwable) shouldBe true
     }
 

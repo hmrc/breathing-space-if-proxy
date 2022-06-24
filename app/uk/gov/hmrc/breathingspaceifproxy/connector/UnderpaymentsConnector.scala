@@ -26,6 +26,7 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, Header
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.{HttpClient, HttpReads, HttpResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}

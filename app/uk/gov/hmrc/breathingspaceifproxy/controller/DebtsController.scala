@@ -17,10 +17,8 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
+
 import cats.syntax.apply._
-import cats.syntax.either._
-import cats.syntax.option._
-import cats.syntax.validated._
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy._
