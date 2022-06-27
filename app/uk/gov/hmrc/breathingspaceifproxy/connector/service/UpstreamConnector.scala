@@ -50,9 +50,9 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
 
   override protected def circuitBreakerConfig = CircuitBreakerConfig(
     appConfig.appName,
-    appConfig.numberOfCallsToTriggerStateChange,
-    appConfig.unavailablePeriodDuration,
-    appConfig.unstablePeriodDuration
+    appConfig.CircuitBreaker.IF.numberOfCallsToTriggerStateChange,
+    appConfig.CircuitBreaker.IF.unavailablePeriodDuration,
+    appConfig.CircuitBreaker.IF.unstablePeriodDuration
   )
 
   def currentState: String = circuitBreaker.currentState.name
@@ -86,6 +86,7 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       case NOT_FOUND => notFound(message)
       case FORBIDDEN => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BaseError.BREATHING_SPACE_EXPIRED)
       case CONFLICT => logAndGenDownstreamResponse(info, CONFLICT, message, BaseError.CONFLICTING_REQUEST)
+      case TOO_MANY_REQUESTS => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.TOO_MANY_REQUESTS)
       case _ => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.INTERNAL_SERVER_ERROR)
     }
 
@@ -96,6 +97,8 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
   val noDataFound = """"code":"NO_DATA_FOUND""""
   val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
   val noPeriodIdFound = """"code":"BREATHINGSPACE_ID_NOT_FOUND""""
+  val noResourceFound = """"code":"RESOURCE_NOT_FOUND""""
+  val notIdentifierFound = """"code":"IDENTIFIER_NOT_FOUND""""
 
   private def notFound[T](response: String)(implicit requestId: RequestId): ResponseValidation[T] = {
     val message = response.replaceAll("\\s", "")
@@ -104,7 +107,9 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircui
       if (message.contains(noDataFound)) BaseError.NO_DATA_FOUND
       else if (message.contains(notInBS)) BaseError.NOT_IN_BREATHING_SPACE
       else if (message.contains(noPeriodIdFound)) BaseError.PERIOD_ID_NOT_FOUND
-      else BaseError.RESOURCE_NOT_FOUND
+      else if (message.contains(noResourceFound)) BaseError.RESOURCE_NOT_FOUND
+      else if (message.contains(notIdentifierFound)) BaseError.RESOURCE_NOT_FOUND
+      else BaseError.INTERNAL_SERVER_ERROR
 
     logAndGenDownstreamResponse(error, NOT_FOUND, response, baseError)
   }

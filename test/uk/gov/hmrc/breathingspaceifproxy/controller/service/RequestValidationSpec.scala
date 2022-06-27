@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
+import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
@@ -117,6 +118,16 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
       )
 
       assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request).isValid)
+    }
+
+    "assert error message when invalid request type provided" in {
+      val request = fakeGetRequest.withHeaders((DownstreamHeader.RequestType, "334534534534"))
+      val expectedErrorMessage =
+        s"(${DownstreamHeader.RequestType}). Was 334534534534 but valid values are only: ${Attended.DA2_BS_ATTENDED.toString}, ${Attended.DA2_BS_UNATTENDED.toString}".some
+
+      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
+
+      result.toEither.left.get.head.details shouldBe expectedErrorMessage
     }
   }
 

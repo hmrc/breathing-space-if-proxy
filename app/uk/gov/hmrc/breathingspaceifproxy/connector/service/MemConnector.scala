@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.breathingspaceifproxy.model.enums
+package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
-import enumeratum._
+import javax.inject.{Inject, Singleton}
 
-sealed trait Attended extends EnumEntry
+import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 
-object Attended extends Enum[Attended] {
+@Singleton
+class MemConnector @Inject()(val appConfig: AppConfig) extends UpstreamConnector {
 
-  case object DA2_BS_ATTENDED extends Attended
-  case object DA2_BS_UNATTENDED extends Attended
-  case object DA2_PTA extends Attended
+  override protected def circuitBreakerConfig = CircuitBreakerConfig(
+    appConfig.appName,
+    appConfig.CircuitBreaker.Memorandum.numberOfCallsToTriggerStateChange,
+    appConfig.CircuitBreaker.Memorandum.unavailablePeriodDuration,
+    appConfig.CircuitBreaker.Memorandum.unstablePeriodDuration
+  )
 
-  override val values = findValues
 }

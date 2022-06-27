@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model.HttpError
+import uk.gov.hmrc.breathingspaceifproxy.model.{HttpError, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -34,27 +34,30 @@ class MemorandumController @Inject()(
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
   cc: ControllerComponents,
-  memorandumConnector: MemorandumConnector
+  connector: MemorandumConnector
 ) extends AbstractBaseController(cc) {
 
   val action: Option[String] => ActionBuilder[Request, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
 
-  def get(nino: String): Action[Validation[AnyContent]] =
+  def get(n: Nino): Action[Validation[AnyContent]] =
     enabled(_.memorandumFeatureEnabled)
-      .andThen(action(nino.some))
+      .andThen(action(n.value.some))
       .async(withoutBody) { implicit request =>
         (
-          validateHeadersForNPS(BS_Memorandum_GET, memorandumConnector.eisConnector),
-          validateNino(nino)
-        ).mapN((requestId, nino) => (requestId, nino))
+          validateHeadersForNPS(
+            BS_Memorandum_GET,
+            connector.memorandumConnector
+          )
+        ).map(requestId => requestId)
           .fold(
             HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
-            validationTuple => {
-              implicit val (requestId, nino) = validationTuple
+            reqId => {
+              implicit val requestId: RequestId = reqId
+              implicit val nino: Nino = n
               logger.debug(s"$requestId for Nino(${nino.value})")
               if (appConfig.onDevEnvironment) logHeaders
-              memorandumConnector.get(nino).flatMap {
+              connector.get(nino).flatMap {
                 _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
               }
             }

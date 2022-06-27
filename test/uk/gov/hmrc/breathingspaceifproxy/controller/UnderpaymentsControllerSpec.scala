@@ -16,6 +16,12 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
+import java.util.UUID
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
+
 import cats.implicits.{catsSyntaxOptionId, catsSyntaxValidatedIdBinCompat0}
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
@@ -23,18 +29,12 @@ import play.api.libs.json.JsSuccess
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-
-import java.util.UUID
-import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 
 class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
@@ -174,42 +174,6 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
       And(s"the 2nd error code should be $INVALID_NINO")
       errorList.last.code shouldBe INVALID_NINO.entryName
       assert(errorList.last.message.startsWith(INVALID_NINO.message))
-    }
-
-    "Underpayments feature switch should return 501 when flag set to false" in {
-      val appConfig = mock[AppConfig]
-      when(appConfig.underpaymentsFeatureEnabled).thenReturn(false)
-      val controller = new UnderpaymentsController(
-        appConfig,
-        inject[AuditConnector],
-        authConnector,
-        Helpers.stubControllerComponents(),
-        mockUnderpaymentsConnector
-      )
-
-      val response = controller.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
-
-      status(response) shouldBe NOT_IMPLEMENTED
-    }
-
-    "Underpayments feature switch should return 200 when flag set to true" in {
-      val mockAppConfig = mock[AppConfig]
-      when(mockAppConfig.underpaymentsFeatureEnabled).thenReturn(true)
-      when(mockAppConfig.onDevEnvironment).thenReturn(false)
-      val controller = new UnderpaymentsController(
-        mockAppConfig,
-        inject[AuditConnector],
-        authConnector,
-        Helpers.stubControllerComponents(),
-        mockUnderpaymentsConnector
-      )
-
-      when(mockUnderpaymentsConnector.get(any[Nino], any[UUID])(any[RequestId]))
-        .thenReturn(Future.successful(Underpayments(underpayments).validNec))
-
-      val response = controller.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
-
-      status(response) shouldBe OK
     }
   }
 }

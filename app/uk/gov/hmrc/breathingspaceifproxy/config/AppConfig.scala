@@ -34,12 +34,25 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
 
-  lazy val numberOfCallsToTriggerStateChange =
-    if (onDevEnvironment) Int.MaxValue // Disable the Circuit Breaker on Dev
-    else config.get[Int]("circuit.breaker.failedCallsInUnstableBeforeUnavailable")
+  object CircuitBreaker {
+    private lazy val circuitBreaker = config.get[Configuration]("circuit.breaker")
 
-  lazy val unavailablePeriodDuration = config.get[Int]("circuit.breaker.unavailablePeriodDurationInMillis")
-  lazy val unstablePeriodDuration = config.get[Int]("circuit.breaker.unstablePeriodDurationInMillis")
+    protected trait CircuitBreakerConfiguration {
+      protected def root: Configuration
+
+      lazy val numberOfCallsToTriggerStateChange = root.get[Int]("failedCallsInUnstableBeforeUnavailable")
+      lazy val unavailablePeriodDuration = root.get[Int]("unavailablePeriodDurationInMillis")
+      lazy val unstablePeriodDuration = root.get[Int]("unstablePeriodDurationInMillis")
+    }
+
+    object Memorandum extends CircuitBreakerConfiguration {
+      protected lazy val root = circuitBreaker.get[Configuration]("memorandum")
+    }
+
+    object IF extends CircuitBreakerConfiguration {
+      protected lazy val root = circuitBreaker.get[Configuration]("if")
+    }
+  }
 
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 
@@ -60,7 +73,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   lazy val v1AllowlistedApplicationIds =
     config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
 
-  val underpaymentsFeatureEnabled = config.get[Boolean]("feature.flag.underpayments.enabled")
   val memorandumFeatureEnabled = config.get[Boolean]("feature.flag.memorandum.enabled")
 
   object mongo {

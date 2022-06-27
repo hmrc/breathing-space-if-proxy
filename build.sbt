@@ -13,6 +13,7 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies ++= Dependencies.compile ++ Dependencies.test,
     PlayKeys.playDefaultPort := 9501,
     TwirlKeys.templateImports := Seq(),
+    routesImport += "uk.gov.hmrc.breathingspaceifproxy.config.Binders._",
     // ***************
     // Use the silencer plugin to suppress warnings
     scalacOptions ++= List("-P:silencer:pathFilters=routes", "-Ypartial-unification"),
@@ -44,7 +45,7 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
     "uk\\.gov\\.hmrc\\.breathingspaceifproxy\\.views\\..*",
     ".*(Reverse|AuthService|BuildInfo|Routes).*"
   ).mkString(";"),
-  coverageMinimum := 96,
+  coverageMinimumStmtTotal := 96,
   coverageFailOnMinimum := false,
   coverageHighlighting := true,
   parallelExecution in Test := false

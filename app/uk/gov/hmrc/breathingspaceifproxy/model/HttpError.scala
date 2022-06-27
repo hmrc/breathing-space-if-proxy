@@ -50,7 +50,7 @@ object HttpError {
     apply(correlationId, error.baseError.httpCode, payload)
   }
 
-  def apply(correlationId: Option[String], httpErrorCode: Int, payload: JsObject): HttpError = {
+  def apply(correlationId: Option[String], httpErrorCode: Int, payload: JsValue): HttpError = {
     val headers = List(HeaderNames.CONTENT_TYPE -> MimeTypes.JSON)
     new HttpError(
       Status(httpErrorCode)(payload)

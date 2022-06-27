@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -46,7 +47,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
-      verifyErrorResponse(genNino, NOT_FOUND, RESOURCE_NOT_FOUND)
+      verifyErrorResponse(genNino, NOT_FOUND, RESOURCE_NOT_FOUND, "RESOURCE_NOT_FOUND".some)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
@@ -89,10 +90,10 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
     }
   }
 
-  private def verifyErrorResponse(nino: Nino, status: Int, baseError: BaseError): Assertion = {
+  private def verifyErrorResponse(nino: Nino, status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
     val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
     val queryParams = detailQueryParams(IndividualDetails.fields)
-    stubCall(HttpMethod.Get, path, status, errorResponseFromIF(), queryParams)
+    stubCall(HttpMethod.Get, path, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)), queryParams)
 
     val response = await(connector.getDetails(nino))
 

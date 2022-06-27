@@ -16,24 +16,26 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import javax.inject.{Inject, Singleton}
+
+import scala.concurrent.ExecutionContext
+
+import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
-import cats.syntax.validated._
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemConnector}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
 import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
 import uk.gov.hmrc.http.HttpClient
-
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
 class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics, val cacheRepository: CacheRepository)(
   implicit appConfig: AppConfig,
-  val eisConnector: EisConnector,
+  val memorandumConnector: MemConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler
@@ -44,7 +46,7 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics, val cach
   override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[MemorandumInResponse] =
-    eisConnector.monitor {
+    memorandumConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         cache("memorandum")(nino) {
           http.GET[MemorandumInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
@@ -55,7 +57,7 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics, val cach
 
 object MemorandumConnector {
   def path(nino: Nino)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/memorandum"
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/${nino.value}/memorandum"
 
   def url(nino: Nino)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino)}"

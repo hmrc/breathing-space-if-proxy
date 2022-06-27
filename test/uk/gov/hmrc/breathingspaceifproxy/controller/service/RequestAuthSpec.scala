@@ -57,7 +57,9 @@ class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Re
     }
 
     "return 200(OK) when the nino in the request match the trusted helper principal nino" in {
-      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ Some("client-id")
+      val authResult: AuthRetrieval = Some("BB000000B") ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ Some(
+        "client-id"
+      )
       when(
         authConnector
           .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])

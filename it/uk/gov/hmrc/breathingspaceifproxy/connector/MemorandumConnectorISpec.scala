@@ -17,6 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.Application
 import play.api.http.Status._
@@ -26,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{CONFLICTING_REQUEST, RESOURCE_NOT_FOUND}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{CONFLICTING_REQUEST, INTERNAL_SERVER_ERROR, RESOURCE_NOT_FOUND}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
 import uk.gov.hmrc.breathingspaceifproxy.repository.CacheRepository
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
@@ -44,7 +45,7 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
 
   override lazy val repository = inject[CacheRepository]
   val connector = inject[MemorandumConnector]
-  implicit val requestId = genRequestId(BS_Memorandum_GET, connector.eisConnector)
+  implicit val requestId = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
 
   "get" should {
     "return an MemorandumInResponse instance when it receives a 200(OK) response" in {
@@ -87,7 +88,11 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
-      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND)
+      verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND, "RESOURCE_NOT_FOUND".some)
+    }
+
+    "return SERVER_ERROR when IF returns 404 but the code is not RESOURCE_NOT_FOUND" in {
+      verifyGetResponse(NOT_FOUND, INTERNAL_SERVER_ERROR)
     }
 
     "return CONFLICTING_REQUEST in case of duplicated requests" in {
@@ -95,7 +100,7 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
     }
 
     "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
-      verifyGetResponse(BAD_REQUEST, BaseError.INTERNAL_SERVER_ERROR)
+      verifyGetResponse(BAD_REQUEST, INTERNAL_SERVER_ERROR)
     }
 
     "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
@@ -103,10 +108,10 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
     }
   }
 
-  private def verifyGetResponse(status: Int, baseError: BaseError): Assertion = {
+  private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
     val nino = genNino
     val url = MemorandumConnector.path(nino)
-    stubCall(HttpMethod.Get, url, status, errorResponseFromIF())
+    stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
     val response = await(connector.get(nino))
 
