@@ -17,9 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import javax.inject.{Inject, Singleton}
-
 import scala.concurrent.ExecutionContext
-
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
 import com.kenshoo.play.metrics.Metrics
@@ -29,16 +27,18 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
-class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
+class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics, val cacheRepository: CacheRepository)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
-    with HeaderHandler {
+    with HeaderHandler
+    with Cacheable {
 
   import PeriodsConnector._
 
@@ -56,9 +56,11 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http
-          .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods), headers)
-          .map(_.validNec)
+        clear(nino).flatMap { _ =>
+          http
+            .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods), headers)
+            .map(_.validNec)
+        }
       }
     }
 
@@ -67,9 +69,15 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics)(
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http
-          .PUT[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(PutPeriodsInRequest(putPeriods)), headers)
-          .map(_.validNec)
+        clear(nino).flatMap { _ =>
+          http
+            .PUT[JsValue, PeriodsInResponse](
+              Url(url(nino)).value,
+              Json.toJson(PutPeriodsInRequest(putPeriods)),
+              headers
+            )
+            .map(_.validNec)
+        }
       }
     }
 }

@@ -17,9 +17,10 @@
 package uk.gov.hmrc.breathingspaceifproxy.config
 
 import javax.inject.{Inject, Singleton}
-
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.duration.Duration
 
 final case class HeaderMapping(nameToMap: String, nameMapped: String)
 
@@ -74,4 +75,10 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
   val memorandumFeatureEnabled = config.get[Boolean]("feature.flag.memorandum.enabled")
 
+  object mongo {
+
+    val ttl = config.get[Duration]("mongodb.ttl")
+  }
+
+  val ninoHashingKey = config.get[String]("ninoHashingKey")
 }

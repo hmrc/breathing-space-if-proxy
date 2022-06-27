@@ -28,16 +28,18 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemConnector}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
+import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
 @Singleton
-class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
+class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics, val cacheRepository: CacheRepository)(
   implicit appConfig: AppConfig,
   val memorandumConnector: MemConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
-    with HeaderHandler {
+    with HeaderHandler
+    with Cacheable {
 
   import MemorandumConnector._
 
@@ -46,7 +48,9 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics)(
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[MemorandumInResponse] =
     memorandumConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[MemorandumInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
+        cache("memorandum")(nino) {
+          http.GET[MemorandumInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
+        }
       }
     }
 }

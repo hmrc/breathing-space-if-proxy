@@ -16,19 +16,34 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
+import com.github.tomakehurst.wiremock.client.WireMock
 import cats.syntax.option._
 import org.scalatest.Assertion
-import play.api.http.Status.{BAD_REQUEST, CONFLICT, NOT_FOUND, NOT_IMPLEMENTED, OK}
+import play.api.Application
+import play.api.http.Status._
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model.MemorandumInResponse
+import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{CONFLICTING_REQUEST, INTERNAL_SERVER_ERROR, RESOURCE_NOT_FOUND}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
+import uk.gov.hmrc.breathingspaceifproxy.repository.CacheRepository
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport {
+class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with DefaultPlayMongoRepositorySupport[CacheItem] {
 
+  override val fakeApplication: Application =
+    GuiceApplicationBuilder()
+      .configure(configProperties)
+      .overrides(bind[MongoComponent].to(mongoComponent))
+      .build()
+
+  override lazy val repository = inject[CacheRepository]
   val connector = inject[MemorandumConnector]
   implicit val requestId = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
 
@@ -46,9 +61,30 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport {
       val response = await(connector.get(nino))
 
       verifyHeaders(HttpMethod.Get, url)
-      assert(response.fold(_ => false, resp => {
-        resp.breathingSpaceIndicator == expectedBreathingSpaceIndicator
-      }))
+      response.fold(
+        _    => fail(),
+        resp => resp.breathingSpaceIndicator shouldBe expectedBreathingSpaceIndicator
+      )
+    }
+
+    "return cached response when available" in {
+      val nino = genNino
+      val expectedBreathingSpaceIndicator = true
+      repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(expectedBreathingSpaceIndicator))
+
+      val memorandum = MemorandumInResponse(false)
+
+      val url = MemorandumConnector.path(nino)
+      val responsePayload = Json.toJson(memorandum).toString
+      stubCall(HttpMethod.Get, url, OK, responsePayload)
+
+      val response = await(connector.get(nino))
+
+      WireMock.verify(0, HttpMethod.Get.requestedFor(WireMock.urlPathEqualTo(url)))
+      response.fold(
+        _    => fail(),
+        resp => resp.breathingSpaceIndicator shouldBe expectedBreathingSpaceIndicator
+      )
     }
 
     "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
