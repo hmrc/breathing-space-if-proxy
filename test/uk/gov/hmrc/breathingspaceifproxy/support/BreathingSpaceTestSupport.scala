@@ -21,7 +21,7 @@ import java.util.UUID
 import scala.util.Random
 import cats.syntax.option._
 import cats.syntax.validated._
-import play.api.http.HeaderNames.CONTENT_TYPE
+import play.api.http.HeaderNames.{AUTHORIZATION, CONTENT_TYPE}
 import play.api.http.MimeTypes
 import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
@@ -63,19 +63,22 @@ trait BreathingSpaceTestSupport {
     CONTENT_TYPE -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
     DownstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.toString,
-    DownstreamHeader.StaffPid -> attendedStaffPid
+    DownstreamHeader.StaffPid -> attendedStaffPid,
+    AUTHORIZATION -> "Bearer 12345"
   )
 
   lazy val requestHeadersForUnattended = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
     DownstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
-    DownstreamHeader.StaffPid -> unattendedStaffPid
+    DownstreamHeader.StaffPid -> unattendedStaffPid,
+    AUTHORIZATION -> "Bearer 12345"
   )
 
   lazy val requestHeadersForMemorandum = List(
     CONTENT_TYPE -> MimeTypes.JSON,
-    DownstreamHeader.CorrelationId -> correlationIdAsString
+    DownstreamHeader.CorrelationId -> correlationIdAsString,
+    AUTHORIZATION -> "Bearer 12345"
   )
 
   lazy val validPostPeriod = PostPeriodInRequest(
