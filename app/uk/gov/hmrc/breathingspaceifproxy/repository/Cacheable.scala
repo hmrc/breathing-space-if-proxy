@@ -18,7 +18,6 @@ package uk.gov.hmrc.breathingspaceifproxy.repository
 
 import play.api.libs.json.{Reads, Writes}
 import uk.gov.hmrc.breathingspaceifproxy.Validation
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, Nino}
 
 import scala.concurrent.Future

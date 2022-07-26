@@ -163,6 +163,16 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       assert(errorList.head.message.startsWith(INVALID_UTR.message))
     }
 
+    "return 503(SERVICE_UNAVAILABLE) if an error is returned from the Connector" in {
+      when(mockConnector.post(any[Nino], any[PostPeriodsInRequest])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
+
+      val request = unattendedRequestWithAllHeaders(POST).withBody(postPeriodsRequestAsJson(postPeriodsRequest()))
+
+      val response = controller.post(request)
+      status(response) shouldBe SERVICE_UNAVAILABLE
+    }
+
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       verifyJsonItemValidation(INVALID_NINO, invalidNino.some, "2020-04-01")
     }

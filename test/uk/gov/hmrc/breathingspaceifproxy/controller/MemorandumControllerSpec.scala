@@ -25,10 +25,10 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.MISSING_HEADER
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{MISSING_HEADER, SERVER_ERROR}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.MemConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
-import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, MemorandumInResponse, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -77,6 +77,15 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
       errorList.head.code shouldBe MISSING_HEADER.entryName
       assert(errorList.head.message.startsWith(MISSING_HEADER.message))
+    }
+
+    "return 503(SERVICE_UNAVAILABLE) if an error is returned from the Connector" in {
+      when(mockConnector.get(any[Nino])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
+
+      val response = controller.get(genNino)(fakeMemorandumGetRequest)
+
+      status(response) shouldBe SERVICE_UNAVAILABLE
     }
 
     "Memorandum feature switch should return 501 when flag set to false" in {

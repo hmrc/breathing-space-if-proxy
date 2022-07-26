@@ -81,8 +81,15 @@ abstract class AbstractBaseController(
     sendResponse(status, payload)
   }
 
+  def logRequestId(nino: Nino, requestId: RequestId): Unit = logger.debug(s"$requestId for Nino(${nino.value})")
+
+  def logHeadersAndRequestId(nino: Nino, requestId: RequestId)(implicit request: RequestHeader): Unit = {
+    logRequestId(nino: Nino, requestId: RequestId)
+    logHeaders
+  }
+
   def logHeaders(implicit request: RequestHeader): Unit =
-    logger.info(request.headers.headers.toList.mkString("Headers[", ":", "]"))
+    logger.debug(request.headers.headers.toList.mkString("Headers[", ":", "]"))
 
   private def errorOnBody[T](error: BaseError): BodyParser[Validation[T]] =
     parse.ignore[Validation[T]](ErrorItem(error).invalidNec)

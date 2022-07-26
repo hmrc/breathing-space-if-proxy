@@ -93,5 +93,14 @@ class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSug
       errorList.last.code shouldBe INVALID_NINO.entryName
       assert(errorList.last.message.startsWith(INVALID_NINO.message))
     }
+
+    "return 503(SERVICE_UNAVAILABLE) if an error is returned from the Connector" in {
+      Given(s"a GET request with a valid Nino and all required headers, except $CONTENT_TYPE")
+      when(mockConnector.get(any[Nino])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
+
+      val response = controller.get(genNinoString)(fakeGetRequest)
+      status(response) shouldBe SERVICE_UNAVAILABLE
+    }
   }
 }

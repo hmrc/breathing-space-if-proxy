@@ -115,5 +115,14 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
       errorList(2).code shouldBe INVALID_PERIOD_ID.entryName
       assert(errorList(2).message.startsWith(INVALID_PERIOD_ID.message))
     }
+
+    "return 503(SERVICE_UNAVAILABLE) if an error is returned from the Connector" in {
+      Given(s"a GET request with a valid Nino and all required headers")
+      when(mockConnector.get(any[Nino], any[UUID])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
+
+      val response = controller.get(genNinoString, periodIdAsString)(fakeGetRequest)
+      status(response) shouldBe SERVICE_UNAVAILABLE
+    }
   }
 }
