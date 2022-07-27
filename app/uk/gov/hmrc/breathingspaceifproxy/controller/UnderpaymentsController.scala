@@ -58,8 +58,7 @@ class UnderpaymentsController @Inject()(
           },
           validParams => {
             implicit val (requestId, nino, periodId) = validParams
-            logger.debug(s"$requestId for Nino(${nino.value}")
-            if (appConfig.onDevEnvironment) logHeaders
+            logHeadersAndRequestId(nino, requestId)
             getFromUpstream
           }
         )

@@ -16,17 +16,23 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import org.apache.commons.codec.binary.Base64
+import org.mockito.scalatest.MockitoSugar
+import org.scalatest.funsuite.AnyFunSuite
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
+import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
-import java.security.MessageDigest
+class HashedNinoSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
 
-case class HashedNino(nino: Nino) {
+  test("the generateHash method should return the expected hash for a given nino") {
+    val nino = Nino("AS000001A")
+    implicit val appConfig: AppConfig = mock[AppConfig]
+    when(appConfig.ninoHashingKey).thenReturn("12345")
 
-  private val shaDigest: MessageDigest = MessageDigest.getInstance("SHA-512")
+    val expectedHashedNino = "kbcJXlu0+8mY9fmwrT35aziF9vUTkW1HWQotqbI/Q0L93PEOBgol8CeCjtU1G/3X+lKFVXHLtS5kroUFLSWZTA=="
 
-  def generateHash()(implicit appConfig: AppConfig): String =
-    new String(
-      Base64.encodeBase64(shaDigest.digest(Base64.decodeBase64(appConfig.ninoHashingKey) ++ nino.value.getBytes()))
-    )
+    val hashedNino = HashedNino(nino).generateHash()
+
+    hashedNino shouldBe expectedHashedNino
+  }
+
 }

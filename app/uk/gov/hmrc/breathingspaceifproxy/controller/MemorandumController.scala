@@ -55,8 +55,7 @@ class MemorandumController @Inject()(
             reqId => {
               implicit val requestId: RequestId = reqId
               implicit val nino: Nino = n
-              logger.debug(s"$requestId for Nino(${nino.value})")
-              if (appConfig.onDevEnvironment) logHeaders
+              logHeadersAndRequestId(nino, requestId)
               connector.get(nino).flatMap {
                 _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
               }

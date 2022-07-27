@@ -133,6 +133,17 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       errorList.head.message should include("period 0")
     }
 
+    "return 503(SERVICE_UNAVAILABLE) if an error is returned from the Connector" in {
+      when(mockConnector.put(any[Nino], any[List[PutPeriodInRequest]])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
+
+      Given("a request with all required headers and a valid Json body")
+      val request = unattendedRequestWithAllHeaders(PUT).withBody(putPeriodsRequest(putPeriodsRequest))
+
+      val response = controller.put(genNinoString)(request)
+      status(response) shouldBe SERVICE_UNAVAILABLE
+    }
+
     "return 400(BAD_REQUEST) when format of periodID is invalid" in {
       verifyJsonItemValidation(INVALID_JSON_ITEM, "1234567890".some, "2020-04-30")
     }

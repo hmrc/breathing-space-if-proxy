@@ -50,8 +50,7 @@ class IndividualDetailsController @Inject()(
         HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
           implicit val (requestId, nino) = validationTuple
-          logger.debug(s"$requestId for Nino(${nino.value})")
-          if (appConfig.onDevEnvironment) logHeaders
+          logHeadersAndRequestId(nino, requestId)
           individualDetailsConnector.getDetails(nino).flatMap {
             _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
           }

@@ -81,6 +81,15 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
       errorList.last.code shouldBe INVALID_NINO.entryName
       assert(errorList.last.message.startsWith(INVALID_NINO.message))
     }
+
+    "return 503(SERVICE_UNAVAILABLE) if an error is returned from the Connector" in {
+      val nino = genNino
+      when(mockConnector.getDetails(any[Nino])(any[RequestId]))
+        .thenReturn(Future.successful(ErrorItem(SERVER_ERROR).invalidNec))
+
+      val response = controller.getDetails(nino.value)(fakeGetRequest)
+      status(response) shouldBe SERVICE_UNAVAILABLE
+    }
   }
 
   private def verifyResponse(request: Request[_]): Assertion = {

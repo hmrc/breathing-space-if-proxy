@@ -71,8 +71,16 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
       verifyResponse(new NotFoundException(notInBS), BaseError.NOT_IN_BREATHING_SPACE)
     }
 
-    "return RESOURCE_NOT_FOUND for a NOT_FOUND response with specific message" in {
+    "return PERIOD_ID_NOT_FOUND for a NOT_FOUND response with specific message" in {
+      verifyResponse(new NotFoundException(noPeriodIdFound), BaseError.PERIOD_ID_NOT_FOUND)
+    }
+
+    "return RESOURCE_NOT_FOUND for a NOT_FOUND response with specific message (noResourceFound)" in {
       verifyResponse(new NotFoundException(noResourceFound), BaseError.RESOURCE_NOT_FOUND)
+    }
+
+    "return RESOURCE_NOT_FOUND for a NOT_FOUND response with specific message (notIdentifierFound)" in {
+      verifyResponse(new NotFoundException(notIdentifierFound), BaseError.RESOURCE_NOT_FOUND)
     }
 
     "return BREATHING_SPACE_EXPIRED for a FORBIDDEN response" in {
@@ -126,6 +134,10 @@ class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConne
 
     "return SERVER_ERROR for any Throwable caught while sending upstream a request" in {
       verifyResponse(new IllegalArgumentException("Some illegal argument"), BaseError.INTERNAL_SERVER_ERROR)
+    }
+
+    "return SERVER_ERROR a 400 status except (NOT_FOUND, FORBIDDEN, CONFLICT and TOO_MANY_REQUESTS)" in {
+      verifyResponse(UpstreamErrorResponse("A message", Status.IM_A_TEAPOT), BaseError.INTERNAL_SERVER_ERROR)
     }
   }
 

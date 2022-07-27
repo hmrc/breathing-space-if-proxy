@@ -52,8 +52,7 @@ class DebtsController @Inject()(
           HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
           validationTuple => {
             implicit val (requestId, nino, periodId) = validationTuple
-            logger.debug(s"$requestId for Nino(${nino.value})")
-            if (appConfig.onDevEnvironment) logHeaders
+            logHeadersAndRequestId(nino, requestId)
             debtsConnector.get(nino, periodId).flatMap {
               _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
             }

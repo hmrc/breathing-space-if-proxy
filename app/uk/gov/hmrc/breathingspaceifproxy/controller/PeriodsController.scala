@@ -55,8 +55,7 @@ class PeriodsController @Inject()(
         HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
         validationTuple => {
           implicit val (requestId, nino) = validationTuple
-          logger.debug(s"$requestId for Nino(${nino.value})")
-          if (appConfig.onDevEnvironment) logHeaders
+          logHeadersAndRequestId(nino, requestId)
           periodsConnector.get(nino).flatMap {
             _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
           }
@@ -76,7 +75,7 @@ class PeriodsController @Inject()(
         validationTuple => {
           implicit val (requestId, nino, postPeriodsInRequest) = validationTuple
           logger.debug(s"$requestId with $postPeriodsInRequest for Nino(${nino.value})")
-          if (appConfig.onDevEnvironment) logHeaders
+          logHeaders
           periodsConnector.post(nino, postPeriodsInRequest).flatMap {
             _.fold(auditEventAndSendErrorResponse[JsValue], auditEventAndSendResponse(CREATED, _))
           }
@@ -95,7 +94,7 @@ class PeriodsController @Inject()(
         validationTuple => {
           implicit val (requestId, nino, putPeriodsInRequest) = validationTuple
           logger.debug(s"$requestId with $putPeriodsInRequest for Nino(${nino.value})")
-          if (appConfig.onDevEnvironment) logHeaders
+          logHeaders
           periodsConnector.put(nino, putPeriodsInRequest).flatMap {
             _.fold(auditEventAndSendErrorResponse[JsValue], auditEventAndSendResponse(OK, _))
           }
