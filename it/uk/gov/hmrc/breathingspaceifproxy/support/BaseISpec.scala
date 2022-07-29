@@ -41,6 +41,8 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.NOT_AUTHORISED
 
+import scala.language.postfixOps
+
 abstract class BaseISpec
   extends AnyWordSpec
     with BreathingSpaceTestSupport
