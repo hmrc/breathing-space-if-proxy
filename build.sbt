@@ -16,7 +16,7 @@ lazy val microservice = Project(appName, file("."))
     routesImport += "uk.gov.hmrc.breathingspaceifproxy.config.Binders._",
     // ***************
     // Use the silencer plugin to suppress warnings
-    scalacOptions ++= List("-P:silencer:pathFilters=routes", "-Ypartial-unification"),
+    scalacOptions ++= List("-P:silencer:pathFilters=routes", "-Ypartial-unification", "-Xfatal-warnings", "-feature"),
     libraryDependencies ++= Seq(
       compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
       "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
@@ -29,12 +29,12 @@ lazy val microservice = Project(appName, file("."))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     scoverageSettings,
-    scalafmtOnCompile in ThisBuild := true
+    ThisBuild / scalafmtOnCompile := true
   )
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
-unmanagedResourceDirectories in Compile += baseDirectory.value / "public"
+Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
 
 lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageExcludedPackages := List(
@@ -48,5 +48,5 @@ lazy val scoverageSettings: Seq[Setting[_]] = Seq(
   coverageMinimumStmtTotal := 96,
   coverageFailOnMinimum := false,
   coverageHighlighting := true,
-  parallelExecution in Test := false
+  Test / parallelExecution := false
 )
