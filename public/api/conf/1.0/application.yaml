@@ -1,0 +1,1401 @@
+openapi: 3.0.0
+info:
+  title: Breathing Space
+  description: "This API allows for the creation and administration of \"Breathing Space\"periods for individuals.\n\nIt also facilitates the retrieval of certain types of individual information.\n\"Breathing Space\" is a 2017 manifesto commitment.\n\nIt will pause enforcement action; freeze interest, fees, and charges, and pause creditor contact with individuals where it relates to debt repayment for a 60-day period.\n\nThese protections will be accessible via professional debt advice. During this period, individuals will receive professional debt advice to find a long-term solution to their financial difficulties.\n\nThe IT portal to support \"Breathing Space\" will be developed and administered by the Insolvency Service (external agency) and used by debt advisers as well as creditors.\n\nDetails of individuals will be available from the Insolvency Service which will be “pulled” by HMRC. Data consists of case information and \"Breathing Space\" period information (typically 60-day periods) managed within HMRC systems\n\"Breathing Space\" individuals need to be matched within HMRC. HMRC will use a minimum combination of First Name, Last Name, Date of Birth, Current Address (except for Domestic Violence, Secure Customer Records etc), a debt associated with HMRC.\n\nAdditional identifiers (NINO, UTR, etc ) will also be collected by Insolvency Service and these may be used to enhance the matching activity.\n\nNote that if the individual matching is not successful, based on the provided data, the \"Breathing Space\" event is still created within HMRC, and specific case matching activity is undertaken.\nThe endpoints in this API are restricted to privileged applications only.\nWhen an API changes in a way that is backwards-incompatible, we increase the version number of the API. \nSee our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on\nversioning.\nWe use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:\n* 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action\n* 400 to 499 if it failed because of a client error by your application\n* 500 to 599 if it failed because of an error on our server\n\nErrors specific to each API are shown in the Endpoints section, under Response. \nSee our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors.\nYou can use the sandbox environment to [test this API](https://developer.service.hmrc.gov.uk/api-documentation/docs/testing)."
+  contact: {}
+  version: '1.0'
+servers:
+- url: https://test-api.service.hmrc.gov.uk/individuals/breathing-space
+  description: Sandbox
+- url: https://api.service.hmrc.gov.uk/individuals/breathing-space
+  description: Production
+  variables: {}
+paths:
+  /individuals/breathing-space/{nino}/{periodId}/coding-out-debts:
+    get:
+      tags:
+      - individuals
+      summary: Use a nino to get a person's HMRC coded-out debts
+      description: Get a person in breathing space's coded-out debts.
+      operationId: Useaninotogetaperson'sHMRCcoded-outdebts
+      parameters:
+      - name: nino
+        in: path
+        description: >-
+          National Insurance Number.
+
+
+          Must conform to the regular expression
+
+
+          <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: MZ006526C, MZ006526
+      - name: periodId
+        in: path
+        description: >-
+          Breathing Space Period Unique Reference
+
+
+          Must conform to the regular expression
+
+
+          <code>^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fAF]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 7957547e-1619-4f22-82bb-f12138ec2f8b
+      - name: Correlation-Id
+        in: header
+        description: A unique UUID for this request
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      - name: Request-Type
+        in: header
+        description: Context flag for this request. Must be same as the example given.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: DA2_BS_UNATTENDED
+      - name: Pid
+        in: header
+        description: The Staff identifier. Must be same as the example given.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: '0000000'
+      responses:
+        '200':
+          description: ''
+          headers:
+            Correlation-Id:
+              description: A unique UUID for this request
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    description: A unique UUID for this request
+                    example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+                  example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/GETCodedOutDebtDetailsforIndividualsinBreathingSpace'
+                - example:
+                    underPayments:
+                    - taxYear: '2011'
+                      amount: 4001.43
+                      source: PAYE UP
+                    - taxYear: '2020'
+                      amount: 100.23
+                      source: SA UP
+              examples:
+                examples-1:
+                  description: Multiple debts returned
+                  value:
+                    underPayments:
+                    - taxYear: '2011'
+                      amount: 4001.43
+                      source: PAYE UP
+                    - taxYear: '2020'
+                      amount: 100.23
+                      source: SA UP
+                examples-2:
+                  description: Zero debts returned
+                  value:
+                    underPayments: []
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_BODY
+              examples:
+                invalidBody:
+                  description: Not expected a body to this endpoint
+                  value:
+                    code: INVALID_BODY
+                invalidHeader:
+                  description: One or more of the header values are invalid
+                  value:
+                    code: INVALID_HEADER
+                invalidNino:
+                  description: Invalid Nino format
+                  value:
+                    code: INVALID_NINO
+                invalidPeriodId:
+                  description: Invalid PeriodId format
+                  value:
+                    code: INVALID_PERIOD_ID
+                missingHeader:
+                  description: One or more of the required headers are missing
+                  value:
+                    code: MISSING_HEADER
+                invalidMethod:
+                  description: A request for coded-out underpayments is made using an invalid HTTP method
+                  value:
+                    code: INVALID_ENDPOINT
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: BREATHING_SPACE_EXPIRED
+              examples:
+                resourceNotFound:
+                  description: Breathing Space has expired for the given Nino
+                  value:
+                    code: BREATHING_SPACE_EXPIRED
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: NO_DATA_FOUND
+              examples:
+                dataNotFound:
+                  description: No records found for the given Nino
+                  value:
+                    code: NO_DATA_FOUND
+                periodIdNotFound:
+                  description: The provided PeriodId for that Nino was not found
+                  value:
+                    code: NO_DATA_FOUND
+      deprecated: false
+  /individuals/breathing-space/{nino}/{periodId}/debts:
+    get:
+      tags:
+      - individuals
+      summary: Use a nino to get a person's HMRC debts
+      description: Get a person in breathing space's debts.
+      operationId: Useaninotogetaperson'sHMRCdebts
+      parameters:
+      - name: nino
+        in: path
+        description: >-
+          National Insurance Number.
+
+
+          Must conform to the regular expression
+
+
+          <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: MZ006526C, MZ006526
+      - name: periodId
+        in: path
+        description: >-
+          Breathing Space Period Unique Reference
+
+
+          Must conform to the regular expression
+
+
+          <code>^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fAF]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 7957547e-1619-4f22-82bb-f12138ec2f8b
+      - name: Correlation-Id
+        in: header
+        description: A unique UUID for this request
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      - name: Request-Type
+        in: header
+        description: >-
+          Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+
+          The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: DA2_BS_ATTENDED
+      - name: Pid
+        in: header
+        description: >-
+          The Staff identifier associated with the human attending the operation that generated this request.
+
+
+          Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
+            - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
+            - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
+
+          Must be a 7 digit numeric value
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: '1234567'
+      responses:
+        '200':
+          description: ''
+          headers:
+            Correlation-Id:
+              description: A unique UUID for this request
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    description: A unique UUID for this request
+                    example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+                  example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/GETDebtDetailsforIndividualsinBreathingSpace'
+                - example:
+                    debts:
+                    - chargeReference: ETMP ref01
+                      chargeDescription: 100 chars long charge description as exist in ETMP
+                      chargeAmount: 199999999.11
+                      chargeCreationDate: 2001-09-12
+                      chargeDueDate: 2001-12-30
+                    - chargeReference: ETMP ref02
+                      chargeDescription: long charge 02 description as exist in ETMP
+                      chargeAmount: 299999999.22
+                      chargeCreationDate: 2002-09-12
+                      chargeDueDate: 2002-12-30
+                      utrAssociatedWithCharge: '1234567890'
+                    - chargeReference: ETMP ref03
+                      chargeDescription: long charge 03 description as exist in ETMP
+                      chargeAmount: 399999999.33
+                      chargeCreationDate: 2003-09-12
+                      chargeDueDate: 2003-12-30
+                      utrAssociatedWithCharge: '1234567890'
+                    - chargeReference: ETMP ref04
+                      chargeDescription: long charge 04 description as exist in ETMP
+                      chargeAmount: 999999999.99
+                      chargeCreationDate: 2004-09-12
+                      chargeDueDate: 2004-12-30
+              examples:
+                examples-1:
+                  description: Multiple debts returned
+                  value:
+                    debts:
+                    - chargeReference: ETMP ref01
+                      chargeDescription: 100 chars long charge description as exist in ETMP
+                      chargeAmount: 199999999.11
+                      chargeCreationDate: 2001-09-12
+                      chargeDueDate: 2001-12-30
+                    - chargeReference: ETMP ref02
+                      chargeDescription: long charge 02 description as exist in ETMP
+                      chargeAmount: 299999999.22
+                      chargeCreationDate: 2002-09-12
+                      chargeDueDate: 2002-12-30
+                      utrAssociatedWithCharge: '1234567890'
+                    - chargeReference: ETMP ref03
+                      chargeDescription: long charge 03 description as exist in ETMP
+                      chargeAmount: 399999999.33
+                      chargeCreationDate: 2003-09-12
+                      chargeDueDate: 2003-12-30
+                      utrAssociatedWithCharge: '1234567890'
+                    - chargeReference: ETMP ref04
+                      chargeDescription: long charge 04 description as exist in ETMP
+                      chargeAmount: 999999999.99
+                      chargeCreationDate: 2004-09-12
+                      chargeDueDate: 2004-12-30
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_BODY
+              examples:
+                invalidBody:
+                  description: Not expected a body to this endpoint
+                  value:
+                    code: INVALID_BODY
+                invalidHeader:
+                  description: One or more of the header values are invalid
+                  value:
+                    code: INVALID_HEADER
+                invalidNino:
+                  description: Invalid Nino format
+                  value:
+                    code: INVALID_NINO
+                invalidPeriodId:
+                  description: Invalid PeriodId format
+                  value:
+                    code: INVALID_PERIOD_ID
+                missingHeader:
+                  description: One or more of the required headers are missing
+                  value:
+                    code: MISSING_HEADER
+        '403':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: BREATHING_SPACE_EXPIRED
+              examples:
+                resourceNotFound:
+                  description: Breathing Space has expired for the given Nino
+                  value:
+                    code: BREATHING_SPACE_EXPIRED
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: NO_DATA_FOUND
+              examples:
+                dataNotFound:
+                  description: No records found for the given Nino
+                  value:
+                    code: NO_DATA_FOUND
+                notInBreathingSpace:
+                  description: The given Nino is not in Breathing Space
+                  value:
+                    code: NOT_IN_BREATHING_SPACE
+                periodIdNotFound:
+                  description: The provided PeriodId was not found
+                  value:
+                    code: PERIOD_ID_NOT_FOUND
+                resourceNotFound:
+                  description: The provided Nino was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+      deprecated: false
+  /individuals/breathing-space/{nino}/details:
+    get:
+      tags:
+      - individuals
+      summary: Use a Nino to get a person in Breathing Space's personal information
+      description: Get an individual's in Breathing Space personal details.
+      operationId: UseaNinotogetapersoninBreathingSpace'spersonalinformation
+      parameters:
+      - name: nino
+        in: path
+        description: >-
+          National Insurance Number.
+
+
+          Must conform to the regular expression
+
+
+          <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: MZ006526C, MZ006526
+      - name: Correlation-Id
+        in: header
+        description: A unique UUID for this request
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      - name: Request-Type
+        in: header
+        description: >-
+          Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+
+          The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: DA2_BS_ATTENDED
+      - name: Pid
+        in: header
+        description: >-
+          The Staff identifier associated with the human attending the operation that generated this request.
+
+
+          Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
+            - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
+            - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
+
+          Must be a 7 digit numeric value
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: '1234567'
+      responses:
+        '200':
+          description: ''
+          headers:
+            Correlation-Id:
+              description: A unique UUID for this request
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    description: A unique UUID for this request
+                    example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+                  example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/IndividualsDetailsinBreathingSpace'
+                - example:
+                    details:
+                      nino: AS000001
+                      dateOfBirth: 1980-07-31
+                    nameList:
+                      name:
+                      - firstForename: John
+                        secondForename: Junior
+                        surname: Smith
+                        nameType: 1
+                    addressList:
+                      address:
+                      - addressLine1: 88 TESTING ROAD
+                        addressLine2: TESTTOWN
+                        addressLine3: TESTREGION
+                        addressLine4: TESTAREA
+                        addressLine5: TESTSHIRE
+                        addressPostcode: XX77 6YY
+                        countryCode: 1
+                        addressType: 1
+                    indicators:
+                      welshOutputInd: 2
+              examples:
+                examples-1:
+                  value:
+                    details:
+                      nino: AS000001
+                      dateOfBirth: 1980-07-31
+                    nameList:
+                      name:
+                      - firstForename: John
+                        secondForename: Junior
+                        surname: Smith
+                        nameType: 1
+                    addressList:
+                      address:
+                      - addressLine1: 88 TESTING ROAD
+                        addressLine2: TESTTOWN
+                        addressLine3: TESTREGION
+                        addressLine4: TESTAREA
+                        addressLine5: TESTSHIRE
+                        addressPostcode: XX77 6YY
+                        countryCode: 1
+                        addressType: 1
+                    indicators:
+                      welshOutputInd: 2
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_BODY
+              examples:
+                invalidBody:
+                  description: Not expected a body to this endpoint
+                  value:
+                    code: INVALID_BODY
+                invalidHeader:
+                  description: One or more of the header values are invalid
+                  value:
+                    code: INVALID_HEADER
+                invalidNino:
+                  description: Invalid Nino format
+                  value:
+                    code: INVALID_NINO
+                missingHeader:
+                  description: One or more of the required headers are missing
+                  value:
+                    code: MISSING_HEADER
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: RESOURCE_NOT_FOUND
+              examples:
+                resourceNotFound:
+                  description: The provided Nino was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+      deprecated: false
+  /individuals/breathing-space/{nino}/periods:
+    get:
+      tags:
+      - individuals
+      summary: Retrieve all Breathing Space periods for a Nino
+      description: Retrieve all Breathing Space periods for the given Nino.
+      operationId: RetrieveallBreathingSpaceperiodsforaNino
+      parameters:
+      - name: nino
+        in: path
+        description: >-
+          National Insurance Number.
+
+
+          Must conform to the regular expression
+
+
+          <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: MZ006526C, MZ006526
+      - name: Correlation-Id
+        in: header
+        description: A unique UUID for this request
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      - name: Request-Type
+        in: header
+        description: >-
+          Context flag for this request. Signifies if this request is the result of a human attended operation or an automated operation.
+
+
+          The two possible values are ‘DA2_BS_ATTENDED’ or ‘DA2_BS_UNATTENDED’.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: DA2_BS_ATTENDED
+      - name: Pid
+        in: header
+        description: >-
+          The Staff identifier associated with the human attending the operation that generated this request.
+
+
+          Please note the following additional validation rules apply to this header depending on the value of the 'Request-Type' header:
+            - Request-Type == ‘DA2_BS_ATTENDED’ then this header value must NOT equal '0000000'
+            - Request-Type == ‘DA2_BS_UNATTENDED’ then this header value must equal '0000000'
+
+          Must be a 7 digit numeric value
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: '1234567'
+      responses:
+        '200':
+          description: ''
+          headers:
+            Correlation-Id:
+              description: A unique UUID for this request
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    description: A unique UUID for this request
+                    example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+                  example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/GETBreathingSpacePeriodsResponse'
+                - example:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a70
+                      startDate: 2020-01-01
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-04-01
+                      endDate: 2020-05-31
+              examples:
+                examples-1:
+                  description: Multiple periods returned
+                  value:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a70
+                      startDate: 2020-01-01
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-04-01
+                      endDate: 2020-05-31
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_BODY
+              examples:
+                invalidBody:
+                  description: Not expected a body to this endpoint
+                  value:
+                    code: INVALID_BODY
+                invalidHeader:
+                  description: One or more of the header values are invalid
+                  value:
+                    code: INVALID_HEADER
+                invalidNino:
+                  description: Invalid Nino format
+                  value:
+                    code: INVALID_NINO
+                missingHeader:
+                  description: One or more of the required headers are missing
+                  value:
+                    code: MISSING_HEADER
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: RESOURCE_NOT_FOUND
+              examples:
+                resourceNotFound:
+                  description: The provided Nino was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+      deprecated: false
+    put:
+      tags:
+      - individuals
+      summary: Update all Breathing Space periods for a Nino
+      description: Update all Breathing Space periods for the given Nino.
+      operationId: UpdateallBreathingSpaceperiodsforaNino
+      parameters:
+      - name: nino
+        in: path
+        description: >-
+          National Insurance Number.
+
+
+          Must conform to the regular expression
+
+
+          <code>^((?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$</code>
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: MZ006526C, MZ006526
+      - name: Correlation-Id
+        in: header
+        description: A unique UUID for this request
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      - name: Request-Type
+        in: header
+        description: Context flag for this request. Must be same as the example given.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: DA2_BS_UNATTENDED
+      - name: Pid
+        in: header
+        description: The Staff identifier. Must be same as the example given.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: '0000000'
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/PUTBreathingSpacePeriodRequest'
+              - example:
+                  periods:
+                  - periodID: 76f31303-3336-440c-a2d8-7608be1c32d2
+                    startDate: 2020-09-12
+                    pegaRequestTimestamp: 2020-11-13T20:20:39.000Z
+                  - periodID: c6743de1-28d4-43ab-9a26-978d2f5157b9
+                    startDate: 2020-10-10
+                    endDate: 2020-12-11
+                    pegaRequestTimestamp: 2020-11-13T20:21:39.000Z
+            examples:
+              examples-1:
+                description: Update periods request
+                value:
+                  periods:
+                  - periodID: 76f31303-3336-440c-a2d8-7608be1c32d2
+                    startDate: 2020-09-12
+                    pegaRequestTimestamp: 2020-11-13T20:20:39.000Z
+                  - periodID: c6743de1-28d4-43ab-9a26-978d2f5157b9
+                    startDate: 2020-10-10
+                    endDate: 2020-12-11
+                    pegaRequestTimestamp: 2020-11-13T20:21:39.000Z
+        required: true
+      responses:
+        '200':
+          description: ''
+          headers:
+            Correlation-Id:
+              description: A unique UUID for this request
+              content:
+                text/plain:
+                  schema:
+                    type: string
+                    description: A unique UUID for this request
+                    example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+                  example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/PUTBreathingSpacePeriodsResponse'
+                - example:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-01-01
+                      endDate: 2020-02-29
+                    - periodID: 76f31303-3336-440c-a2d8-7608be1c32d2
+                      startDate: 2020-09-12
+                    - periodID: c6743de1-28d4-43ab-9a26-978d2f5157b9
+                      startDate: 2020-10-10
+                      endDate: 2020-12-11
+              examples:
+                examples-1:
+                  description: Multiple periods returned
+                  value:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-01-01
+                      endDate: 2020-02-29
+                    - periodID: 76f31303-3336-440c-a2d8-7608be1c32d2
+                      startDate: 2020-09-12
+                    - periodID: c6743de1-28d4-43ab-9a26-978d2f5157b9
+                      startDate: 2020-10-10
+                      endDate: 2020-12-11
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_HEADER
+              examples:
+                invalidHeader:
+                  description: One or more of the header values are invalid
+                  value:
+                    code: INVALID_HEADER
+                invalidJson:
+                  description: Payload not in the expected Json format
+                  value:
+                    code: INVALID_JSON
+                invalidJsonItem:
+                  description: One or more values cannot be validated for the Json item
+                  value:
+                    code: INVALID_JSON_ITEM
+                invalidNino:
+                  description: Invalid Nino format
+                  value:
+                    code: INVALID_NINO
+                missingBody:
+                  description: The request must have a body
+                  value:
+                    code: MISSING_BODY
+                missingHeader:
+                  description: One or more of the required headers are missing
+                  value:
+                    code: MISSING_HEADER
+                missingPeriods:
+                  description: Payload does not contain a period
+                  value:
+                    code: MISSING_PERIODS
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: RESOURCE_NOT_FOUND
+              examples:
+                resourceNotFound:
+                  description: The provided Nino was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+      deprecated: false
+  /individuals/breathing-space/periods:
+    post:
+      tags:
+      - individuals
+      summary: Create new Breathing Space periods
+      description: Create new Breathing Space periods for a given Nino.
+      operationId: CreatenewBreathingSpaceperiods
+      parameters:
+      - name: Correlation-Id
+        in: header
+        description: A unique UUID for this request
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: 24a8a24f-7126-4aa7-b690-259b2eaccaee
+      - name: Request-Type
+        in: header
+        description: Context flag for this request. Must be same as the example given.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: DA2_BS_UNATTENDED
+      - name: Pid
+        in: header
+        description: The Staff identifier. Must be same as the example given.
+        required: true
+        style: simple
+        schema:
+          type: string
+          example: '0000000'
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/POSTBreathingSpacePeriodRequest'
+              - example:
+                  nino: MZ123456C
+                  consumerRequestId: f7c708bd-78c0-4985-a7b2-28500250ae69
+                  utr: '9876543210'
+                  periods:
+                  - startDate: 2020-01-01
+                    endDate: 2020-02-29
+                    pegaRequestTimestamp: 2020-11-13T20:20:39.000Z
+            examples:
+              examples-1:
+                description: Create single period request
+                value:
+                  nino: MZ123456C
+                  consumerRequestId: f7c708bd-78c0-4985-a7b2-28500250ae69
+                  utr: '9876543210'
+                  periods:
+                  - startDate: 2020-01-01
+                    endDate: 2020-02-29
+                    pegaRequestTimestamp: 2020-11-13T20:20:39.000Z
+              examples-2:
+                description: Create multiple periods request
+                value:
+                  nino: MZ123456C
+                  consumerRequestId: f7c708bd-78c0-4985-a7b2-28500250ae69
+                  utr: '9876543210'
+                  periods:
+                  - startDate: 2020-01-01
+                    endDate: 2020-02-29
+                    pegaRequestTimestamp: 2020-11-13T20:20:39.000Z
+                  - startDate: 2020-04-01
+                    pegaRequestTimestamp: 2020-11-13T20:20:39.000Z
+        required: true
+      responses:
+        '201':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/POSTBreathingSpacePeriodsResponse'
+                - example:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-01-01
+                      endDate: 2020-02-29
+              examples:
+                examples-1:
+                  description: Single created periods returned
+                  value:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-01-01
+                      endDate: 2020-02-29
+                examples-2:
+                  description: Multiple created periods returned
+                  value:
+                    periods:
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a70
+                      startDate: 2020-04-01
+                    - periodID: 75e4cdc2-eecb-11ea-913a-0a9f09f70a71
+                      startDate: 2020-01-01
+                      endDate: 2020-02-29
+        '400':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: INVALID_CONSUMER_REQUEST_ID
+              examples:
+                invalidConsumerRequestId:
+                  description: Invalid consumerRequestId
+                  value:
+                    code: INVALID_CONSUMER_REQUEST_ID
+                invalidHeader:
+                  description: Invalid Header
+                  value:
+                    code: INVALID_HEADER
+                invalidJson:
+                  description: Invalid Json
+                  value:
+                    code: INVALID_JSON
+                invalidJsonItem:
+                  description: One or more values cannot be validated for the Json item
+                  value:
+                    code: INVALID_JSON_ITEM
+                invalidNino:
+                  description: Invalid Nino format
+                  value:
+                    code: INVALID_NINO
+                invalidUtr:
+                  description: Invalid UTR format
+                  value:
+                    code: INVALID_UTR
+                missingBody:
+                  description: Missing Body
+                  value:
+                    code: MISSING_BODY
+                missingConsumerRequestId:
+                  description: Missing consumerRequestId
+                  value:
+                    code: MISSING_CONSUMER_REQUEST_ID
+                missingHeader:
+                  description: Missing Header
+                  value:
+                    code: MISSING_HEADER
+                missingNino:
+                  description: Payload does not contain a 'nino' value
+                  value:
+                    code: MISSING_NINO
+                missingPeriods:
+                  description: Payload does not contain a 'periods' array
+                  value:
+                    code: MISSING_PERIODS
+        '404':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: RESOURCE_NOT_FOUND
+              examples:
+                resourceNotFound:
+                  description: Resource specified by the provided Nino was not found
+                  value:
+                    code: RESOURCE_NOT_FOUND
+        '409':
+          description: ''
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/errorResponse'
+                - example:
+                    code: CONFLICTING_REQUEST
+              examples:
+                conflictingRequest:
+                  description: Breathing Space Period(s) already existing
+                  value:
+                    code: CONFLICTING_REQUEST
+      deprecated: false
+components:
+  schemas:
+    errorResponse:
+      title: errorResponse
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+    Address:
+      title: Address
+      type: object
+      properties:
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        addressLine3:
+          type: string
+        addressLine4:
+          type: string
+        addressLine5:
+          type: string
+        addressPostcode:
+          type: string
+        countryCode:
+          type: integer
+          format: int32
+        addressType:
+          type: integer
+          format: int32
+    AddressList:
+      title: AddressList
+      required:
+      - address
+      type: object
+      properties:
+        address:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/Address'
+          description: ''
+    Debt:
+      title: Debt
+      required:
+      - chargeReference
+      - chargeDescription
+      - chargeAmount
+      - chargeCreationDate
+      - chargeDueDate
+      type: object
+      properties:
+        chargeReference:
+          type: string
+        chargeDescription:
+          type: string
+        chargeAmount:
+          type: number
+        chargeCreationDate:
+          pattern: ^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$
+          type: string
+          description: Date in the format YYYY-MM-DD
+          example: 1980-01-31
+        chargeDueDate:
+          pattern: ^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$
+          type: string
+          description: Date in the format YYYY-MM-DD
+          example: 1980-01-31
+        utrAssociatedWithCharge:
+          type: string
+    Details:
+      title: Details
+      required:
+      - nino
+      type: object
+      properties:
+        nino:
+          pattern: ^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$
+          type: string
+          description: National Insurance Number
+          example: MZ006526C
+        dateOfBirth:
+          pattern: ^(19|20)[0-9]{2}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$
+          type: string
+          description: Date in the format YYYY-MM-DD
+          example: 1980-01-31
+    GETBreathingSpacePeriodsResponse:
+      title: GETBreathingSpacePeriodsResponse
+      required:
+      - periods
+      type: object
+      properties:
+        periods:
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Period'
+          description: ''
+      description: Schema of GET Breathing Space Periods Response
+    GETCodedOutDebtDetailsforIndividualsinBreathingSpace:
+      title: GETCodedOutDebtDetailsforIndividualsinBreathingSpace
+      required:
+      - underPayments
+      type: object
+      properties:
+        underPayments:
+          minItems: 0
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/underPayment'
+          description: ''
+      description: Schema of GET Coded Out Debt Details for Individuals in Breathing Space
+    GETDebtDetailsforIndividualsinBreathingSpace:
+      title: GETDebtDetailsforIndividualsinBreathingSpace
+      required:
+      - debts
+      type: object
+      properties:
+        debts:
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Debt'
+          description: ''
+      description: Schema of GET Debt Details for Individuals in Breathing Space
+    Indicators:
+      title: Indicators
+      type: object
+      properties:
+        welshOutputInd:
+          type: number
+    IndividualsDetailsinBreathingSpace:
+      title: IndividualsDetailsinBreathingSpace
+      required:
+      - details
+      type: object
+      properties:
+        details:
+          $ref: '#/components/schemas/Details'
+        nameList:
+          $ref: '#/components/schemas/NameList'
+        addressList:
+          $ref: '#/components/schemas/AddressList'
+        indicators:
+          $ref: '#/components/schemas/Indicators'
+      description: Schema of GET Individual's Details for Breathing Space
+    Name:
+      title: Name
+      type: object
+      properties:
+        firstForename:
+          type: string
+        secondForename:
+          type: string
+        surname:
+          type: string
+        nameType:
+          type: integer
+          format: int32
+    NameList:
+      title: NameList
+      required:
+      - name
+      type: object
+      properties:
+        name:
+          minItems: 1
+          type: array
+          items:
+            $ref: '#/components/schemas/Name'
+          description: ''
+    Period:
+      title: Period
+      required:
+      - periodID
+      - startDate
+      type: object
+      properties:
+        periodID:
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          type: string
+          description: Identifier of the Breathing Space Period
+          example: c6743de1-28d4-43ab-9a26-978d2f5157b9
+        startDate:
+          pattern: ^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
+          type: string
+          description: Date for Breathing Space in the format YYYY-MM-DD
+          example: 2020-01-25
+        endDate:
+          pattern: ^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
+          type: string
+          description: Date for Breathing Space in the format YYYY-MM-DD
+          example: 2020-01-25
+    Period1:
+      title: Period1
+      required:
+      - periodID
+      - startDate
+      - pegaRequestTimestamp
+      type: object
+      properties:
+        periodID:
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          type: string
+          description: Identifier of the Breathing Space Period
+          example: c6743de1-28d4-43ab-9a26-978d2f5157b9
+        startDate:
+          pattern: ^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
+          type: string
+          description: Date for Breathing Space in the format YYYY-MM-DD
+          example: 2020-01-25
+        endDate:
+          pattern: ^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
+          type: string
+          description: Date for Breathing Space in the format YYYY-MM-DD
+          example: 2020-01-25
+        pegaRequestTimestamp:
+          pattern: ^((((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))[T](([0-1][0-9])|([2][0-3]))(:([0-5][0-9])){2})\.[0-9]{3}[A-Z]$
+          type: string
+          description: DateTime in the format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+          example: 2020-12-31T20:19:18.123Z
+    Period3:
+      title: Period3
+      required:
+      - startDate
+      - pegaRequestTimestamp
+      type: object
+      properties:
+        startDate:
+          pattern: ^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
+          type: string
+          description: Date for Breathing Space in the format YYYY-MM-DD
+          example: 2020-01-25
+        endDate:
+          pattern: ^(((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))$
+          type: string
+          description: Date for Breathing Space in the format YYYY-MM-DD
+          example: 2020-01-25
+        pegaRequestTimestamp:
+          pattern: ^((((20)([2468][048]|[13579][26]|0[48])|2000)[-]02[-]29|((20)[0-9]{2}[-](0[469]|11)[-](0[1-9]|1[0-9]|2[0-9]|30)|(20)[0-9]{2}[-](0[13578]|1[02])[-](0[1-9]|[12][0-9]|3[01])|(20)[0-9]{2}[-]02[-](0[1-9]|1[0-9]|2[0-8])))[T](([0-1][0-9])|([2][0-3]))(:([0-5][0-9])){2})\.[0-9]{3}[A-Z]$
+          type: string
+          description: DateTime in the format yyyy-MM-dd'T'HH:mm:ss.SSS'Z'
+          example: 2020-12-31T20:19:18.123Z
+    POSTBreathingSpacePeriodRequest:
+      title: POSTBreathingSpacePeriodRequest
+      required:
+      - nino
+      - consumerRequestId
+      - periods
+      type: object
+      properties:
+        nino:
+          pattern: ^(?:[ACEHJLMOPRSWXY][A-CEGHJ-NPR-TW-Z]|B[A-CEHJ-NPR-TW-Z]|G[ACEGHJ-NPR-TW-Z]|[KT][A-CEGHJ-MPR-TW-Z]|N[A-CEGHJL-NPR-SW-Z]|Z[A-CEGHJ-NPR-TW-Y])[0-9]{6}[A-D ]?$
+          type: string
+          description: National Insurance Number
+          example: MZ006526C
+        consumerRequestId:
+          pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+          type: string
+          description: Consumer-specific request identifier for Breathing Space Periods
+          example: f7c708bd-78c0-4985-a7b2-28500250ae69
+        utr:
+          pattern: ^[0-9]{10}$
+          type: string
+        periods:
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Period3'
+          description: ''
+      description: Schema of POST Breathing Space Period Request
+    POSTBreathingSpacePeriodsResponse:
+      title: POSTBreathingSpacePeriodsResponse
+      required:
+      - periods
+      type: object
+      properties:
+        periods:
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Period'
+          description: ''
+      description: Schema of POST Breathing Space Periods Response
+    PUTBreathingSpacePeriodRequest:
+      title: PUTBreathingSpacePeriodRequest
+      required:
+      - periods
+      type: object
+      properties:
+        periods:
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Period1'
+          description: ''
+      description: Schema of PUT Breathing Space Period Request
+    PUTBreathingSpacePeriodsResponse:
+      title: PUTBreathingSpacePeriodsResponse
+      required:
+      - periods
+      type: object
+      properties:
+        periods:
+          minItems: 1
+          uniqueItems: true
+          type: array
+          items:
+            $ref: '#/components/schemas/Period'
+          description: ''
+      description: Schema of PUT Breathing Space Periods Response
+    underPayment:
+      title: underPayment
+      required:
+      - taxYear
+      - amount
+      - source
+      type: object
+      properties:
+        taxYear:
+          type: string
+        amount:
+          type: number
+        source:
+          type: string
+tags:
+- name: individuals
+  description: ''
