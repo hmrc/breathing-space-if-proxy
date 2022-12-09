@@ -1430,7 +1430,6 @@ components:
             "read:breathing-space-individual": read breathing space individuals data
             "read:breathing-space-periods": read breathing space periods data
             "write:breathing-space-periods": write breathing space periods data
-
 tags:
 - name: individuals
   description: ''
