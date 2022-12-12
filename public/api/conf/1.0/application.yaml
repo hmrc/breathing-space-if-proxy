@@ -19,8 +19,8 @@ paths:
       description: Get a person in breathing space's coded-out debts.
       operationId: Useaninotogetaperson'sHMRCcoded-outdebts
       security:
-      - userRestricted
-        - read:breathing-space-debts
+        - userRestricted
+          - read:breathing-space-debts
       parameters:
       - name: nino
         in: path
@@ -195,8 +195,8 @@ paths:
       description: Get a person in breathing space's debts.
       operationId: Useaninotogetaperson'sHMRCdebts
       security:
-      - userRestricted
-        - read:breathing-space-debts
+        - userRestricted
+          - read:breathing-space-debts
       parameters:
       - name: nino
         in: path
@@ -415,8 +415,8 @@ paths:
       description: Get an individual's in Breathing Space personal details.
       operationId: UseaNinotogetapersoninBreathingSpace'spersonalinformation
       security:
-      - userRestricted
-        - read:breathing-space-individual
+        - userRestricted
+          - read:breathing-space-individual
       parameters:
       - name: nino
         in: path
@@ -584,8 +584,8 @@ paths:
       description: Retrieve all Breathing Space periods for the given Nino.
       operationId: RetrieveallBreathingSpaceperiodsforaNino
       security:
-      - userRestricted
-        - read:breathing-space-periods
+        - userRestricted
+          - read:breathing-space-periods
       parameters:
       - name: nino
         in: path
@@ -723,8 +723,8 @@ paths:
       description: Update all Breathing Space periods for the given Nino.
       operationId: UpdateallBreathingSpaceperiodsforaNino
       security:
-      - userRestricted
-        - write:breathing-space-periods
+        - userRestricted
+          - write:breathing-space-periods
       parameters:
       - name: nino
         in: path
@@ -898,8 +898,8 @@ paths:
       description: Create new Breathing Space periods for a given Nino.
       operationId: CreatenewBreathingSpaceperiods
       security:
-      - userRestricted
-        - write:breathing-space-periods
+        - userRestricted
+          - write:breathing-space-periods
       parameters:
       - name: Correlation-Id
         in: header
@@ -1426,10 +1426,10 @@ components:
           tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
           refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
           scopes:
-            "read:breathing-space-debts": read breathing space debts data
-            "read:breathing-space-individual": read breathing space individuals data
-            "read:breathing-space-periods": read breathing space periods data
-            "write:breathing-space-periods": write breathing space periods data
+            read:breathing-space-debts: read breathing space debts data
+            read:breathing-space-individual: read breathing space individuals data
+            read:breathing-space-periods: read breathing space periods data
+            write:breathing-space-periods: write breathing space periods data
 tags:
 - name: individuals
   description: ''
