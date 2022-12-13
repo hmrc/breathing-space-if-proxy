@@ -19,7 +19,7 @@ paths:
       description: Get a person in breathing space's coded-out debts.
       operationId: Useaninotogetaperson'sHMRCcoded-outdebts
       security:
-        - userRestricted
+        - userRestricted:
           - read:breathing-space-debts
       parameters:
       - name: nino
@@ -195,7 +195,7 @@ paths:
       description: Get a person in breathing space's debts.
       operationId: Useaninotogetaperson'sHMRCdebts
       security:
-        - userRestricted
+        - userRestricted:
           - read:breathing-space-debts
       parameters:
       - name: nino
@@ -415,7 +415,7 @@ paths:
       description: Get an individual's in Breathing Space personal details.
       operationId: UseaNinotogetapersoninBreathingSpace'spersonalinformation
       security:
-        - userRestricted
+        - userRestricted:
           - read:breathing-space-individual
       parameters:
       - name: nino
@@ -584,7 +584,7 @@ paths:
       description: Retrieve all Breathing Space periods for the given Nino.
       operationId: RetrieveallBreathingSpaceperiodsforaNino
       security:
-        - userRestricted
+        - userRestricted:
           - read:breathing-space-periods
       parameters:
       - name: nino
@@ -723,7 +723,7 @@ paths:
       description: Update all Breathing Space periods for the given Nino.
       operationId: UpdateallBreathingSpaceperiodsforaNino
       security:
-        - userRestricted
+        - userRestricted:
           - write:breathing-space-periods
       parameters:
       - name: nino
@@ -898,7 +898,7 @@ paths:
       description: Create new Breathing Space periods for a given Nino.
       operationId: CreatenewBreathingSpaceperiods
       security:
-        - userRestricted
+        - userRestricted:
           - write:breathing-space-periods
       parameters:
       - name: Correlation-Id
