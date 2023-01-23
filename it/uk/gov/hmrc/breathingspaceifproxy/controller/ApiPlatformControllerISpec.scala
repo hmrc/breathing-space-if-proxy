@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ class ApiPlatformControllerISpec extends BaseISpec {
   }
 
   "GET /api/conf/1.0/application.raml" should {
-    "return 200(OK) and the application.raml content" in {
-      val url = conf("1.0", "application.raml").url
+    "return 200(OK) and the application.yaml content" in {
+      val url = conf("1.0", "application.yaml").url
       val response = route(app, fakeAttendedRequest(Helpers.GET, url)).get
 
       status(response) shouldBe Status.OK
