@@ -33,5 +33,5 @@ trait HeaderHandler {
       (UpstreamHeader.CorrelationId -> requestId.correlationId.toString).some,
       (UpstreamHeader.RequestType -> requestId.requestType.entryName).some,
       (if (requestId.staffId == unattendedStaffPid) none else (UpstreamHeader.StaffPid -> requestId.staffId).some)
-    ).flatMap(identity(_))
+    ).flatten
 }

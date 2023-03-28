@@ -34,26 +34,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
 
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
 
-  object CircuitBreaker {
-    private lazy val circuitBreaker = config.get[Configuration]("circuit.breaker")
-
-    protected trait CircuitBreakerConfiguration {
-      protected def root: Configuration
-
-      lazy val numberOfCallsToTriggerStateChange = root.get[Int]("failedCallsInUnstableBeforeUnavailable")
-      lazy val unavailablePeriodDuration = root.get[Int]("unavailablePeriodDurationInMillis")
-      lazy val unstablePeriodDuration = root.get[Int]("unstablePeriodDurationInMillis")
-    }
-
-    object Memorandum extends CircuitBreakerConfiguration {
-      protected lazy val root = circuitBreaker.get[Configuration]("memorandum")
-    }
-
-    object IF extends CircuitBreakerConfiguration {
-      protected lazy val root = circuitBreaker.get[Configuration]("if")
-    }
-  }
-
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")

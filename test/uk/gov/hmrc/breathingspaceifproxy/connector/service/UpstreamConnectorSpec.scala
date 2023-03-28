@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
-import cats.syntax.option._
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Configuration
@@ -24,39 +23,11 @@ import play.api.http.Status
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_POST
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
-import uk.gov.hmrc.circuitbreaker.CircuitBreakerConfig
 import uk.gov.hmrc.http._
 
 class UpstreamConnectorSpec extends AnyWordSpec with BaseSpec with UpstreamConnector {
 
   val config = inject[Configuration]
-
-  override protected def circuitBreakerConfig: CircuitBreakerConfig = CircuitBreakerConfig(
-    serviceName = config.get[String]("appName"),
-    numberOfCallsToTriggerStateChange = Int.MaxValue.some
-  )
-
-  "breakOnException" should {
-    "return true for HttpException and 5xx response code" in {
-      val throwable = new HttpException("message", 500)
-      breakOnException(throwable) shouldBe true
-    }
-
-    "return false for HttpException and 4xx response code" in {
-      val throwable = new HttpException("message", 400)
-      breakOnException(throwable) shouldBe false
-    }
-
-    "return true for Upstream5xxResponse" in {
-      val throwable = UpstreamErrorResponse("message", 500, 500)
-      breakOnException(throwable) shouldBe true
-    }
-
-    "return false for any other Throwable" in {
-      val throwable = new Throwable()
-      breakOnException(throwable) shouldBe false
-    }
-  }
 
   "handleUpstreamError" should {
     "return INTERNAL_SERVER_ERROR for a NOT_FOUND response" in {

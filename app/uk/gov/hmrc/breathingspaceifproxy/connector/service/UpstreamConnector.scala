@@ -16,53 +16,25 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
-import scala.concurrent.{ExecutionContext, Future}
-
 import cats.syntax.validated._
 import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.circuitbreaker.{CircuitBreakerConfig, UsingCircuitBreaker}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpException}
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, RequestId}
 import uk.gov.hmrc.http.UpstreamErrorResponse.{Upstream4xxResponse, Upstream5xxResponse}
+import uk.gov.hmrc.http.{HttpErrorFunctions, HttpException}
 
-trait UpstreamConnector extends HttpErrorFunctions with Logging with UsingCircuitBreaker {
+import scala.concurrent.{ExecutionContext, Future}
 
-  object Is5xx {
-    def unapply(throwable: Throwable): Option[Int] =
-      throwable match {
-        case exc: HttpException if is5xx(exc.responseCode) => Some(exc.responseCode)
-        case Upstream5xxResponse(error) => Some(error.statusCode)
-        case _ => None
-      }
-  }
-
-  override def breakOnException(throwable: Throwable): Boolean =
-    throwable match {
-      case Is5xx(_) => true
-      case _ => false
-    }
-
-  val appConfig: AppConfig
-
-  override protected def circuitBreakerConfig = CircuitBreakerConfig(
-    appConfig.appName,
-    appConfig.CircuitBreaker.IF.numberOfCallsToTriggerStateChange,
-    appConfig.CircuitBreaker.IF.unavailablePeriodDuration,
-    appConfig.CircuitBreaker.IF.unstablePeriodDuration
-  )
-
-  def currentState: String = circuitBreaker.currentState.name
+trait UpstreamConnector extends HttpErrorFunctions with Logging {
+  def currentState: String = "HEALTHY"
 
   def monitor[T](f: => ResponseValidation[T])(
     implicit ec: ExecutionContext,
-    hc: HeaderCarrier,
     requestId: RequestId
   ): ResponseValidation[T] =
-    withCircuitBreaker(f).recoverWith(handleUpstreamError)
+    f.recoverWith(handleUpstreamError)
 
   protected def handleUpstreamError[T](
     implicit requestId: RequestId
