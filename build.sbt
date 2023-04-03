@@ -9,18 +9,14 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtDistributablesPlugin)
   .settings(
     majorVersion := 1,
-    scalaVersion := "2.12.12",
+    scalaVersion := "2.13.8",
     libraryDependencies ++= Dependencies.compile ++ Dependencies.test,
     PlayKeys.playDefaultPort := 9501,
     TwirlKeys.templateImports := Seq(),
     routesImport += "uk.gov.hmrc.breathingspaceifproxy.config.Binders._",
     // ***************
     // Use the silencer plugin to suppress warnings
-    scalacOptions ++= List("-P:silencer:pathFilters=routes", "-Ypartial-unification", "-Xfatal-warnings", "-feature"),
-    libraryDependencies ++= Seq(
-      compilerPlugin("com.github.ghik" % "silencer-plugin" % silencerVersion cross CrossVersion.full),
-      "com.github.ghik" % "silencer-lib" % silencerVersion % Provided cross CrossVersion.full
-    )
+    scalacOptions ++= List("-deprecation", "-feature"),
     // ***************
   )
   .configs(IntegrationTest extend Test)

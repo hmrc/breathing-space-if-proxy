@@ -10,7 +10,6 @@ object Dependencies {
     "com.beachape"                 %% "enumeratum"                % "1.7.0",
     "com.kenshoo"                  %% "metrics-play"              % "2.7.3_0.8.2",
     "ai.x"                         %% "play-json-extensions"      % "0.42.0",
-    "uk.gov.hmrc"                  %% "reactive-circuit-breaker"  % "3.5.0",
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-play-28"        % "0.74.0",
     "commons-codec"                 % "commons-codec"             % "1.15"
   )
