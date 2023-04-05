@@ -10,6 +10,6 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.8.18")  // Follow the Play 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
 addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.4.2")
 addSbtPlugin("org.scalastyle" % "scalastyle-sbt-plugin" % "1.0.0")
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.8.2")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
 
 disablePlugins(JUnitXmlReportPlugin) // Required to prevent https://github.com/scalatest/scalatest/issues/1427
