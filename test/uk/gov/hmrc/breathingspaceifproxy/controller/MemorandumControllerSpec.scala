@@ -25,9 +25,9 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{MISSING_HEADER, SERVER_ERROR}
-import uk.gov.hmrc.breathingspaceifproxy.connector.service.MemConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.service.MemConnector
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{MISSING_HEADER, SERVER_ERROR}
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, MemorandumInResponse, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -36,10 +36,10 @@ import scala.concurrent.Future
 
 class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockAppConfig = mock[AppConfig]
+  val mockAppConfig: AppConfig = mock[AppConfig]
   when(mockAppConfig.memorandumFeatureEnabled).thenReturn(true)
 
-  val mockUpstreamConnector = mock[MemConnector]
+  val mockUpstreamConnector: MemConnector = mock[MemConnector]
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: MemorandumConnector = mock[MemorandumConnector]
@@ -71,7 +71,7 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val response =
         controller
           .get(nino)(memorandumRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))
-          .run
+          .run()
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, none, 1)
 

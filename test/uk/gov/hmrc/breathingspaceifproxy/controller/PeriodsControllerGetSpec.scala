@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import scala.concurrent.Future
-
 import cats.syntax.option._
 import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
@@ -32,9 +30,11 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
+import scala.concurrent.Future
+
 class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockUpstreamConnector = mock[EisConnector]
+  val mockUpstreamConnector: EisConnector = mock[EisConnector]
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: PeriodsConnector = mock[PeriodsConnector]
@@ -70,7 +70,7 @@ class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"a GET request with an invalid Nino")
-      val response = controller.get(invalidNino)(fakeGetRequest).run
+      val response = controller.get(invalidNino)(fakeGetRequest).run()
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -81,7 +81,7 @@ class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     "return 400(BAD_REQUEST) with multiple errors when the Nino is invalid and one required header is missing" in {
       Given(s"a GET request with an invalid Nino and without the ${DownstreamHeader.StaffPid} request header")
-      val response = controller.get("HT1234B")(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid)).run
+      val response = controller.get("HT1234B")(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid)).run()
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 2)
 

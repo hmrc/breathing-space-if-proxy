@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import java.net.URL
-
-import scala.collection.JavaConverters._
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.admin.model.ListStubMappingsResult
 import com.github.tomakehurst.wiremock.client.WireMock
@@ -31,12 +27,15 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 import play.api.http.{HeaderNames, Status}
 import play.mvc.Http.MimeTypes
 
+import java.net.URL
+import scala.jdk.CollectionConverters._
+
 trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
   suite: Suite =>
 
   val wireMockPort = 12345
   val wireMockHost = "localhost"
-  val wireMockBaseUrl = new URL(s"http://$wireMockHost:$wireMockPort")
+  val wireMockBaseUrl = new URL(s"https://$wireMockHost:$wireMockPort")
 
   private val authUrlPath = "/auth/authorise"
 

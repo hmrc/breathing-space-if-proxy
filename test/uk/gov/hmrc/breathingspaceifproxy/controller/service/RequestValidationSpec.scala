@@ -16,19 +16,20 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
+import cats.data.NonEmptyChain
 import cats.syntax.option._
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, BaseError}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Details_GET, BS_Periods_POST}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, BaseError}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValidation with Helpers {
 
-  val upstreamConnector = inject[EisConnector]
+  val upstreamConnector: EisConnector = inject[EisConnector]
 
   "RequestValidation.validateNino" should {
     "assert that an empty Nino value is invalid" in {
@@ -126,8 +127,9 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
         s"(${DownstreamHeader.RequestType}). Was 334534534534 but valid values are only: ${Attended.DA2_BS_ATTENDED.toString}, ${Attended.DA2_BS_UNATTENDED.toString}".some
 
       val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
-
-      result.toEither.left.get.head.details shouldBe expectedErrorMessage
+      val resultNonEmptyChain: NonEmptyChain[ErrorItem] =
+        result.toEither.swap.getOrElse(NonEmptyChain(ErrorItem(INVALID_NINO)))
+      resultNonEmptyChain.head.details shouldBe expectedErrorMessage
     }
   }
 
@@ -254,8 +256,7 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
     errorMsgContains: Option[String]
   ): ErrorItem = {
     assert(validated.isInvalid)
-
-    val errors = validated.toEither.left.get
+    val errors: NonEmptyChain[ErrorItem] = validated.toEither.swap.getOrElse(NonEmptyChain(ErrorItem(INVALID_NINO)))
     assert(errors.length == 1)
     errors.head.baseError shouldBe expectedError
 
