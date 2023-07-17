@@ -26,8 +26,6 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 import play.api.http.{HeaderNames, Status}
 import play.mvc.Http.MimeTypes
-
-import java.net.URL
 import scala.jdk.CollectionConverters._
 
 trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
@@ -35,7 +33,6 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
 
   val wireMockPort = 12345
   val wireMockHost = "localhost"
-  val wireMockBaseUrl = new URL(s"https://$wireMockHost:$wireMockPort")
 
   private val authUrlPath = "/auth/authorise"
 
