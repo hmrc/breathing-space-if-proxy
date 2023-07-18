@@ -16,20 +16,20 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import scala.concurrent.Future
-
 import cats.syntax.option._
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
 import play.api.mvc.Result
-import play.api.test._
 import play.api.test.Helpers._
+import play.api.test._
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+
+import scala.concurrent.Future
 
 class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
@@ -44,25 +44,25 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test(s"Response should be 400(BAD_REQUEST) when the $CorrelationId header is missing") {
     verifyHeaderIsMissing(
-      controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(CorrelationId)).run,
+      controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(CorrelationId)).run(),
       CorrelationId
     )
   }
 
   test(s"return 400(BAD_REQUEST) when the $RequestType header is missing") {
     verifyHeaderIsMissing(
-      controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(RequestType)).run,
+      controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(RequestType)).run(),
       RequestType
     )
   }
 
   test(s"return 400(BAD_REQUEST) when the $StaffPid header is missing") {
-    verifyHeaderIsMissing(controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(StaffPid)).run, StaffPid)
+    verifyHeaderIsMissing(controller.get(genNinoString)(attendedRequestFilteredOutOneHeader(StaffPid)).run(), StaffPid)
   }
 
   test("return 400(BAD_REQUEST) for a GET when all required headers are missing") {
     Given("a GET request without any of the requested headers")
-    val response = controller.get(genNinoString)(FakeRequest()).run
+    val response = controller.get(genNinoString)(FakeRequest()).run()
 
     val errorList = verifyErrorResult(response, BAD_REQUEST, None, 3)
 

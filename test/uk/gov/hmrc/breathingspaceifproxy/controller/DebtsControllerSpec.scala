@@ -16,10 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import java.util.UUID
-
-import scala.concurrent.Future
-
 import cats.syntax.option._
 import cats.syntax.validated._
 import org.mockito.scalatest.MockitoSugar
@@ -34,9 +30,12 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
+import java.util.UUID
+import scala.concurrent.Future
+
 class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockUpstreamConnector = mock[EtmpConnector]
+  val mockUpstreamConnector: EtmpConnector = mock[EtmpConnector]
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: DebtsConnector = mock[DebtsConnector]
@@ -72,7 +71,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"a GET request with an invalid Nino")
-      val response = controller.get(invalidNino, periodIdAsString)(fakeGetRequest).run
+      val response = controller.get(invalidNino, periodIdAsString)(fakeGetRequest).run()
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -83,7 +82,7 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
     "return 400(BAD_REQUEST) when the periodId is invalid" in {
       Given(s"a GET request with an invalid periodId")
-      val response = controller.get(genNinoString, "An invalid periodId")(fakeGetRequest).run
+      val response = controller.get(genNinoString, "An invalid periodId")(fakeGetRequest).run()
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
@@ -99,13 +98,13 @@ class DebtsControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
       val response =
         controller
           .get("HT1234B", "An invalid periodId")(attendedRequestFilteredOutOneHeader(DownstreamHeader.StaffPid))
-          .run
+          .run()
 
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 3)
 
       And(s"the 1st error code should be $MISSING_HEADER")
-      errorList(0).code shouldBe MISSING_HEADER.entryName
-      assert(errorList(0).message.startsWith(MISSING_HEADER.message))
+      errorList.head.code shouldBe MISSING_HEADER.entryName
+      assert(errorList.head.message.startsWith(MISSING_HEADER.message))
 
       And(s"the 2nd error code should be $INVALID_NINO")
       errorList(1).code shouldBe INVALID_NINO.entryName

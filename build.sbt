@@ -1,9 +1,10 @@
+import sbt.Keys._
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
+
 
 val appName = "breathing-space-if-proxy"
 
-val silencerVersion = "1.7.1"
+scalaVersion := "2.13.8"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtDistributablesPlugin)
@@ -14,18 +15,22 @@ lazy val microservice = Project(appName, file("."))
     PlayKeys.playDefaultPort := 9501,
     TwirlKeys.templateImports := Seq(),
     routesImport += "uk.gov.hmrc.breathingspaceifproxy.config.Binders._",
-    // ***************
-    // Use the silencer plugin to suppress warnings
-    scalacOptions ++= List("-deprecation", "-feature"),
-    // ***************
   )
   .configs(IntegrationTest extend Test)
-  .settings(publishingSettings: _*)
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(
     scoverageSettings,
-    ThisBuild / scalafmtOnCompile := true
+    ThisBuild / scalafmtOnCompile := true,
+    scalacOptions ++= Seq(
+      "-Werror",
+      "-Wconf:cat=unused-imports&site=.*views\\.html.*:s",
+      "-Wconf:cat=unused-imports&site=<empty>:s",
+      "-Wconf:cat=unused&src=.*RoutesPrefix\\.scala:s",
+      "-Wconf:cat=unused&src=.*Routes\\.scala:s",
+      "-Wconf:cat=unused&src=.*ReverseRoutes\\.scala:s",
+      "-Wconf:cat=unused&src=.*JavaScriptReverseRoutes\\.scala:s"
+    )
   )
 
 scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"

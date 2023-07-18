@@ -9,9 +9,9 @@ This &#xb5;service enables interaction between PEGA Cloud, the platform controll
 #### &nbsp; &nbsp; PEGA Cloud &#8594; MDTP &#8594; Integration-Framework
 
 ### Prerequisites
-- Scala 2.12.12
-- Java 8
-- sbt +1.3
+- Scala 2.13.8
+- Java 11
+- sbt 1.7
 
 ### Running the service
 
@@ -33,11 +33,11 @@ $ sbt -jvm-debug 5005
 
 ### Highlighted SBT Tasks
 
-Task | Description | Command
-:-------|:------------|:-----
-test | runs the standard unit tests | ```$ sbt test```
-it:test  | runs the integration tests | ```$ sbt it:test ```
-dependencyTree |  prints the tree of the dependencies for the project | ```$ sbt dependencyTree```
+| Task           | Description                                         | Command                    |
+|:---------------|:----------------------------------------------------|:---------------------------|
+| test           | runs the standard unit tests                        | ```$ sbt test```           |
+| it:test        | runs the integration tests                          | ```$ sbt it:test ```       |
+| dependencyTree | prints the tree of the dependencies for the project | ```$ sbt dependencyTree``` |
 
 ### Reporting Issues
 
