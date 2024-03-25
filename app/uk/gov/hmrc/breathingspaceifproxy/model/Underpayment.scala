@@ -24,9 +24,9 @@ final case class Underpayments(underPayments: List[Underpayment])
 // Serializers
 
 object Underpayment {
-  implicit val format = Json.format[Underpayment]
+  implicit val format: OFormat[Underpayment] = Json.format[Underpayment]
 }
 
 object Underpayments {
-  implicit val format = Json.format[Underpayments]
+  implicit val format: OFormat[Underpayments] = Json.format[Underpayments]
 }

@@ -16,13 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import javax.inject.{Inject, Singleton}
-
-import scala.concurrent.ExecutionContext
-
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemConnector}
@@ -32,8 +27,15 @@ import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
+
 @Singleton
-class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics, val cacheRepository: CacheRepository)(
+class MemorandumConnector @Inject()(
+  http: HttpClient,
+  metricRegistryParam: MetricRegistry,
+  val cacheRepository: CacheRepository
+)(
   implicit appConfig: AppConfig,
   val memorandumConnector: MemConnector,
   ec: ExecutionContext
@@ -43,7 +45,7 @@ class MemorandumConnector @Inject()(http: HttpClient, metrics: Metrics, val cach
 
   import MemorandumConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
+  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[MemorandumInResponse] =
     memorandumConnector.monitor {

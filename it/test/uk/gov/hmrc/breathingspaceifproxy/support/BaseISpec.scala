@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import scala.concurrent.duration._
-import akka.stream.Materializer
 import cats.syntax.option._
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder
+import org.apache.pekko.stream.Materializer
 import org.scalatest._
 import org.scalatest.compatible.Assertion
 import org.scalatest.concurrent.Eventually
@@ -33,18 +32,19 @@ import play.api.http.{HeaderNames, Status, Writeable}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.mvc.{AnyContentAsEmpty, Request, Result}
-import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import play.api.test.Helpers.{await, route}
+import play.api.test.{DefaultAwaitTimeout, FakeRequest, Injecting}
 import play.mvc.Http.MimeTypes
-import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, UpstreamHeader}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.NOT_AUTHORISED
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
+import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, UpstreamHeader}
 
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 abstract class BaseISpec
-  extends AnyWordSpec
+    extends AnyWordSpec
     with BreathingSpaceTestSupport
     with DefaultAwaitTimeout
     with Eventually
@@ -75,7 +75,7 @@ abstract class BaseISpec
       .configure(configProperties)
       .build()
 
-  implicit lazy val materializer = inject[Materializer]
+  implicit lazy val materializer: Materializer = inject[Materializer]
 
   implicit lazy val appConfig: AppConfig = inject[AppConfig]
 
@@ -113,10 +113,13 @@ abstract class BaseISpec
     )
 
   def verifyHeadersForAttended(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
-    if (queryParam.isEmpty) verifyHeadersForAttended(method, url)
-    else verifyHeadersForAttended(
-      method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
-    )
+    if (queryParam.isEmpty) {
+      verifyHeadersForAttended(method, url)
+    } else {
+      verifyHeadersForAttended(
+        method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
+      )
+    }
 
   def verifyHeadersForUnattended(method: HttpMethod, url: String): Unit =
     verifyHeadersForUnattended(
@@ -124,10 +127,13 @@ abstract class BaseISpec
     )
 
   def verifyHeadersForUnattended(method: HttpMethod, url: String, queryParam: Map[String, String]): Unit =
-    if (queryParam.isEmpty) verifyHeadersForUnattended(method, url)
-    else verifyHeadersForUnattended(
-      method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
-    )
+    if (queryParam.isEmpty) {
+      verifyHeadersForUnattended(method, url)
+    } else {
+      verifyHeadersForUnattended(
+        method.requestedFor(urlPathMatching(url)).withQueryParam(queryParam.head._1, equalTo(queryParam.head._2))
+      )
+    }
 
   def verifyHeadersForMemorandum(method: HttpMethod, url: String): Unit =
     verifyHeadersForMemorandum(
@@ -135,29 +141,35 @@ abstract class BaseISpec
     )
 
   private def verifyHeadersForAttended(requestPatternBuilder: RequestPatternBuilder): Unit =
-    verify(1, requestPatternBuilder
-      .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
-      .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
-      .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
-      .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_ATTENDED.entryName))
+    verify(
+      1,
+      requestPatternBuilder
+        .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationFrameworkAuthToken))
+        .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
+        .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
+        .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_ATTENDED.entryName))
     )
 
   private def verifyHeadersForUnattended(requestPatternBuilder: RequestPatternBuilder): Unit =
-    verify(1, requestPatternBuilder
-      .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
-      .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
-      .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
-      .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_UNATTENDED.entryName))
-      .withoutHeader(UpstreamHeader.StaffPid)
+    verify(
+      1,
+      requestPatternBuilder
+        .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationFrameworkAuthToken))
+        .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
+        .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
+        .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_BS_UNATTENDED.entryName))
+        .withoutHeader(UpstreamHeader.StaffPid)
     )
 
   private def verifyHeadersForMemorandum(requestPatternBuilder: RequestPatternBuilder): Unit =
-    verify(1, requestPatternBuilder
-      .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationframeworkAuthToken))
-      .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
-      .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
-      .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_PTA.entryName))
-      .withoutHeader(UpstreamHeader.StaffPid)
+    verify(
+      1,
+      requestPatternBuilder
+        .withHeader(UpstreamHeader.Authorization, equalTo(appConfig.integrationFrameworkAuthToken))
+        .withHeader(UpstreamHeader.Environment, equalTo(appConfig.integrationFrameworkEnvironment))
+        .withHeader(UpstreamHeader.CorrelationId, equalTo(correlationIdAsString))
+        .withHeader(UpstreamHeader.RequestType, equalTo(Attended.DA2_PTA.entryName))
+        .withoutHeader(UpstreamHeader.StaffPid)
     )
 
   def verifyErrorResult(
@@ -175,12 +187,12 @@ abstract class BaseISpec
 
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
-      headers.get(DownstreamHeader.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
+      headers(DownstreamHeader.CorrelationId).toLowerCase shouldBe correlationId.toLowerCase
     }
 
     And("the body should be in Json format")
     headers.get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
-    headers.get(CONTENT_TYPE).get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    headers(CONTENT_TYPE).toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 

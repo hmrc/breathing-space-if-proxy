@@ -17,21 +17,20 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import play.api.libs.json.Json
-import play.api.test.Helpers._
 import play.api.test.Helpers
+import play.api.test.Helpers._
 import play.mvc.Http.Status
 import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.MemorandumController.get
-import uk.gov.hmrc.breathingspaceifproxy.model.MemorandumInResponse
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
+import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino}
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class MemorandumControllerISpec extends BaseISpec {
 
-  val nino = genNino
-  val getPathWithValidNino = get(nino).url
-  val memorandumConnectorUrl = MemorandumConnector.path(nino)
-
+  val nino: Nino = genNino
+  val getPathWithValidNino: String = get(nino).url
+  val memorandumConnectorUrl: String = MemorandumConnector.path(nino)
 
   "GET BS Memorandum for Nino" should {
 
@@ -39,7 +38,7 @@ class MemorandumControllerISpec extends BaseISpec {
       val expectedResponseBody = Json.toJson(MemorandumInResponse(true)).toString
       stubCall(HttpMethod.Get, memorandumConnectorUrl, Status.OK, expectedResponseBody)
 
-     val response = route(app, fakeMemorandumRequest(Helpers.GET, getPathWithValidNino)).get
+      val response = route(app, fakeMemorandumRequest(Helpers.GET, getPathWithValidNino)).get
 
       status(response) shouldBe Status.OK
       contentAsString(response) shouldBe expectedResponseBody

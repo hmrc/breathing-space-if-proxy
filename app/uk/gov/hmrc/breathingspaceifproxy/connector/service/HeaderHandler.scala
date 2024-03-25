@@ -24,14 +24,14 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 trait HeaderHandler {
 
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   protected def headers(implicit appConfig: AppConfig, requestId: RequestId): Seq[(String, String)] =
     List(
-      (UpstreamHeader.Authorization -> appConfig.integrationframeworkAuthToken).some,
+      (UpstreamHeader.Authorization -> appConfig.integrationFrameworkAuthToken).some,
       (UpstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment).some,
       (UpstreamHeader.CorrelationId -> requestId.correlationId.toString).some,
       (UpstreamHeader.RequestType -> requestId.requestType.entryName).some,
-      (if (requestId.staffId == unattendedStaffPid) none else (UpstreamHeader.StaffPid -> requestId.staffId).some)
+      if (requestId.staffId == unattendedStaffPid) none else (UpstreamHeader.StaffPid -> requestId.staffId).some
     ).flatten
 }

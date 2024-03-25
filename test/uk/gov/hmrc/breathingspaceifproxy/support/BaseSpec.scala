@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.mockito.MockitoSugar.mock
@@ -29,12 +29,13 @@ import play.api.http.{HeaderNames, MimeTypes}
 import play.api.libs.json._
 import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
+import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.auth.core.retrieve.v2.TrustedHelper
 import uk.gov.hmrc.auth.core.retrieve.~
-import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
+import scala.annotation.nowarn
 import scala.concurrent.Future
 
 object BaseSpec {
@@ -43,6 +44,7 @@ object BaseSpec {
   }
 }
 
+@nowarn("msg=dead code following this construct")
 trait BaseSpec
     extends BreathingSpaceTestSupport
     with DefaultAwaitTimeout
@@ -59,11 +61,12 @@ trait BaseSpec
 
   implicit lazy val materializer: Materializer = inject[Materializer]
 
-  implicit val defaultPatience = PatienceConfig(timeout = Span(1, Seconds), interval = Span(250, Millis))
+  implicit val defaultPatience: PatienceConfig =
+    PatienceConfig(timeout = Span(1, Seconds), interval = Span(250, Millis))
 
   override implicit val appConfig: AppConfig = inject[AppConfig]
 
-  val authConnector = mock[AuthConnector]
+  val authConnector: AuthConnector = mock[AuthConnector]
 
   type AuthRetrieval = Option[String] ~ Option[TrustedHelper] ~ Option[String]
   val result: AuthRetrieval = None ~ None ~ Some("client-id")
@@ -87,11 +90,11 @@ trait BaseSpec
 
     correlationId.fold[Assertion](headers.size shouldBe 1) { correlationId =>
       And("a \"Correlation-Id\" header")
-      headers.get(DownstreamHeader.CorrelationId).get.toLowerCase shouldBe correlationId.toLowerCase
+      headers(DownstreamHeader.CorrelationId).toLowerCase shouldBe correlationId.toLowerCase
     }
 
     And("the body should be in Json format")
-    headers.get(CONTENT_TYPE).get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    headers(CONTENT_TYPE).toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 

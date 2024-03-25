@@ -18,7 +18,6 @@ package uk.gov.hmrc.breathingspaceifproxy.repository
 
 import cats.implicits._
 import com.google.inject.{Inject, Singleton}
-import play.api.Configuration
 import play.api.libs.json.{Reads, Writes}
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -36,7 +35,6 @@ class HashedNinoCacheId @Inject()(implicit appConfig: AppConfig) extends CacheId
 @Singleton
 class CacheRepository @Inject()(
   mongoComponent: MongoComponent,
-  configuration: Configuration,
   timestampSupport: TimestampSupport,
   appConfig: AppConfig,
   cacheIdType: HashedNinoCacheId

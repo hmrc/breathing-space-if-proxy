@@ -74,7 +74,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
   private def verifyResponse(attended: Boolean, error: Option[BaseError] = none): Assertion = {
     val nino = genNino
-    val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
+    val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
 
     val expectedStatus = error.fold(Status.OK)(_.httpCode)
     val expectedResponseBody =

@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
-import scala.concurrent.Future
-
 import cats.syntax.either._
 import cats.syntax.validated._
 import play.api.Logging
@@ -31,6 +29,8 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import scala.concurrent.{ExecutionContext, Future}
+
 abstract class AbstractBaseController(
   override val controllerComponents: ControllerComponents
 ) extends BackendController(controllerComponents)
@@ -43,7 +43,7 @@ abstract class AbstractBaseController(
 
   val appConfig: AppConfig
 
-  implicit val ec = controllerComponents.executionContext
+  implicit val ec: ExecutionContext = controllerComponents.executionContext
 
   val withoutBody: BodyParser[Validation[AnyContent]] = BodyParser("Breathing-Space-without-Body") { request =>
     if (request.hasBody) errorOnBody(INVALID_BODY)(request) else parse.ignore(AnyContent().validNec)(request)
@@ -81,7 +81,7 @@ abstract class AbstractBaseController(
     sendResponse(status, payload)
   }
 
-  def logRequestId(nino: Nino, requestId: RequestId): Unit = logger.debug(s"$requestId for Nino(${nino.value})")
+  private def logRequestId(nino: Nino, requestId: RequestId): Unit = logger.debug(s"$requestId for Nino(${nino.value})")
 
   def logHeadersAndRequestId(nino: Nino, requestId: RequestId)(implicit request: RequestHeader): Unit = {
     logRequestId(nino: Nino, requestId: RequestId)
@@ -94,8 +94,8 @@ abstract class AbstractBaseController(
   private def errorOnBody[T](error: BaseError): BodyParser[Validation[T]] =
     parse.ignore[Validation[T]](ErrorItem(error).invalidNec)
 
-  private def sendResponse[T](status: Int, payload: JsValue)(implicit requestId: RequestId): Future[Result] = {
-    logger.debug(s"Response to $requestId has status(${status})")
+  private def sendResponse(status: Int, payload: JsValue)(implicit requestId: RequestId): Future[Result] = {
+    logger.debug(s"Response to $requestId has status($status)")
     Future.successful {
       Status(status)(payload)
         .withHeaders(

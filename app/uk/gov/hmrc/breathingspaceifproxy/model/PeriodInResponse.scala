@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
+import play.api.libs.json.{Json, OFormat}
+
 import java.time.LocalDate
 import java.util.UUID
-
-import play.api.libs.json.Json
 
 // --------------------------------------------------------------------------------
 
 final case class PeriodInResponse(periodID: UUID, startDate: LocalDate, endDate: Option[LocalDate])
 
 object PeriodInResponse {
-  implicit val format = Json.format[PeriodInResponse]
+  implicit val format: OFormat[PeriodInResponse] = Json.format[PeriodInResponse]
 }
 
 // --------------------------------------------------------------------------------
@@ -34,5 +34,5 @@ object PeriodInResponse {
 final case class PeriodsInResponse(periods: List[PeriodInResponse])
 
 object PeriodsInResponse {
-  implicit val format = Json.format[PeriodsInResponse]
+  implicit val format: OFormat[PeriodsInResponse] = Json.format[PeriodsInResponse]
 }

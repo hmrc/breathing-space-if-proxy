@@ -24,17 +24,20 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_GET
+import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.repository.CacheRepository
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport with DefaultPlayMongoRepositorySupport[CacheItem]  {
+class PeriodsConnectorISpec
+    extends BaseISpec
+    with ConnectorTestSupport
+    with DefaultPlayMongoRepositorySupport[CacheItem] {
 
   override val fakeApplication: Application =
     GuiceApplicationBuilder()
@@ -42,9 +45,9 @@ class PeriodsConnectorISpec extends BaseISpec with ConnectorTestSupport with Def
       .overrides(bind[MongoComponent].to(mongoComponent))
       .build()
 
-  override lazy val repository = inject[CacheRepository]
-  val connector = inject[PeriodsConnector]
-  implicit val requestId = genRequestId(BS_Periods_GET, connector.eisConnector)
+  override lazy val repository: CacheRepository = inject[CacheRepository]
+  val connector: PeriodsConnector = inject[PeriodsConnector]
+  implicit val requestId: RequestId = genRequestId(BS_Periods_GET, connector.eisConnector)
 
   "get" should {
     "return a PeriodsResponse instance when it receives a 200(OK) response" in {

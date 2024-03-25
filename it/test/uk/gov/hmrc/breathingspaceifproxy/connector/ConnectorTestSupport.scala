@@ -17,6 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
 import cats.syntax.option._
+import org.scalatest.Assertion
 import play.api.http.MimeTypes
 import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
@@ -25,8 +26,8 @@ import uk.gov.hmrc.http.{Authorization, HeaderCarrier}
 
 trait ConnectorTestSupport { this: BaseISpec =>
 
-  implicit lazy val headerCarrierForIF = HeaderCarrier(
-    authorization = Authorization(appConfig.integrationframeworkAuthToken).some,
+  implicit lazy val headerCarrierForIF: HeaderCarrier = HeaderCarrier(
+    authorization = Authorization(appConfig.integrationFrameworkAuthToken).some,
     extraHeaders = List(
       CONTENT_TYPE -> MimeTypes.JSON,
       UpstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment,
@@ -36,5 +37,5 @@ trait ConnectorTestSupport { this: BaseISpec =>
     )
   )
 
-  lazy val notAnErrorInstance = assert(false, "Not even an Error instance?")
+  lazy val notAnErrorInstance: Assertion = assert(false, "Not even an Error instance?")
 }

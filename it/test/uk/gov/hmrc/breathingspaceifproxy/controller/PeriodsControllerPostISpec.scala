@@ -31,7 +31,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerPostISpec extends BaseISpec {
 
-  val postPath = post.url
+  val postPath: String = post.url
 
   "POST BS Periods for Nino" should {
 
@@ -56,7 +56,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
-      val body = s"""{nino":"${genNinoString}","periods":[${Json.toJson(validPostPeriod).toString}]}"""
+      val body = s"""{nino":"$genNinoString","periods":[${Json.toJson(validPostPeriod).toString}]}"""
       val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
       val response = await(route(app, request).get)

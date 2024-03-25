@@ -1,7 +1,6 @@
 # API Definitions specific routes
 # ===============================
 GET   /api/definition           uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.getDefinition
-GET   /api/conf/:version/*file  uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.conf(version, file)
 
 # Microservice specific routes
 # ============================
@@ -12,3 +11,4 @@ POST  /periods                  uk.gov.hmrc.breathingspaceifproxy.controller.Per
 PUT   /:nino/periods            uk.gov.hmrc.breathingspaceifproxy.controller.PeriodsController.put(nino)
 GET   /:nino/:periodId/coding-out-debts uk.gov.hmrc.breathingspaceifproxy.controller.UnderpaymentsController.get(nino, periodId)
 GET   /:nino/memorandum         uk.gov.hmrc.breathingspaceifproxy.controller.MemorandumController.get(nino: uk.gov.hmrc.breathingspaceifproxy.model.Nino)
+GET   /api/config/:version/:file  uk.gov.hmrc.breathingspaceifproxy.controller.ApiPlatformController.conf(version, file)

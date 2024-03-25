@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.time.LocalDate
-
 import cats.syntax.option.none
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
+
+import java.time.LocalDate
 
 // Details (Breathing Space Population) -------------------------------------------
 
@@ -27,7 +27,7 @@ final case class Details(
   nino: String,
   dateOfBirth: Option[LocalDate] = none
 )
-object Details { implicit val format = Json.format[Details] }
+object Details { implicit val format: OFormat[Details] = Json.format[Details] }
 
 // --------------------------------------------------------------------------------
 
@@ -37,10 +37,10 @@ final case class NameData(
   surname: Option[String] = none,
   nameType: Option[Int] = none
 )
-object NameData { implicit val format = Json.format[NameData] }
+object NameData { implicit val format: OFormat[NameData] = Json.format[NameData] }
 
 final case class NameList(name: List[NameData])
-object NameList { implicit val format = Json.format[NameList] }
+object NameList { implicit val format: OFormat[NameList] = Json.format[NameList] }
 
 // --------------------------------------------------------------------------------
 
@@ -54,17 +54,17 @@ final case class AddressData(
   countryCode: Option[Int] = none,
   addressType: Option[Int] = none
 )
-object AddressData { implicit val format = Json.format[AddressData] }
+object AddressData { implicit val format: OFormat[AddressData] = Json.format[AddressData] }
 
 final case class AddressList(address: List[AddressData])
-object AddressList { implicit val format = Json.format[AddressList] }
+object AddressList { implicit val format: OFormat[AddressList] = Json.format[AddressList] }
 
 // --------------------------------------------------------------------------------
 
 final case class Indicators(
   welshOutputInd: Option[Int] = none
 )
-object Indicators { implicit val format = Json.format[Indicators] }
+object Indicators { implicit val format: OFormat[Indicators] = Json.format[Indicators] }
 
 // --------------------------------------------------------------------------------
 
@@ -85,5 +85,5 @@ object IndividualDetails {
 
   val fields = s"?fields=$Details,$NameList,$AddressList,$Indicators"
 
-  implicit val format = Json.format[IndividualDetails]
+  implicit val format: OFormat[IndividualDetails] = Json.format[IndividualDetails]
 }

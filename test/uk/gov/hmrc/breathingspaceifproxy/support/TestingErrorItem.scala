@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 final case class TestingErrorItem(code: String, message: String)
 
 object TestingErrorItem {
-  implicit val format = Json.format[TestingErrorItem]
+  implicit val format: OFormat[TestingErrorItem] = Json.format[TestingErrorItem]
 }

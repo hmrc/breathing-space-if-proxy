@@ -16,14 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import java.util.UUID
-import javax.inject.{Inject, Singleton}
-
-import scala.concurrent.ExecutionContext
-
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EtmpConnector, HeaderHandler}
@@ -32,8 +26,12 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
+
 @Singleton
-class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
+class DebtsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
   implicit appConfig: AppConfig,
   val etmpConnector: EtmpConnector,
   ec: ExecutionContext
@@ -42,7 +40,7 @@ class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   import DebtsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
+  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId): ResponseValidation[Debts] =
     etmpConnector.monitor {
@@ -55,7 +53,7 @@ class DebtsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 object DebtsConnector {
 
   def path(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/${periodId}/debts"
+    s"/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/$periodId/debts"
 
   def url(nino: Nino, periodId: UUID)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino, periodId)}"

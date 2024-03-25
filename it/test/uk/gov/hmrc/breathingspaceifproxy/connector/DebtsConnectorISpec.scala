@@ -20,6 +20,7 @@ import cats.syntax.option._
 import org.scalatest.Assertion
 import play.api.http.Status._
 import play.api.test.Helpers.await
+import uk.gov.hmrc.breathingspaceifproxy.model.RequestId
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Debts_GET
@@ -27,8 +28,8 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
-  val connector = inject[DebtsConnector]
-  implicit val requestId = genRequestId(BS_Debts_GET, connector.etmpConnector)
+  val connector: DebtsConnector = inject[DebtsConnector]
+  implicit val requestId: RequestId = genRequestId(BS_Debts_GET, connector.etmpConnector)
 
   "get" should {
     "return a Debts instance when it receives a 200(OK) response" in {

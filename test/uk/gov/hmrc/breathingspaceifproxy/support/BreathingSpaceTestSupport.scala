@@ -16,9 +16,6 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.support
 
-import java.time.{LocalDate, ZonedDateTime}
-import java.util.UUID
-import scala.util.Random
 import cats.syntax.option._
 import cats.syntax.validated._
 import play.api.http.HeaderNames.{AUTHORIZATION, CONTENT_TYPE}
@@ -26,12 +23,16 @@ import play.api.http.MimeTypes
 import play.api.libs.json._
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
-import uk.gov.hmrc.breathingspaceifproxy.{DownstreamHeader, _}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.UpstreamConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.Nino.{validPrefixes, validSuffixes}
+import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
+import uk.gov.hmrc.breathingspaceifproxy._
+
+import java.time.{LocalDate, ZonedDateTime}
+import java.util.UUID
+import scala.util.Random
 
 final case class PostPeriodsRequest(
   nino: String,
@@ -41,7 +42,7 @@ final case class PostPeriodsRequest(
 )
 
 object PostPeriodsRequest {
-  implicit val format = Json.format[PostPeriodsRequest]
+  implicit val format: OFormat[PostPeriodsRequest] = Json.format[PostPeriodsRequest]
 }
 
 trait BreathingSpaceTestSupport {
@@ -50,16 +51,16 @@ trait BreathingSpaceTestSupport {
 
   val invalidNino = "MG34567"
 
-  val randomUUID = UUID.randomUUID
-  val randomUUIDAsString = randomUUID.toString
-  val correlationId = randomUUID
-  val correlationIdAsString = randomUUIDAsString
-  val periodId = randomUUID
-  val periodIdAsString = randomUUIDAsString
+  val randomUUID: UUID = UUID.randomUUID
+  val randomUUIDAsString: String = randomUUID.toString
+  val correlationId: UUID = randomUUID
+  val correlationIdAsString: String = randomUUIDAsString
+  val periodId: UUID = randomUUID
+  val periodIdAsString: String = randomUUIDAsString
 
   val attendedStaffPid = "1234567"
 
-  lazy val requestHeaders = List(
+  lazy val requestHeaders: List[(String, String)] = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
     DownstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.toString,
@@ -67,7 +68,7 @@ trait BreathingSpaceTestSupport {
     AUTHORIZATION -> "Bearer 12345"
   )
 
-  lazy val requestHeadersForUnattended = List(
+  lazy val requestHeadersForUnattended: List[(String, String)] = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
     DownstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
@@ -75,32 +76,32 @@ trait BreathingSpaceTestSupport {
     AUTHORIZATION -> "Bearer 12345"
   )
 
-  lazy val requestHeadersForMemorandum = List(
+  lazy val requestHeadersForMemorandum: List[(String, String)] = List(
     CONTENT_TYPE -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
     AUTHORIZATION -> "Bearer 12345"
   )
 
-  lazy val validPostPeriod = PostPeriodInRequest(
+  lazy val validPostPeriod: PostPeriodInRequest = PostPeriodInRequest(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
   )
 
-  lazy val invalidPostPeriod = PostPeriodInRequest(
+  lazy val invalidPostPeriod: PostPeriodInRequest = PostPeriodInRequest(
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(4).some,
     ZonedDateTime.now
   )
 
-  lazy val validPutPeriod = PutPeriodInRequest(
+  lazy val validPutPeriod: PutPeriodInRequest = PutPeriodInRequest(
     UUID.randomUUID(),
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(1).some,
     ZonedDateTime.now
   )
 
-  lazy val invalidPutPeriod = PutPeriodInRequest(
+  lazy val invalidPutPeriod: PutPeriodInRequest = PutPeriodInRequest(
     UUID.randomUUID(),
     LocalDate.now.minusMonths(3),
     LocalDate.now.minusMonths(4).some,
@@ -109,7 +110,7 @@ trait BreathingSpaceTestSupport {
 
   lazy val putPeriodsRequest: List[PutPeriodInRequest] = List(validPutPeriod, validPutPeriod)
 
-  lazy val validPeriodsResponse =
+  lazy val validPeriodsResponse: PeriodsInResponse =
     PeriodsInResponse(
       List(
         PeriodInResponse(UUID.randomUUID(), LocalDate.now.minusMonths(5), None),
@@ -117,7 +118,7 @@ trait BreathingSpaceTestSupport {
       )
     )
 
-  lazy val debt1 = Debt(
+  lazy val debt1: Debt = Debt(
     chargeReference = "ETMP ref01",
     chargeDescription = "100 chars long charge description as exist in ETMP",
     chargeAmount = 199999999.11,
@@ -126,7 +127,7 @@ trait BreathingSpaceTestSupport {
     none
   )
 
-  lazy val debt2 = Debt(
+  lazy val debt2: Debt = Debt(
     chargeReference = "ETMP ref02",
     chargeDescription = "long charge 02 description as exist in ETMP",
     chargeAmount = 299999999.22,
@@ -135,13 +136,15 @@ trait BreathingSpaceTestSupport {
     utrAssociatedWithCharge = "1234567890".some
   )
 
-  lazy val listOfDebts = List(debt1, debt2)
-  lazy val debtsAsSentFromEis = Json.toJson(listOfDebts).toString
-  lazy val debts = Json.toJson(Debts(listOfDebts)).toString
+  lazy val listOfDebts: List[Debt] = List(debt1, debt2)
+  lazy val debtsAsSentFromEis: String = Json.toJson(listOfDebts).toString
+  lazy val debts: String = Json.toJson(Debts(listOfDebts)).toString
 
-  lazy val fakeGetRequest = FakeRequest().withHeaders(requestHeaders: _*)
-  lazy val fakeUnAttendedGetRequest = FakeRequest().withHeaders(requestHeadersForUnattended: _*)
-  lazy val fakeMemorandumGetRequest = FakeRequest().withHeaders(requestHeadersForMemorandum: _*)
+  lazy val fakeGetRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withHeaders(requestHeaders: _*)
+  lazy val fakeUnAttendedGetRequest: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest().withHeaders(requestHeadersForUnattended: _*)
+  lazy val fakeMemorandumGetRequest: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest().withHeaders(requestHeadersForMemorandum: _*)
 
   lazy val random: Random = new Random
 
@@ -246,7 +249,7 @@ trait BreathingSpaceTestSupport {
 
   def detailQueryParams(fields: String): Map[String, String] =
     fields
-      .split("\\?|=")
+      .split("[?=]")
       .tail
       .grouped(2)
       .foldLeft(Map.empty[String, String]) { (map, pair) =>

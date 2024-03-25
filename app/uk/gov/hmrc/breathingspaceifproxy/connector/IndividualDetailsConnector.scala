@@ -16,13 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import javax.inject.{Inject, Singleton}
-
-import scala.concurrent.ExecutionContext
-
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
@@ -31,8 +26,11 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
+
 @Singleton
-class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
+class IndividualDetailsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
@@ -41,7 +39,7 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 
   import IndividualDetailsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
+  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
 
   // Breathing Space Population
   def getDetails(nino: Nino)(implicit requestId: RequestId): ResponseValidation[IndividualDetails] =
@@ -55,7 +53,7 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metrics: Metrics)(
 object IndividualDetailsConnector {
 
   def path(nino: Nino, queryParams: String)(implicit appConfig: AppConfig): String =
-    s"/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}${queryParams}"
+    s"/${appConfig.integrationFrameworkContext}/details/NINO/${nino.value}$queryParams"
 
   def url(nino: Nino, queryParams: String)(implicit appConfig: AppConfig): String =
     s"${appConfig.integrationFrameworkBaseUrl}${path(nino, queryParams)}"

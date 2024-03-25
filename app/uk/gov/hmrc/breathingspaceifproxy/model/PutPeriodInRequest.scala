@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
+import play.api.libs.json._
+
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
-
-import play.api.libs.json._
 
 final case class PutPeriodInRequest(
   periodID: UUID,
@@ -29,9 +29,9 @@ final case class PutPeriodInRequest(
 )
 
 object PutPeriodInRequest {
-  implicit val reads = Json.reads[PutPeriodInRequest]
+  implicit val reads: Reads[PutPeriodInRequest] = Json.reads[PutPeriodInRequest]
 
-  implicit val writes = new Writes[PutPeriodInRequest] {
+  implicit val writes: Writes[PutPeriodInRequest] = new Writes[PutPeriodInRequest] {
     def writes(putPeriod: PutPeriodInRequest): JsObject = {
       val fields = List(
         periodIdKey -> Json.toJson(putPeriod.periodID),
@@ -46,5 +46,5 @@ object PutPeriodInRequest {
 final case class PutPeriodsInRequest(periods: List[PutPeriodInRequest])
 
 object PutPeriodsInRequest {
-  implicit val format = Json.format[PutPeriodsInRequest]
+  implicit val format: OFormat[PutPeriodsInRequest] = Json.format[PutPeriodsInRequest]
 }
