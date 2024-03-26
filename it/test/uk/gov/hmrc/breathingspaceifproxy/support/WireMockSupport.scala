@@ -26,6 +26,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 import play.api.http.{HeaderNames, Status}
 import play.mvc.Http.MimeTypes
+
 import scala.jdk.CollectionConverters._
 
 trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
@@ -36,7 +37,8 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
 
   private val authUrlPath = "/auth/authorise"
 
-  private val privilegedApplicationAuthBody = """{
+  private val privilegedApplicationAuthBody =
+    """{
                    |  "clientId": "id-123232",
                    |  "authProvider": "PrivilegedApplication",
                    |  "applicationId":"app-1",
@@ -70,7 +72,11 @@ trait WireMockSupport extends BeforeAndAfterAll with BeforeAndAfterEach {
     queryParams.map { case (k, v) => k -> equalTo(v) }.asJava
 
   def stubCall(
-    httpMethod: HttpMethod, url: String, status: Integer, body: String, queryParams: Map[String, String] = Map.empty
+    httpMethod: HttpMethod,
+    url: String,
+    status: Integer,
+    body: String,
+    queryParams: Map[String, String] = Map.empty
   ): StubMapping = {
     val call = httpMethod.call(urlPathMatching(url)).withQueryParams(mapQueryParams(queryParams))
     removeStub(call)

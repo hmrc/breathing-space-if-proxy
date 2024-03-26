@@ -25,15 +25,16 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.DebtsController.get
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Debts_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class DebtsControllerISpec extends BaseISpec {
 
-  val nino = genNino
-  val getPathWithValidNino = get(nino.value, periodIdAsString).url
-  val debtsConnectorUrl = DebtsConnector.path(nino, periodId)
+  val nino: Nino = genNino
+  val getPathWithValidNino: String = get(nino.value, periodIdAsString).url
+  val debtsConnectorUrl: String = DebtsConnector.path(nino, periodId)
 
   "GET BS Debts for Nino" should {
 
@@ -121,7 +122,12 @@ class DebtsControllerISpec extends BaseISpec {
     }
 
     "return 404(NOT_IN_BREATHING_SPACE) when the given Nino is not in Breathing Space" in {
-      stubCall(HttpMethod.Get, debtsConnectorUrl, Status.NOT_FOUND, errorResponseFromIF("IDENTIFIER_NOT_IN_BREATHINGSPACE"))
+      stubCall(
+        HttpMethod.Get,
+        debtsConnectorUrl,
+        Status.NOT_FOUND,
+        errorResponseFromIF("IDENTIFIER_NOT_IN_BREATHINGSPACE")
+      )
 
       val response = await(route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get)
       val errorList = verifyErrorResult(response, NOT_FOUND, correlationIdAsString.some, 1)

@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.config
 
-import javax.inject.Inject
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import play.api.http.{DefaultHttpFilters, EnabledFilters}
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class HttpFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext, appConfig: AppConfig) extends Filter {
   def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] =

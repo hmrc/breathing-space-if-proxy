@@ -23,7 +23,7 @@ final case class ErrorItem(baseError: BaseError, details: Option[String] = None)
 
 object ErrorItem {
 
-  implicit val writes = new Writes[ErrorItem] {
+  implicit val writes: Writes[ErrorItem] = new Writes[ErrorItem] {
     def writes(error: ErrorItem): JsObject =
       Json.obj(
         "code" -> error.baseError.entryName,

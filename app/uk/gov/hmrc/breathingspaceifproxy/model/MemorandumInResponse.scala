@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 final case class MemorandumInResponse(breathingSpaceIndicator: Boolean)
 
 object MemorandumInResponse {
-  implicit val format = Json.format[MemorandumInResponse]
+  implicit val format: OFormat[MemorandumInResponse] = Json.format[MemorandumInResponse]
 }

@@ -24,15 +24,16 @@ import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
 import uk.gov.hmrc.breathingspaceifproxy.controller.routes.PeriodsController.get
+import uk.gov.hmrc.breathingspaceifproxy.model.Nino
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.INVALID_BODY
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Periods_GET
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerGetISpec extends BaseISpec {
 
-  val nino = genNino
-  val getPathWithValidNino = get(nino.value).url
-  val periodsConnectorUrl = PeriodsConnector.path(nino)
+  val nino: Nino = genNino
+  val getPathWithValidNino: String = get(nino.value).url
+  val periodsConnectorUrl: String = PeriodsConnector.path(nino)
 
   "GET BS Periods for Nino" should {
 

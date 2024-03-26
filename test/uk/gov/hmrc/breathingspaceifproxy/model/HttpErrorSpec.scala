@@ -30,19 +30,19 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseSpec, TestingErrorItem}
 class HttpErrorSpec extends AnyFunSuite with BaseSpec {
 
   test("HttpError with httpErrorCode param and an 'Errors' list with 1 'Error' item") {
-    genAndTestHttpError(true, Nec(ErrorItem(INVALID_NINO)))
+    genAndTestHttpError(withHttpErrorCode = true, Nec(ErrorItem(INVALID_NINO)))
   }
 
   test("HttpError with httpErrorCode param and an 'Errors' list with 2 'Error' items") {
-    genAndTestHttpError(true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
+    genAndTestHttpError(withHttpErrorCode = true, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
   }
 
   test("HttpError with an 'Errors' list with 1 'Error' item") {
-    genAndTestHttpError(false, Nec(ErrorItem(INTERNAL_SERVER_ERROR)))
+    genAndTestHttpError(withHttpErrorCode = false, Nec(ErrorItem(INTERNAL_SERVER_ERROR)))
   }
 
   test("HttpError with an 'Errors' list with 2 'Error' items") {
-    genAndTestHttpError(false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
+    genAndTestHttpError(withHttpErrorCode = false, Nec(ErrorItem(INVALID_NINO), ErrorItem(INVALID_JSON_ITEM)))
   }
 
   private def genAndTestHttpError(withHttpErrorCode: Boolean, errorItems: Nec[ErrorItem]): Assertion = {

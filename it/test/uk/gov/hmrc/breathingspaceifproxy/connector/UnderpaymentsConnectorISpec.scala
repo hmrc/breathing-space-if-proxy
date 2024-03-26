@@ -21,10 +21,10 @@ import org.scalatest.Assertion
 import play.api.http.Status._
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
-import uk.gov.hmrc.breathingspaceifproxy.model.{RequestId, Underpayment, Underpayments}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{INTERNAL_SERVER_ERROR, _}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Underpayments_GET
+import uk.gov.hmrc.breathingspaceifproxy.model.{RequestId, Underpayment, Underpayments}
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 import java.util.UUID

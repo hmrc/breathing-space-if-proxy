@@ -30,7 +30,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerPutISpec extends BaseISpec {
 
-  val putPath = put(genNinoString).url
+  val putPath: String = put(genNinoString).url
 
   "PUT BS Periods for Nino" should {
 
@@ -49,7 +49,8 @@ class PeriodsControllerPutISpec extends BaseISpec {
       val expectedBody = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedBody)
 
-      val request = fakeUnattendedRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
+      val request =
+        fakeUnattendedRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
       val response = route(app, request).get
 
       status(response) shouldBe Status.OK

@@ -16,18 +16,18 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.config
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.mvc.{DefaultActionBuilder, EssentialAction}
 import play.api.mvc.Results.Ok
+import play.api.mvc.{DefaultActionBuilder, EssentialAction}
 import play.api.test.FakeRequest
 import play.api.test.Helpers.{call, headers}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class HttpFilterSpec extends AnyWordSpec with BaseSpec {
-  val httpFilter = inject[HttpFilter]
+  val httpFilter: HttpFilter = inject[HttpFilter]
   override implicit lazy val materializer: Materializer = app.materializer
-  implicit lazy val Action = app.injector.instanceOf(classOf[DefaultActionBuilder])
+  implicit lazy val Action: DefaultActionBuilder = app.injector.instanceOf(classOf[DefaultActionBuilder])
 
   "HttpFilter" should {
     "return a request with a cache-control header" in {

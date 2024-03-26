@@ -26,16 +26,23 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{CONFLICTING_REQUEST, INTERNAL_SERVER_ERROR, RESOURCE_NOT_FOUND}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
+  CONFLICTING_REQUEST,
+  INTERNAL_SERVER_ERROR,
+  RESOURCE_NOT_FOUND
+}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
-import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse}
+import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.repository.CacheRepository
 import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.cache.{CacheItem, DataKey}
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
-class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with DefaultPlayMongoRepositorySupport[CacheItem] {
+class MemorandumConnectorISpec
+    extends BaseISpec
+    with ConnectorTestSupport
+    with DefaultPlayMongoRepositorySupport[CacheItem] {
 
   override val fakeApplication: Application =
     GuiceApplicationBuilder()
@@ -43,9 +50,9 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
       .overrides(bind[MongoComponent].to(mongoComponent))
       .build()
 
-  override lazy val repository = inject[CacheRepository]
-  val connector = inject[MemorandumConnector]
-  implicit val requestId = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
+  override lazy val repository: CacheRepository = inject[CacheRepository]
+  val connector: MemorandumConnector = inject[MemorandumConnector]
+  implicit val requestId: RequestId = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
 
   "get" should {
     "return an MemorandumInResponse instance when it receives a 200(OK) response" in {
@@ -62,7 +69,7 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
 
       verifyHeaders(HttpMethod.Get, url)
       response.fold(
-        _    => fail(),
+        _ => fail(),
         resp => resp.breathingSpaceIndicator shouldBe expectedBreathingSpaceIndicator
       )
     }
@@ -82,7 +89,7 @@ class MemorandumConnectorISpec extends BaseISpec with ConnectorTestSupport with 
 
       WireMock.verify(0, HttpMethod.Get.requestedFor(WireMock.urlPathEqualTo(url)))
       response.fold(
-        _    => fail(),
+        _ => fail(),
         resp => resp.breathingSpaceIndicator shouldBe expectedBreathingSpaceIndicator
       )
     }

@@ -33,5 +33,5 @@ object HttpMethod extends Enum[HttpMethod] {
   case object Post extends HttpMethod(post, postRequestedFor)
   case object Put extends HttpMethod(put, putRequestedFor)
 
-  override val values = findValues
+  override val values: IndexedSeq[HttpMethod] = findValues
 }

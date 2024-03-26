@@ -29,13 +29,13 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
-  val connector = inject[IndividualDetailsConnector]
-  implicit val requestId = genRequestId(BS_Details_GET, connector.eisConnector)
+  val connector: IndividualDetailsConnector = inject[IndividualDetailsConnector]
+  implicit val requestId: RequestId = genRequestId(BS_Details_GET, connector.eisConnector)
 
   "get" should {
     "return an IndividualDetails instance when it receives the relative \"fields\" query parameter" in {
       val nino = genNino
-      val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
+      val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
       val queryParams = detailQueryParams(IndividualDetails.fields)
 
       stubCall(HttpMethod.Get, path, OK, Json.toJson(details(nino)).toString, queryParams)
@@ -56,7 +56,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
 
     "return SERVER_ERROR if the returned payload is unexpected" in {
       val nino = genNino
-      val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
+      val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
 
       val unexpectedPayload = Json.parse("""{"dateOfRegistration":"2020-01-01","sex":"M"}""").toString
       val queryParams = detailQueryParams(IndividualDetails.fields)
@@ -90,8 +90,13 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
     }
   }
 
-  private def verifyErrorResponse(nino: Nino, status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
-    val path = IndividualDetailsConnector.path(nino, "")  // queryParams here must be an empty string
+  private def verifyErrorResponse(
+    nino: Nino,
+    status: Int,
+    baseError: BaseError,
+    code: Option[String] = None
+  ): Assertion = {
+    val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
     val queryParams = detailQueryParams(IndividualDetails.fields)
     stubCall(HttpMethod.Get, path, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)), queryParams)
 

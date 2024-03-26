@@ -22,19 +22,10 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.duration.Duration
 
-final case class HeaderMapping(nameToMap: String, nameMapped: String)
-
 @Singleton
 class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
 
-  lazy val appName = config.get[String]("appName")
-
-  lazy val onDevEnvironment: Boolean =
-    config.getOptional[String]("environment.id").fold(false)(_.toLowerCase == "development")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
+  lazy val appName: String = config.get[String]("appName")
 
   val integrationFrameworkBaseUrl: String = servicesConfig.baseUrl("integration-framework")
 
@@ -44,21 +35,21 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
   val integrationFrameworkEnvironment: String =
     config.get[String]("microservice.services.integration-framework.environment")
 
-  val integrationframeworkAuthToken =
+  val integrationFrameworkAuthToken =
     s"""Bearer ${config.get[String]("microservice.services.integration-framework.auth-token")}"""
 
-  val httpHeaderCacheControl = config.get[String]("httpHeaders.cacheControl")
+  val httpHeaderCacheControl: String = config.get[String]("httpHeaders.cacheControl")
 
   // Must be 'lazy'
-  lazy val v1AllowlistedApplicationIds =
+  lazy val v1AllowlistedApplicationIds: Seq[String] =
     config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
 
-  val memorandumFeatureEnabled = config.get[Boolean]("feature.flag.memorandum.enabled")
+  val memorandumFeatureEnabled: Boolean = config.get[Boolean]("feature.flag.memorandum.enabled")
 
   object mongo {
 
-    val ttl = config.get[Duration]("mongodb.ttl")
+    val ttl: Duration = config.get[Duration]("mongodb.ttl")
   }
 
-  val ninoHashingKey = config.get[String]("ninoHashingKey")
+  val ninoHashingKey: String = config.get[String]("ninoHashingKey")
 }

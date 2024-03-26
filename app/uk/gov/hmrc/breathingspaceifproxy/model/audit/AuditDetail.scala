@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model.audit
 
-import java.util.UUID
-
 import play.api.libs.json._
+
+import java.util.UUID
 
 case class AuditDetail(
   correlationId: UUID,
@@ -28,4 +28,4 @@ case class AuditDetail(
   upstreamResponse: JsValue
 )
 
-object AuditDetail { implicit val writes = Json.writes[AuditDetail] }
+object AuditDetail { implicit val writes: OWrites[AuditDetail] = Json.writes[AuditDetail] }

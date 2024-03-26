@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import java.time.LocalDate
-
-import scala.math.BigDecimal.RoundingMode
-
 import play.api.libs.json._
+
+import java.time.LocalDate
+import scala.math.BigDecimal.RoundingMode
 
 case class Debt(
   chargeReference: String,
@@ -51,5 +50,5 @@ object Debt {
 case class Debts(debts: List[Debt])
 
 object Debts {
-  implicit val format = Json.format[Debts]
+  implicit val format: OFormat[Debts] = Json.format[Debts]
 }

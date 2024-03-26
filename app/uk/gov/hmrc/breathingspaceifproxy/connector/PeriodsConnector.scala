@@ -16,11 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
 import cats.syntax.validated._
 import com.codahale.metrics.MetricRegistry
-import com.kenshoo.play.metrics.Metrics
 import play.api.libs.json._
 import uk.gov.hmrc.breathingspaceifproxy._
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -31,8 +28,15 @@ import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
 import uk.gov.hmrc.http.HttpClient
 import uk.gov.hmrc.http.HttpReads.Implicits._
 
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext
+
 @Singleton
-class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics, val cacheRepository: CacheRepository)(
+class PeriodsConnector @Inject()(
+  http: HttpClient,
+  metricRegistryParam: MetricRegistry,
+  val cacheRepository: CacheRepository
+)(
   implicit appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
@@ -42,7 +46,7 @@ class PeriodsConnector @Inject()(http: HttpClient, metrics: Metrics, val cacheRe
 
   import PeriodsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metrics.defaultRegistry
+  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {

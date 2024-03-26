@@ -19,7 +19,7 @@ package uk.gov.hmrc.breathingspaceifproxy.controller.service
 import org.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status._
-import play.api.mvc.{AnyContent, Results}
+import play.api.mvc.{AnyContent, ControllerComponents, Results}
 import play.api.test.Helpers.status
 import play.api.test.{Helpers => PlayHelpers}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
@@ -29,8 +29,8 @@ import scala.concurrent.Future
 
 class RequestFeatureFlagSpec extends AnyWordSpec with BaseSpec with RequestFeatureFlag with Results with MockitoSugar {
 
-  val controllerComponents = PlayHelpers.stubControllerComponents()
-  override implicit val appConfig = mock[AppConfig]
+  val controllerComponents: ControllerComponents = PlayHelpers.stubControllerComponents()
+  override implicit val appConfig: AppConfig = mock[AppConfig]
 
   "authAction" should {
 

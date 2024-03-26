@@ -28,13 +28,13 @@ case class AuditRequest(
 )
 
 object AuditRequest {
-  implicit val writes = Json.writes[AuditRequest]
+  implicit val writes: OWrites[AuditRequest] = Json.writes[AuditRequest]
 
   def apply[R](request: Request[Validation[R]]): AuditRequest =
     AuditRequest(
       method = request.method,
       path = request.path,
-      payload = request.body.fold(_ => none, _ match {
+      payload = request.body.fold(_ => none, {
         case b: JsValue => b.some
         case _ => none
       })

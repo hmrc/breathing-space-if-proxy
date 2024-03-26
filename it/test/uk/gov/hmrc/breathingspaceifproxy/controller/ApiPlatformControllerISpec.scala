@@ -32,12 +32,12 @@ class ApiPlatformControllerISpec extends BaseISpec {
       status(response) shouldBe Status.OK
 
       val appId = appConfig.v1AllowlistedApplicationIds.head
-      contentAsString(response) should include(s""""whitelistedApplicationIds": ["${appId}"""")
+      contentAsString(response) should include(s""""whitelistedApplicationIds": ["$appId"""")
       headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
 
-  "GET /api/conf/1.0/application.raml" should {
+  "GET /api/conf/1.0/application.yaml" should {
     "return 200(OK) and the application.yaml content" in {
       val url = conf("1.0", "application.yaml").url
       val response = route(app, fakeAttendedRequest(Helpers.GET, url)).get
