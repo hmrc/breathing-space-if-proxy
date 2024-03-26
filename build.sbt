@@ -71,6 +71,10 @@ lazy val microservice = Project(appName, file("."))
   )
   .settings(routesImport ++= Seq("uk.gov.hmrc.breathingspaceifproxy.config.Binders._"))
 
+scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
+
+Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
+
 Test / Keys.fork := true
 Test / parallelExecution := false
 
