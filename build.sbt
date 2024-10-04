@@ -25,6 +25,12 @@ ThisBuild / majorVersion := 2
 ThisBuild / scalaVersion := scala2_13
 ThisBuild / scalafmtOnCompile := true
 
+lazy val plugins: Seq[Plugins] =
+  Seq(play.sbt.PlayScala,
+    SbtAutoBuildPlugin,
+    SbtGitVersioning,
+    SbtDistributablesPlugin)
+
 lazy val scoverageSettings = {
   import scoverage.ScoverageKeys
   Seq(
@@ -41,8 +47,9 @@ lazy val scoverageSettings = {
     ScoverageKeys.coverageHighlighting := true
   )
 }
+
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtDistributablesPlugin)
+  .enablePlugins(plugins: _*)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(
     PlayKeys.playDefaultPort := 9501,
