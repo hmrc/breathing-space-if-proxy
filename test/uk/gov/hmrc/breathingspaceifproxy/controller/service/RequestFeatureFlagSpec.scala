@@ -30,7 +30,7 @@ import scala.concurrent.Future
 class RequestFeatureFlagSpec extends AnyWordSpec with BaseSpec with RequestFeatureFlag with Results with MockitoSugar {
 
   val controllerComponents: ControllerComponents = PlayHelpers.stubControllerComponents()
-  override implicit val appConfig: AppConfig = mock[AppConfig]
+  override implicit val appConfig: AppConfig     = mock[AppConfig]
 
   "authAction" should {
 

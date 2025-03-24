@@ -27,7 +27,7 @@ import uk.gov.hmrc.breathingspaceifproxy.views
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton
-class ApiPlatformController @Inject()(appConfig: AppConfig, cc: ControllerComponents, assets: Assets)
+class ApiPlatformController @Inject() (appConfig: AppConfig, cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 

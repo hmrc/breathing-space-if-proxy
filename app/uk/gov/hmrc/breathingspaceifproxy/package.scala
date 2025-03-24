@@ -27,21 +27,21 @@ package object breathingspaceifproxy {
 
   val unattendedStaffPid = "0000000"
 
-  type Validation[T] = ValidatedNec[ErrorItem, T]
+  type Validation[T]         = ValidatedNec[ErrorItem, T]
   type ResponseValidation[T] = Future[Validation[T]]
 
   object DownstreamHeader {
     lazy val CorrelationId = "Correlation-Id"
-    lazy val RequestType = "Request-Type"
-    lazy val StaffPid = "Pid"
+    lazy val RequestType   = "Request-Type"
+    lazy val StaffPid      = "Pid"
     lazy val UpstreamState = "Upstream-State"
   }
 
   object UpstreamHeader {
     lazy val Authorization = "Authorization"
-    lazy val Environment = "Environment"
+    lazy val Environment   = "Environment"
     lazy val CorrelationId = "CorrelationId"
-    lazy val RequestType = "OriginatorId"
-    lazy val StaffPid = "UserId"
+    lazy val RequestType   = "OriginatorId"
+    lazy val StaffPid      = "UserId"
   }
 }

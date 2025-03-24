@@ -31,8 +31,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class DebtsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
-  implicit appConfig: AppConfig,
+class DebtsConnector @Inject() (http: HttpClient, metricRegistryParam: MetricRegistry)(implicit
+  appConfig: AppConfig,
   val etmpConnector: EtmpConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor

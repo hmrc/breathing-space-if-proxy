@@ -82,7 +82,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
-      val body = putPeriodsRequest(putPeriodsRequest)
+      val body    = putPeriodsRequest(putPeriodsRequest)
       val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(invalidNino)(request)
@@ -95,7 +95,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when the 'periods' array is empty" in {
-      val body = Json.obj("periods" -> List.empty[PutPeriodInRequest]).validNec[ErrorItem]
+      val body    = Json.obj("periods" -> List.empty[PutPeriodInRequest]).validNec[ErrorItem]
       val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(genNinoString)(request)
@@ -108,7 +108,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when 'periods' is not an array" in {
-      val body = Json.obj("periods" -> validPutPeriod).validNec[ErrorItem]
+      val body    = Json.obj("periods" -> validPutPeriod).validNec[ErrorItem]
       val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(genNinoString)(request)
@@ -121,7 +121,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     }
 
     "return 400(BAD_REQUEST) when 'periods' does not contain a period" in {
-      val body = Json.obj("periods" -> Seq("unknown")).validNec[ErrorItem]
+      val body    = Json.obj("periods" -> Seq("unknown")).validNec[ErrorItem]
       val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
       val response = controller.put(genNinoString)(request)
@@ -129,7 +129,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       val errorList = verifyErrorResult(response, BAD_REQUEST, correlationIdAsString.some, 1)
 
       And(s"the error code should be $INVALID_JSON_ITEM")
-      errorList.head.code shouldBe INVALID_JSON_ITEM.entryName
+      errorList.head.code  shouldBe INVALID_JSON_ITEM.entryName
       errorList.head.message should include("period 0")
     }
 
@@ -168,7 +168,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     endDate: Option[String] = None,
     timestamp: String = ZonedDateTime.now.toString
   ): Assertion = {
-    val body = putPeriodsRequestAsJson(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
+    val body    = putPeriodsRequestAsJson(periodId.fold(periodIdAsString)(identity), startDate, endDate, timestamp)
     val request = unattendedRequestWithAllHeaders(PUT).withBody(body)
 
     val response = controller.put(genNinoString)(request)

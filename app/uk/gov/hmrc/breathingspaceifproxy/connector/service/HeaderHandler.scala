@@ -17,7 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
 import cats.syntax.option._
-import uk.gov.hmrc.breathingspaceifproxy.{unattendedStaffPid, UpstreamHeader}
+import uk.gov.hmrc.breathingspaceifproxy.{UpstreamHeader, unattendedStaffPid}
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.model.RequestId
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,9 +29,9 @@ trait HeaderHandler {
   protected def headers(implicit appConfig: AppConfig, requestId: RequestId): Seq[(String, String)] =
     List(
       (UpstreamHeader.Authorization -> appConfig.integrationFrameworkAuthToken).some,
-      (UpstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment).some,
+      (UpstreamHeader.Environment   -> appConfig.integrationFrameworkEnvironment).some,
       (UpstreamHeader.CorrelationId -> requestId.correlationId.toString).some,
-      (UpstreamHeader.RequestType -> requestId.requestType.entryName).some,
+      (UpstreamHeader.RequestType   -> requestId.requestType.entryName).some,
       if (requestId.staffId == unattendedStaffPid) none else (UpstreamHeader.StaffPid -> requestId.staffId).some
     ).flatten
 }

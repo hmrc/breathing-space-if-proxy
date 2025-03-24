@@ -56,11 +56,11 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
   val u3: Underpayment = Underpayment("2011", 123.12, "PAYE UP")
 
   val underpayments: List[Underpayment] = List(u1, u2, u3)
-  val validPeriodId: String = UUID.randomUUID().toString
-  val validNino = "AS000001A"
-  val invalidPeriodId = "abcdefg"
-  val nonExistentNino = "AS000001A"
-  val nonExistentPeriodId: String = UUID.randomUUID().toString
+  val validPeriodId: String             = UUID.randomUUID().toString
+  val validNino                         = "AS000001A"
+  val invalidPeriodId                   = "abcdefg"
+  val nonExistentNino                   = "AS000001A"
+  val nonExistentPeriodId: String       = UUID.randomUUID().toString
 
   "get" should {
     "return status code 200 when nino and periodId are valid" in {
@@ -80,10 +80,10 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
       val response = subject.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
-      val content = contentAsJson(response)
+      val content             = contentAsJson(response)
       val actualUnderpayments = content.validate[Underpayments] match {
         case JsSuccess(values, _) => values
-        case _ => fail("message could not be parsed")
+        case _                    => fail("message could not be parsed")
       }
       actualUnderpayments shouldBe Underpayments(underpayments)
     }

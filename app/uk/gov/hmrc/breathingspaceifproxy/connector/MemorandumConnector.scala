@@ -31,12 +31,12 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class MemorandumConnector @Inject()(
+class MemorandumConnector @Inject() (
   http: HttpClient,
   metricRegistryParam: MetricRegistry,
   val cacheRepository: CacheRepository
-)(
-  implicit appConfig: AppConfig,
+)(implicit
+  appConfig: AppConfig,
   val memorandumConnector: MemConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor

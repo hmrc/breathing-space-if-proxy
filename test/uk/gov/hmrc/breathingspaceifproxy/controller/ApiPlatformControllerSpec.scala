@@ -39,10 +39,10 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
 
   override lazy val fakeApplication: Application = GuiceApplicationBuilder().configure(configProperties).build()
 
-  private val expectedStatus = 200
+  private val expectedStatus                             = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
-  private val mockAssets = mock[Assets]
-  private val controller = new ApiPlatformController(appConfig, Helpers.stubControllerComponents(), mockAssets)
+  private val mockAssets                                 = mock[Assets]
+  private val controller                                 = new ApiPlatformController(appConfig, Helpers.stubControllerComponents(), mockAssets)
 
   "getDefinition" should {
     "return a definitions.json object with the allowlisted applicationIds included" in {
@@ -56,7 +56,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
       contentType(result) shouldBe Some(MimeTypes.JSON)
 
       And(s"the response body should contain the correct 'allowlistedApplicationIds' values")
-      val versions = (contentAsJson(result) \ "api" \ "versions")
+      val versions = contentAsJson(result) \ "api" \ "versions"
       (versions.head \ "access" \ "whitelistedApplicationIds").as[Seq[String]] shouldBe
         appConfig.v1AllowlistedApplicationIds
     }
@@ -65,7 +65,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
   "conf" should {
     "return the specified file located in the public resources folder" in {
       val version = "1.0"
-      val file = "application.conf"
+      val file    = "application.conf"
       when(mockAssets.at(s"/api/conf/$version", file)).thenReturn(Action.async(Future.successful(Status(200))))
 
       Given("a request from the API Platform is received")

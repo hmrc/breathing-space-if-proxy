@@ -26,7 +26,7 @@ object ErrorItem {
   implicit val writes: Writes[ErrorItem] = new Writes[ErrorItem] {
     def writes(error: ErrorItem): JsObject =
       Json.obj(
-        "code" -> error.baseError.entryName,
+        "code"    -> error.baseError.entryName,
         "message" -> s"${error.baseError.message}${error.details.fold("")(identity)}"
       )
   }

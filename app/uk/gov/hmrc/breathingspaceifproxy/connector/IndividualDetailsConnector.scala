@@ -30,8 +30,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class IndividualDetailsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
-  implicit appConfig: AppConfig,
+class IndividualDetailsConnector @Inject() (http: HttpClient, metricRegistryParam: MetricRegistry)(implicit
+  appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor

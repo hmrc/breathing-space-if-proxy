@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 class HashedNinoSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
 
   test("the generateHash method should return the expected hash for a given nino") {
-    val nino = Nino("AS000001A")
+    val nino                          = Nino("AS000001A")
     implicit val appConfig: AppConfig = mock[AppConfig]
     when(appConfig.ninoHashingKey).thenReturn("12345")
 

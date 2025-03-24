@@ -23,7 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.json._
 import play.api.mvc.Request
 import uk.gov.hmrc.breathingspaceifproxy.Validation
-import uk.gov.hmrc.breathingspaceifproxy.model.{timestampFormatter, Nino, RequestId}
+import uk.gov.hmrc.breathingspaceifproxy.model.{Nino, RequestId, timestampFormatter}
 import uk.gov.hmrc.breathingspaceifproxy.model.audit.{AuditDetail, AuditRequest}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -53,17 +53,16 @@ trait Auditing {
 
   private def auditRequest[R](implicit request: Request[Validation[R]]): JsValue =
     Json.obj(
-      "detail" -> Json.toJson(AuditRequest(request)),
+      "detail"      -> Json.toJson(AuditRequest(request)),
       "generatedAt" -> Json.toJson(ZonedDateTime.now.format(timestampFormatter))
     )
 
   private def auditResponse[R](status: Int, payload: JsValue): JsValue =
     Json.obj(
-      fields =
-        "detail" -> Json.obj(
-          "payload" -> payload,
-          "httpStatusCode" -> Json.toJson(status)
-        ),
+      fields = "detail" -> Json.obj(
+        "payload"        -> payload,
+        "httpStatusCode" -> Json.toJson(status)
+      ),
       "generatedAt" -> Json.toJson(ZonedDateTime.now.format(timestampFormatter))
     )
 

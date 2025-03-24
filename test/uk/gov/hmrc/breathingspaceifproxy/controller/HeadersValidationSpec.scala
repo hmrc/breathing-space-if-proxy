@@ -71,7 +71,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("return 400(BAD_REQUEST) for a POST when the Content-Type header is missing") {
-    val body = postPeriodsRequestAsJson(postPeriodsRequest())
+    val body    = postPeriodsRequestAsJson(postPeriodsRequest())
     val request = unattendedRequestFilteredOutOneHeader(CONTENT_TYPE, "POST").withBody(body)
 
     verifyHeaderIsMissing(controller.post(request), CONTENT_TYPE)
@@ -79,7 +79,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test("return 400(BAD_REQUEST) for a POST when all required headers are missing") {
     Given("a POST request without any of the requested headers")
-    val body = postPeriodsRequestAsJson(postPeriodsRequest())
+    val body    = postPeriodsRequestAsJson(postPeriodsRequest())
     val request = FakeRequest(POST, "/").withBody(body)
 
     val response = controller.post(request)
@@ -92,7 +92,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test("return 400(BAD_REQUEST) for a 'POST Periods' when the RequestType header is DA2_BS_ATTENDED") {
     Given(s"a 'POST Periods' request with a $RequestType header equal to ${Attended.DA2_BS_ATTENDED}")
-    val body = postPeriodsRequestAsJson(postPeriodsRequest())
+    val body    = postPeriodsRequestAsJson(postPeriodsRequest())
     val request = attendedRequestWithAllHeaders(POST).withBody(body)
 
     val response = controller.post(request)
@@ -104,7 +104,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("return 400(BAD_REQUEST) for a PUT when the Content-Type header is missing") {
-    val body = putPeriodsRequest(putPeriodsRequest)
+    val body    = putPeriodsRequest(putPeriodsRequest)
     val request = unattendedRequestFilteredOutOneHeader(CONTENT_TYPE, "PUT").withBody(body)
 
     verifyHeaderIsMissing(controller.put(genNinoString)(request), CONTENT_TYPE)
@@ -112,7 +112,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
 
   test("return 400(BAD_REQUEST) for a 'PUT Periods' when the RequestType header is DA2_BS_ATTENDED") {
     Given(s"a 'PUT Periods' request with a $RequestType header equal to ${Attended.DA2_BS_ATTENDED}")
-    val body = putPeriodsRequest(putPeriodsRequest)
+    val body    = putPeriodsRequest(putPeriodsRequest)
     val request = attendedRequestWithAllHeaders(PUT).withBody(body)
 
     val response = controller.put(genNinoString)(request)

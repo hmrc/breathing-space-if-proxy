@@ -26,8 +26,8 @@ trait Arbitraries {
   // Method takes a build function that takes the n arguments and produces a value
   // This is useful as it means we do not need to provide the arguments when we call
   // the method and allows the compiler to infer the types for us
-  def asArbitrary[A, B, C, D, E, F, Out](build: (A, B, C, D, E, F) => Out)(
-    implicit arb: Arbitrary[(A, B, C, D, E, F)]
+  def asArbitrary[A, B, C, D, E, F, Out](build: (A, B, C, D, E, F) => Out)(implicit
+    arb: Arbitrary[(A, B, C, D, E, F)]
   ): Arbitrary[Out] =
     Arbitrary(arb.arbitrary.map(build.tupled))
 }

@@ -32,12 +32,12 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class PeriodsConnector @Inject()(
+class PeriodsConnector @Inject() (
   http: HttpClient,
   metricRegistryParam: MetricRegistry,
   val cacheRepository: CacheRepository
-)(
-  implicit appConfig: AppConfig,
+)(implicit
+  appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
@@ -55,8 +55,8 @@ class PeriodsConnector @Inject()(
       }
     }
 
-  def post(nino: Nino, postPeriods: PostPeriodsInRequest)(
-    implicit requestId: RequestId
+  def post(nino: Nino, postPeriods: PostPeriodsInRequest)(implicit
+    requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
@@ -68,8 +68,8 @@ class PeriodsConnector @Inject()(
       }
     }
 
-  def put(nino: Nino, putPeriods: List[PutPeriodInRequest])(
-    implicit requestId: RequestId
+  def put(nino: Nino, putPeriods: List[PutPeriodInRequest])(implicit
+    requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {

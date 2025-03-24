@@ -32,8 +32,8 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class UnderpaymentsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
-  implicit appConfig: AppConfig,
+class UnderpaymentsConnector @Inject() (http: HttpClient, metricRegistryParam: MetricRegistry)(implicit
+  appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
@@ -61,7 +61,7 @@ class UnderpaymentsConnector @Inject()(http: HttpClient, metricRegistryParam: Me
       (method: String, url: String, response: HttpResponse) =>
         response.status match {
           case NO_CONTENT => Underpayments(List())
-          case _ => rds.read(method, url, response)
+          case _          => rds.read(method, url, response)
         }
   }
 }

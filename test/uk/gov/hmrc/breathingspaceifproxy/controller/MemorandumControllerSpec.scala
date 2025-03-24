@@ -62,12 +62,12 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
       val response = controller.get(genNino)(fakeMemorandumGetRequest)
 
-      status(response) shouldBe OK
+      status(response)          shouldBe OK
       contentAsString(response) shouldBe Json.toJson(memorandum).toString
     }
 
     "return 400(BAD_REQUEST) when correlation id is missing" in {
-      val nino = Nino("AA000001A")
+      val nino     = Nino("AA000001A")
       val response =
         controller
           .get(nino)(memorandumRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId))

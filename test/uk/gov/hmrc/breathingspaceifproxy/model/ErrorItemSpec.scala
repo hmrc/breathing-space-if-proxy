@@ -24,15 +24,15 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class ErrorItemSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
 
-  val entryName = "EntryName"
-  val message = "Message:"
+  val entryName            = "EntryName"
+  val message              = "Message:"
   val baseError: BaseError = mock[BaseError]
   when(baseError.entryName).thenReturn(entryName)
   when(baseError.message).thenReturn(message)
 
   test("the ErrorItem objects should be deserialized correctly with details") {
 
-    val details = Some("details")
+    val details   = Some("details")
     val errorItem = ErrorItem(baseError, details)
 
     val expectedJson =
@@ -48,7 +48,7 @@ class ErrorItemSpec extends AnyFunSuite with BaseSpec with MockitoSugar {
 
   test("the ErrorItem objects should be deserialized correctly without details") {
 
-    val details = None
+    val details   = None
     val errorItem = ErrorItem(baseError, details)
 
     val expectedJson =

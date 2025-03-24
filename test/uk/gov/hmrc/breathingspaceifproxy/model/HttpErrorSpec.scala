@@ -75,10 +75,10 @@ class HttpErrorSpec extends AnyFunSuite with BaseSpec {
 
     And("a body in Json format")
     response.header.headers.get(CONTENT_TYPE) shouldBe Option(MimeTypes.JSON)
-    response.body.contentType shouldBe Some(MimeTypes.JSON)
+    response.body.contentType                 shouldBe Some(MimeTypes.JSON)
     val bodyAsJson = Json.parse(response.body.consumeData.futureValue.utf8String)
 
-    val nrErrors = errorItems.length.toInt
+    val nrErrors  = errorItems.length.toInt
     And(s"'errors' should be a list with $nrErrors Error items")
     val errorList = (bodyAsJson \ "errors").as[List[TestingErrorItem]]
     errorList.size shouldBe nrErrors

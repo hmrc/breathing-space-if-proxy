@@ -34,7 +34,7 @@ object PutPeriodInRequest {
   implicit val writes: Writes[PutPeriodInRequest] = new Writes[PutPeriodInRequest] {
     def writes(putPeriod: PutPeriodInRequest): JsObject = {
       val fields = List(
-        periodIdKey -> Json.toJson(putPeriod.periodID),
+        periodIdKey  -> Json.toJson(putPeriod.periodID),
         startDateKey -> Json.toJson(putPeriod.startDate),
         timestampKey -> JsString(putPeriod.pegaRequestTimestamp.format(timestampFormatter))
       )

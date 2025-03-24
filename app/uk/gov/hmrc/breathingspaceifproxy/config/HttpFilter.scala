@@ -23,14 +23,14 @@ import play.api.mvc._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class HttpFilter @Inject()(implicit val mat: Materializer, ec: ExecutionContext, appConfig: AppConfig) extends Filter {
+class HttpFilter @Inject() (implicit val mat: Materializer, ec: ExecutionContext, appConfig: AppConfig) extends Filter {
   def apply(nextFilter: RequestHeader => Future[Result])(requestHeader: RequestHeader): Future[Result] =
     nextFilter(requestHeader).map { result =>
       result.withHeaders("Cache-Control" -> appConfig.httpHeaderCacheControl)
     }
 }
 
-class Filters @Inject()(
+class Filters @Inject() (
   defaultFilters: EnabledFilters,
   httpFilter: HttpFilter
 ) extends DefaultHttpFilters(defaultFilters.filters :+ httpFilter: _*)

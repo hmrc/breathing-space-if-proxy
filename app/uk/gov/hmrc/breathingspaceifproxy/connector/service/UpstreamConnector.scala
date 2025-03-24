@@ -30,14 +30,14 @@ import scala.concurrent.{ExecutionContext, Future}
 trait UpstreamConnector extends HttpErrorFunctions with Logging {
   def currentState: String = "HEALTHY"
 
-  def monitor[T](f: => ResponseValidation[T])(
-    implicit ec: ExecutionContext,
+  def monitor[T](f: => ResponseValidation[T])(implicit
+    ec: ExecutionContext,
     requestId: RequestId
   ): ResponseValidation[T] =
     f.recoverWith(handleUpstreamError)
 
-  protected def handleUpstreamError[T](
-    implicit requestId: RequestId
+  protected def handleUpstreamError[T](implicit
+    requestId: RequestId
   ): PartialFunction[Throwable, ResponseValidation[T]] = {
     case exc: HttpException if is4xx(exc.responseCode) => handleUpstream4xxError(exc.responseCode, exc.message)
     case exc: HttpException if is5xx(exc.responseCode) => handleUpstream5xxError(exc.responseCode, exc.message)
@@ -51,25 +51,25 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging {
       Future.successful(ErrorItem(BaseError.INTERNAL_SERVER_ERROR).invalidNec)
   }
 
-  private def handleUpstream4xxError[T](statusCode: Int, message: String)(
-    implicit r: RequestId
+  private def handleUpstream4xxError[T](statusCode: Int, message: String)(implicit
+    r: RequestId
   ): ResponseValidation[T] =
     statusCode match {
-      case NOT_FOUND => notFound(message)
-      case FORBIDDEN => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BaseError.BREATHING_SPACE_EXPIRED)
-      case CONFLICT => logAndGenDownstreamResponse(info, CONFLICT, message, BaseError.CONFLICTING_REQUEST)
+      case NOT_FOUND         => notFound(message)
+      case FORBIDDEN         => logAndGenDownstreamResponse(warning, FORBIDDEN, message, BaseError.BREATHING_SPACE_EXPIRED)
+      case CONFLICT          => logAndGenDownstreamResponse(info, CONFLICT, message, BaseError.CONFLICTING_REQUEST)
       case TOO_MANY_REQUESTS => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.TOO_MANY_REQUESTS)
-      case _ => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.INTERNAL_SERVER_ERROR)
+      case _                 => logAndGenDownstreamResponse(warning, statusCode, message, BaseError.INTERNAL_SERVER_ERROR)
     }
 
-  private def handleUpstream5xxError[T](statusCode: Int, message: String)(
-    implicit r: RequestId
+  private def handleUpstream5xxError[T](statusCode: Int, message: String)(implicit
+    r: RequestId
   ): ResponseValidation[T] = logAndGenDownstreamResponse(error, statusCode, message, BaseError.SERVER_ERROR)
 
-  val noDataFound = """"code":"NO_DATA_FOUND""""
-  val notInBS = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
-  val noPeriodIdFound = """"code":"BREATHINGSPACE_ID_NOT_FOUND""""
-  val noResourceFound = """"code":"RESOURCE_NOT_FOUND""""
+  val noDataFound        = """"code":"NO_DATA_FOUND""""
+  val notInBS            = """"code":"IDENTIFIER_NOT_IN_BREATHINGSPACE""""
+  val noPeriodIdFound    = """"code":"BREATHINGSPACE_ID_NOT_FOUND""""
+  val noResourceFound    = """"code":"RESOURCE_NOT_FOUND""""
   val notIdentifierFound = """"code":"IDENTIFIER_NOT_FOUND""""
 
   private def notFound[T](response: String)(implicit requestId: RequestId): ResponseValidation[T] = {
@@ -91,14 +91,14 @@ trait UpstreamConnector extends HttpErrorFunctions with Logging {
     statusCode: Int,
     message: String,
     baseError: BaseError
-  )(
-    implicit requestId: RequestId
+  )(implicit
+    requestId: RequestId
   ): ResponseValidation[T] = {
     log(s"Error($statusCode) for $requestId. $message")
     Future.successful(ErrorItem(baseError).invalidNec)
   }
 
-  private val error = (message: String) => logger.error(message)
-  private val info = (message: String) => logger.info(message)
+  private val error   = (message: String) => logger.error(message)
+  private val info    = (message: String) => logger.info(message)
   private val warning = (message: String) => logger.warn(message)
 }

@@ -81,7 +81,7 @@ trait BaseSpec
     numberOfErrors: Int
   ): List[TestingErrorItem] = {
 
-    val result = future.futureValue
+    val result         = future.futureValue
     Then(s"the resulting response should have as Http Status $expectedStatus")
     val responseHeader = result.header
     responseHeader.status shouldBe expectedStatus
@@ -94,7 +94,7 @@ trait BaseSpec
     }
 
     And("the body should be in Json format")
-    headers(CONTENT_TYPE).toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    headers(CONTENT_TYPE).toLowerCase       shouldBe MimeTypes.JSON.toLowerCase
     result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 

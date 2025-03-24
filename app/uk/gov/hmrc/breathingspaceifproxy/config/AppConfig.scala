@@ -23,7 +23,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import scala.concurrent.duration.Duration
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
 
   lazy val appName: String = config.get[String]("appName")
 
