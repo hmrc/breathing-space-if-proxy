@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
 
   val controllerComponents: ControllerComponents
 
-  val authProviders = AuthProviders(PrivilegedApplication)
+  private val authProviders = AuthProviders(PrivilegedApplication)
 
   def authAction(scope: String, requestNino: Option[String] = None): ActionBuilder[Request, AnyContent] =
     new ActionBuilder[Request, AnyContent] {

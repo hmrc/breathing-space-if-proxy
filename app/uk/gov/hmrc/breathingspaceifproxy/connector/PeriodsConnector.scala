@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,7 +51,7 @@ class PeriodsConnector @Inject() (
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[PeriodsInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
+        http.GET[PeriodsInResponse](Url(url(nino)).toURL, headers = headers).map(_.validNec)
       }
     }
 
@@ -62,7 +62,7 @@ class PeriodsConnector @Inject() (
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         clear(nino).flatMap { _ =>
           http
-            .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods), headers)
+            .POST[JsValue, PeriodsInResponse](Url(url(nino)).toURL, Json.toJson(postPeriods), headers)
             .map(_.validNec)
         }
       }
