@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 
 import sbt.*
 import uk.gov.hmrc.DefaultBuildSettings
-import uk.gov.hmrc.DefaultBuildSettings.*
 
 val appName = "breathing-space-if-proxy"
-val scala2_13 = "2.13.12"
 
-ThisBuild / majorVersion := 2
-ThisBuild / scalaVersion := scala2_13
+ThisBuild / majorVersion := 3
+ThisBuild / scalaVersion := "3.3.4"
 ThisBuild / scalafmtOnCompile := true
 
 lazy val plugins: Seq[Plugins] =
@@ -54,31 +52,27 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     PlayKeys.playDefaultPort := 9501,
     scoverageSettings,
-    scalaSettings,
     libraryDependencies ++= Dependencies.all
   )
   .settings(
     scalacOptions ++= Seq(
       "-unchecked",
       "-feature",
-      "-Xlint:_",
-      "-Wdead-code",
-      "-Wunused:_",
-      "-Wextra-implicit",
-      "-Ywarn-unused",
+      "-Xfatal-warnings",
+      "-language:noAutoTupling",
+      "-Wvalue-discard",
       "-Werror",
-      "-Wconf:cat=unused-imports&site=.*views\\.txt:s",
-      "-Wconf:cat=unused-imports&site=.*views\\.html.*:s",
-      "-Wconf:cat=unused-imports&site=<empty>:s",
-      "-Wconf:cat=unused&src=.*RoutesPrefix\\.scala:s",
-      "-Wconf:cat=unused&src=.*Routes\\.scala:s",
-      "-Wconf:cat=unused&src=.*ReverseRoutes\\.scala:s",
-      "-Wconf:cat=unused&src=.*JavaScriptReverseRoutes\\.scala:s"
+      "-Wconf:msg=unused import&src=.*views\\.txt:s",
+      "-Wconf:msg=unused import&src=.*views\\.html.*:s",
+      "-Wconf:msg=unused import&src=<empty>:s",
+      "-Wconf:msg=unused&src=.*RoutesPrefix\\.scala:s",
+      "-Wconf:msg=unused&src=.*Routes\\.scala:s",
+      "-Wconf:msg=unused&src=.*ReverseRoutes\\.scala:s",
+      "-Wconf:msg=unused&src=.*JavaScriptReverseRoutes\\.scala:s",
+      "-Wconf:msg=Flag.*repeatedly:s"
     )
   )
   .settings(routesImport ++= Seq("uk.gov.hmrc.breathingspaceifproxy.config.Binders._"))
-
-scalastyleConfig := baseDirectory.value / "project" / "scalastyle-config.xml"
 
 Compile / unmanagedResourceDirectories += baseDirectory.value / "public"
 
