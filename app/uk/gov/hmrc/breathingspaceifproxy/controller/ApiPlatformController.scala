@@ -30,7 +30,7 @@ class ApiPlatformController @Inject() (cc: ControllerComponents, assets: Assets)
 
   def getDefinition: Action[AnyContent] = {
     logger.debug(s"ApiPlatformController definition endpoint has been called")
-    assets.at("/public/api/definition", "definition.json")
+    assets.at("/api/definition", "definition.json")
   }
 
   def conf(version: String, file: String): Action[AnyContent] =
