@@ -51,7 +51,7 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
         val headerCarrier = HeaderCarrierConverter.fromRequest(request)
         authorised(ConfidenceLevel.L200.or(authProviders.and(Enrolment(scope))))
           .retrieve(nino.and(trustedHelper).and(clientId)) {
-            case Some(authNino) ~ None ~ _  if checkNino(authNino)                => f(request)
+            case Some(authNino) ~ None ~ _ if checkNino(authNino)                 => f(request)
             case _ ~ Some(trusted) ~ _ if trusted.principalNino.exists(checkNino) => f(request)
             case _ ~ _ ~ Some(_)                                                  => f(request)
             case _                                                                => notAuthorised
