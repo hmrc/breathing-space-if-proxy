@@ -1,7 +1,3 @@
-@import play.api.libs.json.Json
-
-@(v1AllowlistedApplicationIds:  Seq[String])
-
 {
   "api": {
     "name": "Breathing Space",
@@ -14,8 +10,7 @@
         "status": "BETA",
         "endpointsEnabled": false,
         "access": {
-          "type": "PRIVATE",
-          "whitelistedApplicationIds": @{Json.toJson(v1AllowlistedApplicationIds)}
+          "type": "PRIVATE"
         }
       }
     ]

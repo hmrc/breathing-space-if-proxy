@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,18 +22,17 @@ import controllers.Assets
 import play.api.Logging
 import play.api.http.MimeTypes
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.views
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton
-class ApiPlatformController @Inject() (appConfig: AppConfig, cc: ControllerComponents, assets: Assets)
+class ApiPlatformController @Inject() (cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 
   val getDefinition: Action[AnyContent] = Action {
     logger.debug(s"ApiPlatformController definition endpoint has been called")
-    Ok(views.txt.definition(appConfig.v1AllowlistedApplicationIds)).as(MimeTypes.JSON)
+    Ok(views.txt.definition()).as(MimeTypes.JSON)
   }
 
   def conf(version: String, file: String): Action[AnyContent] =

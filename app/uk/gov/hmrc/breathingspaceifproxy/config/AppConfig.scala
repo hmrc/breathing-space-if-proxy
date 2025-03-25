@@ -40,10 +40,6 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
 
   val httpHeaderCacheControl: String = config.get[String]("httpHeaders.cacheControl")
 
-  // Must be 'lazy'
-  lazy val v1AllowlistedApplicationIds: Seq[String] =
-    config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
-
   val memorandumFeatureEnabled: Boolean = config.get[Boolean]("feature.flag.memorandum.enabled")
 
   object mongo {
