@@ -1,0 +1,18 @@
+{
+  "api": {
+    "name": "Breathing Space",
+    "description": "Allows for the administration of Breathing Space Periods for an individual and related activities",
+    "context": "individuals/breathing-space",
+    "categories": ["OTHER"],
+    "versions": [
+      {
+        "version": "1.0",
+        "status": "BETA",
+        "endpointsEnabled": false,
+        "access": {
+          "type": "PRIVATE"
+        }
+      }
+    ]
+  }
+}

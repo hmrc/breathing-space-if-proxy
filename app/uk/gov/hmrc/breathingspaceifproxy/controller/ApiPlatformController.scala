@@ -16,25 +16,25 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import javax.inject.{Inject, Singleton}
-
 import controllers.Assets
 import play.api.Logging
-import play.api.http.MimeTypes
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.views
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.{Inject, Singleton}
+
 @Singleton
-class ApiPlatformController @Inject()(appConfig: AppConfig, cc: ControllerComponents, assets: Assets)
+class ApiPlatformController @Inject()(cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 
-  val getDefinition: Action[AnyContent] = Action {
-    logger.debug(s"ApiPlatformController definition endpoint has been called")
-    Ok(views.txt.definition(appConfig.v1AllowlistedApplicationIds)).as(MimeTypes.JSON)
-  }
+//  val getDefinition: Action[AnyContent] = Action {
+//    logger.debug(s"ApiPlatformController definition endpoint has been called")
+//    Ok(views.txt.definition(appConfig.v1AllowlistedApplicationIds)).as(MimeTypes.JSON)
+//  }
+
+  def getDefinition: Action[AnyContent] =
+    assets.at("/api/definition", "definition.json")
 
   def conf(version: String, file: String): Action[AnyContent] =
     assets.at(s"/api/conf/$version", file)
