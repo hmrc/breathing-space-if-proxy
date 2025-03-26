@@ -28,11 +28,6 @@ class ApiPlatformController @Inject()(cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 
-//  val getDefinition: Action[AnyContent] = Action {
-//    logger.debug(s"ApiPlatformController definition endpoint has been called")
-//    Ok(views.txt.definition(appConfig.v1AllowlistedApplicationIds)).as(MimeTypes.JSON)
-//  }
-
   def getDefinition: Action[AnyContent] =
     assets.at("/api/definition", "definition.json")
 
