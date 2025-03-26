@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@ import scala.concurrent.Future
 
 import cats.syntax.option._
 import cats.syntax.validated._
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
 import play.api.test.Helpers._
@@ -40,7 +42,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  val mockUpstreamConnector = mock[EisConnector]
+  val mockUpstreamConnector: EisConnector = mock[EisConnector]
   when(mockUpstreamConnector.currentState).thenReturn("HEALTHY")
 
   val mockConnector: PeriodsConnector = mock[PeriodsConnector]

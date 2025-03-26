@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.implicits._
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers
@@ -101,5 +103,6 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
 
     errorList.head.code shouldBe MISSING_HEADER.entryName
     assert(errorList.head.message.startsWith(MISSING_HEADER.message))
+    ()
   }
 }
