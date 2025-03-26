@@ -20,7 +20,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "breathing-space-if-proxy"
 
 ThisBuild / majorVersion := 3
-ThisBuild / scalaVersion := "3.3.4"
+ThisBuild / scalaVersion := "3.3.5"
 ThisBuild / scalafmtOnCompile := true
 
 lazy val plugins: Seq[Plugins] =
