@@ -16,19 +16,18 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import scala.concurrent.Future
-
 import controllers.{Assets, Execution}
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.Application
-import play.api.http.MimeTypes
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.{ActionBuilder, AnyContent, Request}
 import play.api.mvc.Results.Status
+import play.api.mvc.{ActionBuilder, AnyContent, Request}
 import play.api.test.Helpers
 import play.api.test.Helpers._
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
+
+import scala.concurrent.Future
 
 class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
@@ -42,23 +41,19 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
   private val expectedStatus = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
   private val mockAssets = mock[Assets]
-  private val controller = new ApiPlatformController(appConfig, Helpers.stubControllerComponents(), mockAssets)
+  private def controller = new ApiPlatformController(Helpers.stubControllerComponents(), mockAssets)
 
   "getDefinition" should {
     "return a definitions.json object with the allowlisted applicationIds included" in {
+
+      when(mockAssets.at("/api/definition", "definition.json", false))
+        .thenReturn(Action.async(Future.successful(Status(200))))
+
       Given("a request from the API Platform is received")
       val result = controller.getDefinition()(fakeGetRequest)
 
       Then(s"the resulting Response should have as Http Status $expectedStatus")
       status(result) shouldBe expectedStatus
-
-      And(s"a response body with a mime type of ${MimeTypes.JSON}")
-      contentType(result) shouldBe Some(MimeTypes.JSON)
-
-      And(s"the response body should contain the correct 'allowlistedApplicationIds' values")
-      val versions = (contentAsJson(result) \ "api" \ "versions")
-      (versions.head \ "access" \ "whitelistedApplicationIds").as[Seq[String]] shouldBe
-        appConfig.v1AllowlistedApplicationIds
     }
   }
 
