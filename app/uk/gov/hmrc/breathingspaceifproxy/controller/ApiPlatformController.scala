@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,12 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class ApiPlatformController @Inject() (cc: ControllerComponents, assets: Assets)
+class ApiPlatformController @Inject()(cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 
-  def getDefinition: Action[AnyContent] = {
-    logger.debug(s"ApiPlatformController definition endpoint has been called")
+  def getDefinition: Action[AnyContent] =
     assets.at("/api/definition", "definition.json")
-  }
 
   def conf(version: String, file: String): Action[AnyContent] =
     assets.at(s"/api/conf/$version", file)

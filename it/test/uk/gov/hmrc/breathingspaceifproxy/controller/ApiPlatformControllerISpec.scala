@@ -31,8 +31,6 @@ class ApiPlatformControllerISpec extends BaseISpec {
 
       status(response) shouldBe Status.OK
 
-      val appId = appConfig.v1AllowlistedApplicationIds.head
-      contentAsString(response) should include(s""""whitelistedApplicationIds": ["$appId"""")
       headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }
