@@ -16,36 +16,48 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import cats.syntax.validated._
+import cats.syntax.validated.*
 import com.codahale.metrics.MetricRegistry
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.*
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class IndividualDetailsConnector @Inject() (http: HttpClient, metricRegistryParam: MetricRegistry)(implicit
+class IndividualDetailsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam: MetricRegistry)(implicit
   appConfig: AppConfig,
   val eisConnector: EisConnector,
+  hc: HeaderCarrier,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {
 
   import IndividualDetailsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
+  override val metricRegistry: MetricRegistry = metricRegistryParam
 
   // Breathing Space Population
   def getDetails(nino: Nino)(implicit requestId: RequestId): ResponseValidation[IndividualDetails] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[IndividualDetails](Url(url(nino, IndividualDetails.fields)).toURL, headers = headers).map(_.validNec)
+        val updatedHc   = hc.withExtraHeaders(headers: _*)
+        val fullUrl     = url(nino, IndividualDetails.fields)
+        val apiResponse = httpClientV2
+          .get(url"$fullUrl")(updatedHc)
+          .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw), implicitly)
+
+        apiResponse.map {
+          case Right(response) => response.json.as[IndividualDetails].validNec
+          case Left(error)     => ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(error.message)).invalidNec
+        }
       }
     }
 }

@@ -16,54 +16,58 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import cats.syntax.validated._
+import cats.syntax.validated.*
 import com.codahale.metrics.MetricRegistry
-import play.api.http.Status.NO_CONTENT
+import play.api.http.Status.{NO_CONTENT, OK}
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HttpClient, HttpReads, HttpResponse}
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HttpReads, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class UnderpaymentsConnector @Inject() (http: HttpClient, metricRegistryParam: MetricRegistry)(implicit
+class UnderpaymentsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam: MetricRegistry)(implicit
   appConfig: AppConfig,
   val eisConnector: EisConnector,
+  hc: HeaderCarrier,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {
 
   import UnderpaymentsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
+  override val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId): ResponseValidation[Underpayments] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http
-          .GET[Underpayments](Url(url(nino, periodId)).toURL, headers = headers)(
-            UnderpaymentsHttpReads.reads,
-            implicitly,
-            implicitly
-          )
-          .map(_.validNec)
+        val updatedHc   = hc.withExtraHeaders(headers: _*)
+        val fullUrl     = url(nino, periodId)
+        val apiResponse = httpClientV2
+          .get(url"$fullUrl")(updatedHc)
+          .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw), implicitly)
+
+        apiResponse.map {
+          case Right(response) =>
+            response.status match {
+              case OK         => response.json.as[Underpayments].validNec
+              case NO_CONTENT => Underpayments(List()).validNec
+              case _          =>
+                ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(s"Unexpected status: ${response.status}")).invalidNec
+            }
+          case Left(error)     =>
+            ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(error.message)).invalidNec
+        }
       }
     }
-
-  private object UnderpaymentsHttpReads {
-    def reads(implicit rds: HttpReads[Underpayments]): HttpReads[Underpayments] =
-      (method: String, url: String, response: HttpResponse) =>
-        response.status match {
-          case NO_CONTENT => Underpayments(List())
-          case _          => rds.read(method, url, response)
-        }
-  }
 }
 
 object UnderpaymentsConnector {

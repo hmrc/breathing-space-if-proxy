@@ -16,28 +16,31 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import cats.syntax.validated._
+import cats.syntax.validated.*
 import com.codahale.metrics.MetricRegistry
 import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemConnector}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId, Url}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
+import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, MemorandumInResponse, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
 class MemorandumConnector @Inject() (
-  http: HttpClient,
+  httpClientV2: HttpClientV2,
   metricRegistryParam: MetricRegistry,
   val cacheRepository: CacheRepository
 )(implicit
   appConfig: AppConfig,
   val memorandumConnector: MemConnector,
+  hc: HeaderCarrier,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler
@@ -45,13 +48,22 @@ class MemorandumConnector @Inject() (
 
   import MemorandumConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
+  override val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[MemorandumInResponse] =
     memorandumConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         cache("memorandum")(nino) {
-          http.GET[MemorandumInResponse](Url(url(nino)).toURL, headers = headers).map(_.validNec)
+          val updatedHc   = hc.withExtraHeaders(headers: _*)
+          val fullUrl     = url(nino)
+          val apiResponse = httpClientV2
+            .get(url"$fullUrl")(updatedHc)
+            .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw), implicitly)
+
+          apiResponse.map {
+            case Right(response) => response.json.as[MemorandumInResponse].validNec
+            case Left(error)     => ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(error.message)).invalidNec
+          }
         }
       }
     }
