@@ -17,7 +17,7 @@
 package uk.gov.hmrc.breathingspaceifproxy.model
 
 import cats.syntax.option.none
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{Json, OFormat, OWrites, Reads}
 
 import java.time.LocalDate
 
@@ -54,7 +54,21 @@ final case class AddressData(
   countryCode: Option[Int] = none,
   addressType: Option[Int] = none
 )
-object AddressData { implicit val format: OFormat[AddressData] = Json.format[AddressData] }
+object AddressData {
+  implicit val writes: OWrites[AddressData] = OWrites[AddressData] { addr =>
+    Json.obj(
+      "addressLine1"    -> addr.addressLine1,
+      "addressLine2"    -> addr.addressLine2,
+      "addressLine3"    -> addr.addressLine3,
+      "addressLine4"    -> addr.addressLine4,
+      "addressLine5"    -> addr.addressLine5,
+      "addressPostcode" -> addr.addressPostcode,
+      "countryCode"     -> addr.countryCode,
+      "addressType"     -> addr.addressType
+    )
+  }
+  implicit val reads: Reads[AddressData]    = Json.reads[AddressData]
+}
 
 final case class AddressList(address: List[AddressData])
 object AddressList { implicit val format: OFormat[AddressList] = Json.format[AddressList] }
