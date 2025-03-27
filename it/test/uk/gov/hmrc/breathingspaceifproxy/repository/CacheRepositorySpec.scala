@@ -30,7 +30,7 @@ import scala.concurrent.Future
 
 class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySupport[CacheItem] {
 
-  override lazy val repository =
+  override val repository: CacheRepository =
     new CacheRepository(
       mongoComponent,
       inject[TimestampSupport],

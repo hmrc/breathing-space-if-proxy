@@ -46,9 +46,9 @@ class MemorandumConnectorISpec
       .overrides(bind[MongoComponent].to(mongoComponent))
       .build()
 
-  override lazy val repository: CacheRepository = inject[CacheRepository]
-  val connector: MemorandumConnector            = inject[MemorandumConnector]
-  implicit val requestId: RequestId             = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
+  override val repository: CacheRepository = inject[CacheRepository]
+  val connector: MemorandumConnector       = inject[MemorandumConnector]
+  implicit val requestId: RequestId        = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
 
   "get" should {
     "return an MemorandumInResponse instance when it receives a 200(OK) response" in {

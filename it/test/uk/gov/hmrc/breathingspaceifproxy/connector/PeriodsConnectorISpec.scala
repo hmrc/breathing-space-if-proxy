@@ -45,9 +45,9 @@ class PeriodsConnectorISpec
       .overrides(bind[MongoComponent].to(mongoComponent))
       .build()
 
-  override lazy val repository: CacheRepository = inject[CacheRepository]
-  val connector: PeriodsConnector               = inject[PeriodsConnector]
-  implicit val requestId: RequestId             = genRequestId(BS_Periods_GET, connector.eisConnector)
+  override val repository: CacheRepository = inject[CacheRepository]
+  val connector: PeriodsConnector          = inject[PeriodsConnector]
+  implicit val requestId: RequestId        = genRequestId(BS_Periods_GET, connector.eisConnector)
 
   "get" should {
     "return a PeriodsResponse instance when it receives a 200(OK) response" in {
