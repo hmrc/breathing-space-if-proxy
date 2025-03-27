@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,29 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import cats.syntax.validated._
+import cats.syntax.validated.*
 import com.codahale.metrics.MetricRegistry
-import play.api.libs.json._
-import uk.gov.hmrc.breathingspaceifproxy._
+import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
+import uk.gov.hmrc.breathingspaceifproxy.*
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.StringContextOps
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class PeriodsConnector @Inject()(
-  http: HttpClient,
+class PeriodsConnector @Inject() (
+  httpClientV2: HttpClientV2,
   metricRegistryParam: MetricRegistry,
   val cacheRepository: CacheRepository
-)(
-  implicit appConfig: AppConfig,
+)(implicit
+  appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
@@ -46,40 +47,49 @@ class PeriodsConnector @Inject()(
 
   import PeriodsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
+  override val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino)(implicit requestId: RequestId): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[PeriodsInResponse](Url(url(nino)).value, headers = headers).map(_.validNec)
+        val updatedHc = hc.withExtraHeaders(headers: _*)
+        val fullUrl   = url(nino)
+        httpClientV2
+          .get(url"$fullUrl")(updatedHc)
+          .execute[PeriodsInResponse]
+          .map(_.validNec)
       }
     }
 
-  def post(nino: Nino, postPeriods: PostPeriodsInRequest)(
-    implicit requestId: RequestId
+  def post(nino: Nino, postPeriods: PostPeriodsInRequest)(implicit
+    requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         clear(nino).flatMap { _ =>
-          http
-            .POST[JsValue, PeriodsInResponse](Url(url(nino)).value, Json.toJson(postPeriods), headers)
+          val updatedHc = hc.withExtraHeaders(headers: _*)
+          val fullUrl   = url(nino)
+          httpClientV2
+            .post(url"$fullUrl")(updatedHc)
+            .withBody(postPeriods)
+            .execute[PeriodsInResponse]
             .map(_.validNec)
         }
       }
     }
 
-  def put(nino: Nino, putPeriods: List[PutPeriodInRequest])(
-    implicit requestId: RequestId
+  def put(nino: Nino, putPeriods: List[PutPeriodInRequest])(implicit
+    requestId: RequestId
   ): ResponseValidation[PeriodsInResponse] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         clear(nino).flatMap { _ =>
-          http
-            .PUT[JsValue, PeriodsInResponse](
-              Url(url(nino)).value,
-              Json.toJson(PutPeriodsInRequest(putPeriods)),
-              headers
-            )
+          val updatedHc = hc.withExtraHeaders(headers: _*)
+          val fullUrl   = url(nino)
+          httpClientV2
+            .put(url"$fullUrl")(updatedHc)
+            .withBody(PutPeriodsInRequest(putPeriods))
+            .execute[PeriodsInResponse]
             .map(_.validNec)
         }
       }

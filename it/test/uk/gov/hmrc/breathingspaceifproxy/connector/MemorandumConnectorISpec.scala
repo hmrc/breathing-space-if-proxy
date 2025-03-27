@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import play.api.test.Helpers.await
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{
-  CONFLICTING_REQUEST,
-  INTERNAL_SERVER_ERROR,
-  RESOURCE_NOT_FOUND
-}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{CONFLICTING_REQUEST, INTERNAL_SERVER_ERROR, RESOURCE_NOT_FOUND}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
 import uk.gov.hmrc.breathingspaceifproxy.model.{HashedNino, MemorandumInResponse, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.repository.CacheRepository
@@ -44,24 +40,24 @@ class MemorandumConnectorISpec
     with ConnectorTestSupport
     with DefaultPlayMongoRepositorySupport[CacheItem] {
 
-  override val fakeApplication: Application =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(configProperties)
       .overrides(bind[MongoComponent].to(mongoComponent))
       .build()
 
-  override lazy val repository: CacheRepository = inject[CacheRepository]
-  val connector: MemorandumConnector = inject[MemorandumConnector]
-  implicit val requestId: RequestId = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
+  override val repository: CacheRepository = inject[CacheRepository]
+  val connector: MemorandumConnector       = inject[MemorandumConnector]
+  implicit val requestId: RequestId        = genRequestId(BS_Memorandum_GET, connector.memorandumConnector)
 
   "get" should {
     "return an MemorandumInResponse instance when it receives a 200(OK) response" in {
 
       val expectedBreathingSpaceIndicator = true
-      val memorandum = MemorandumInResponse(expectedBreathingSpaceIndicator)
+      val memorandum                      = MemorandumInResponse(expectedBreathingSpaceIndicator)
 
-      val nino = genNino
-      val url = MemorandumConnector.path(nino)
+      val nino            = genNino
+      val url             = MemorandumConnector.path(nino)
       val responsePayload = Json.toJson(memorandum).toString
       stubCall(HttpMethod.Get, url, OK, responsePayload)
 
@@ -75,13 +71,13 @@ class MemorandumConnectorISpec
     }
 
     "return cached response when available" in {
-      val nino = genNino
+      val nino                            = genNino
       val expectedBreathingSpaceIndicator = true
       repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(expectedBreathingSpaceIndicator))
 
       val memorandum = MemorandumInResponse(false)
 
-      val url = MemorandumConnector.path(nino)
+      val url             = MemorandumConnector.path(nino)
       val responsePayload = Json.toJson(memorandum).toString
       stubCall(HttpMethod.Get, url, OK, responsePayload)
 
@@ -117,7 +113,7 @@ class MemorandumConnectorISpec
 
   private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
     val nino = genNino
-    val url = MemorandumConnector.path(nino)
+    val url  = MemorandumConnector.path(nino)
     stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
     val response = await(connector.get(nino))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
       val ninoWithoutSuffix = genNino
-      val controllerUrl = put(s"${ninoWithoutSuffix.value} ").url
-      val connectorUrl =
+      val controllerUrl     = put(s"${ninoWithoutSuffix.value} ").url
+      val connectorUrl      =
         PeriodsConnector
           .path(ninoWithoutSuffix)
           .replace(ninoWithoutSuffix.value, s"${ninoWithoutSuffix.value}%20")
@@ -49,11 +49,11 @@ class PeriodsControllerPutISpec extends BaseISpec {
       val expectedBody = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedBody)
 
-      val request =
+      val request  =
         fakeUnattendedRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
       val response = route(app, request).get
 
-      status(response) shouldBe Status.OK
+      status(response)          shouldBe Status.OK
       contentAsString(response) shouldBe expectedBody
 
       verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)
@@ -74,7 +74,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
-      val body = s"""{periods":[${Json.toJson(validPutPeriod).toString}]}"""
+      val body    = s"""{periods":[${Json.toJson(validPutPeriod).toString}]}"""
       val request = fakeUnattendedRequest(Helpers.PUT, putPath).withBody(body)
 
       val response = await(route(app, request).get)
@@ -87,19 +87,19 @@ class PeriodsControllerPutISpec extends BaseISpec {
     }
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
-      val body = putPeriodsRequestAsJson(putPeriodsRequest)
+      val body    = putPeriodsRequestAsJson(putPeriodsRequest)
       val request = fakeUnattendedRequest(Helpers.PUT, put(genNino.value).url).withBody(body)
       verifyUnauthorized(request)
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
-      val unknownNino = genNino
+      val unknownNino  = genNino
       val connectorUrl = PeriodsConnector.path(unknownNino)
-      val errorBody = """"code":"RESOURCE_NOT_FOUND""""
+      val errorBody    = """"code":"RESOURCE_NOT_FOUND""""
       stubCall(HttpMethod.Put, connectorUrl, Status.NOT_FOUND, errorResponseFromIF(errorBody))
 
       val controllerUrl = put(unknownNino.value).url
-      val request = fakeUnattendedRequest(Helpers.PUT, controllerUrl)
+      val request       = fakeUnattendedRequest(Helpers.PUT, controllerUrl)
         .withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
       val response = route(app, request).get
@@ -112,8 +112,8 @@ class PeriodsControllerPutISpec extends BaseISpec {
   }
 
   private def verifyOk: Assertion = {
-    val nino = genNino
-    val connectorUrl = PeriodsConnector.path(nino)
+    val nino                 = genNino
+    val connectorUrl         = PeriodsConnector.path(nino)
     val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
     stubCall(HttpMethod.Put, connectorUrl, Status.OK, expectedResponseBody)
 
@@ -122,7 +122,7 @@ class PeriodsControllerPutISpec extends BaseISpec {
     val request = fakeUnattendedRequest(Helpers.PUT, controllerUrl).withBody(putPeriodsRequestAsJson(putPeriodsRequest))
 
     val response = route(app, request).get
-    status(response) shouldBe Status.OK
+    status(response)          shouldBe Status.OK
     contentAsString(response) shouldBe expectedResponseBody
 
     verifyHeadersForUnattended(HttpMethod.Put, connectorUrl)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,18 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.implicits.{catsSyntaxOptionId, catsSyntaxValidatedIdBinCompat0}
-import org.mockito.scalatest.MockitoSugar
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.JsSuccess
 import play.api.test.Helpers
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -56,11 +58,11 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
   val u3: Underpayment = Underpayment("2011", 123.12, "PAYE UP")
 
   val underpayments: List[Underpayment] = List(u1, u2, u3)
-  val validPeriodId: String = UUID.randomUUID().toString
-  val validNino = "AS000001A"
-  val invalidPeriodId = "abcdefg"
-  val nonExistentNino = "AS000001A"
-  val nonExistentPeriodId: String = UUID.randomUUID().toString
+  val validPeriodId: String             = UUID.randomUUID().toString
+  val validNino                         = "AS000001A"
+  val invalidPeriodId                   = "abcdefg"
+  val nonExistentNino                   = "AS000001A"
+  val nonExistentPeriodId: String       = UUID.randomUUID().toString
 
   "get" should {
     "return status code 200 when nino and periodId are valid" in {
@@ -80,10 +82,10 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
 
       val response = subject.get(validNino, validPeriodId)(fakeUnAttendedGetRequest)
 
-      val content = contentAsJson(response)
+      val content             = contentAsJson(response)
       val actualUnderpayments = content.validate[Underpayments] match {
         case JsSuccess(values, _) => values
-        case _ => fail("message could not be parsed")
+        case _                    => fail("message could not be parsed")
       }
       actualUnderpayments shouldBe Underpayments(underpayments)
     }

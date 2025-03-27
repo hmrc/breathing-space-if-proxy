@@ -122,11 +122,11 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
     }
 
     "assert error message when invalid request type provided" in {
-      val request = fakeGetRequest.withHeaders((DownstreamHeader.RequestType, "334534534534"))
+      val request              = fakeGetRequest.withHeaders((DownstreamHeader.RequestType, "334534534534"))
       val expectedErrorMessage =
         s"(${DownstreamHeader.RequestType}). Was 334534534534 but valid values are only: ${Attended.DA2_BS_ATTENDED.toString}, ${Attended.DA2_BS_UNATTENDED.toString}".some
 
-      val result = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
+      val result                                        = validateHeadersForNPS(BS_Details_GET, upstreamConnector)(request)
       val resultNonEmptyChain: NonEmptyChain[ErrorItem] =
         result.toEither.swap.getOrElse(NonEmptyChain(ErrorItem(INVALID_NINO)))
       resultNonEmptyChain.head.details shouldBe expectedErrorMessage

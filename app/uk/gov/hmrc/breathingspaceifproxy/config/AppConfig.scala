@@ -23,7 +23,7 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import scala.concurrent.duration.Duration
 
 @Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig) {
 
   lazy val appName: String = config.get[String]("appName")
 
@@ -39,10 +39,6 @@ class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig)
     s"""Bearer ${config.get[String]("microservice.services.integration-framework.auth-token")}"""
 
   val httpHeaderCacheControl: String = config.get[String]("httpHeaders.cacheControl")
-
-  // Must be 'lazy'
-  lazy val v1AllowlistedApplicationIds: Seq[String] =
-    config.get[Seq[String]]("api.access.version-1.0.allowlistedApplicationIds")
 
   val memorandumFeatureEnabled: Boolean = config.get[Boolean]("feature.flag.memorandum.enabled")
 

@@ -26,16 +26,16 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
 
   val startDate = "2020-01-01"
-  val endDate = "2020-03-01"
+  val endDate   = "2020-03-01"
 
   val datetime = "2020-11-30T16:43:53"
-  val millis = ".000"
-  val utc = "Z"
+  val millis   = ".000"
+  val utc      = "Z"
 
-  val expectedPegaRequestTimestamp = s"${datetime}${millis}${utc}"
+  val expectedPegaRequestTimestamp = s"$datetime$millis$utc"
 
-  val pegaRequestTimestamp1 = s"${datetime}${millis}+01:00"
-  val pegaRequestTimestamp2 = s"${datetime}+01:00"
+  val pegaRequestTimestamp1 = s"$datetime$millis+01:00"
+  val pegaRequestTimestamp2 = s"$datetime+01:00"
 
   test("Json.writes for POST BS Periods should format all attributes according to the expected Json") {
     val postPeriod = PostPeriodInRequest(
@@ -43,9 +43,9 @@ class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
       LocalDate.parse(endDate).some,
       ZonedDateTime.parse(pegaRequestTimestamp1)
     )
-    val res = PostPeriodInRequest.writes.writes(postPeriod)
-    (res \ "startDate").as[String] shouldBe startDate
-    (res \ "endDate").as[String] shouldBe endDate
+    val res        = PostPeriodInRequest.writes.writes(postPeriod)
+    (res \ "startDate").as[String]            shouldBe startDate
+    (res \ "endDate").as[String]              shouldBe endDate
     (res \ "pegaRequestTimestamp").as[String] shouldBe expectedPegaRequestTimestamp
   }
 
@@ -55,8 +55,8 @@ class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
       none,
       ZonedDateTime.parse(pegaRequestTimestamp1)
     )
-    val res = PostPeriodInRequest.writes.writes(postPeriod)
-    (res \ "startDate").as[String] shouldBe startDate
+    val res        = PostPeriodInRequest.writes.writes(postPeriod)
+    (res \ "startDate").as[String]            shouldBe startDate
     assert((res \ "endDate").isEmpty)
     (res \ "pegaRequestTimestamp").as[String] shouldBe expectedPegaRequestTimestamp
   }
@@ -67,7 +67,7 @@ class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
       none,
       ZonedDateTime.parse(pegaRequestTimestamp2)
     )
-    val res = PostPeriodInRequest.writes.writes(postPeriod)
+    val res        = PostPeriodInRequest.writes.writes(postPeriod)
     (res \ "pegaRequestTimestamp").as[String] shouldBe expectedPegaRequestTimestamp
   }
 
@@ -78,10 +78,10 @@ class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
       LocalDate.parse(endDate).some,
       ZonedDateTime.parse(pegaRequestTimestamp1)
     )
-    val res = PutPeriodInRequest.writes.writes(putPeriod)
-    (res \ "periodID").as[UUID] shouldBe periodId
-    (res \ "startDate").as[String] shouldBe startDate
-    (res \ "endDate").as[String] shouldBe endDate
+    val res       = PutPeriodInRequest.writes.writes(putPeriod)
+    (res \ "periodID").as[UUID]               shouldBe periodId
+    (res \ "startDate").as[String]            shouldBe startDate
+    (res \ "endDate").as[String]              shouldBe endDate
     (res \ "pegaRequestTimestamp").as[String] shouldBe expectedPegaRequestTimestamp
   }
 
@@ -92,9 +92,9 @@ class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
       none,
       ZonedDateTime.parse(pegaRequestTimestamp1)
     )
-    val res = PutPeriodInRequest.writes.writes(putPeriod)
-    (res \ "periodID").as[UUID] shouldBe periodId
-    (res \ "startDate").as[String] shouldBe startDate
+    val res       = PutPeriodInRequest.writes.writes(putPeriod)
+    (res \ "periodID").as[UUID]               shouldBe periodId
+    (res \ "startDate").as[String]            shouldBe startDate
     assert((res \ "endDate").isEmpty)
     (res \ "pegaRequestTimestamp").as[String] shouldBe expectedPegaRequestTimestamp
   }
@@ -106,7 +106,7 @@ class PeriodInRequestSpec extends AnyFunSuite with BaseSpec {
       none,
       ZonedDateTime.parse(pegaRequestTimestamp2)
     )
-    val res = PutPeriodInRequest.writes.writes(putPeriod)
+    val res       = PutPeriodInRequest.writes.writes(putPeriod)
     (res \ "pegaRequestTimestamp").as[String] shouldBe expectedPegaRequestTimestamp
   }
 }

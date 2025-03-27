@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,20 +39,20 @@ class PeriodsConnectorISpec
     with ConnectorTestSupport
     with DefaultPlayMongoRepositorySupport[CacheItem] {
 
-  override val fakeApplication: Application =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(configProperties)
       .overrides(bind[MongoComponent].to(mongoComponent))
       .build()
 
-  override lazy val repository: CacheRepository = inject[CacheRepository]
-  val connector: PeriodsConnector = inject[PeriodsConnector]
-  implicit val requestId: RequestId = genRequestId(BS_Periods_GET, connector.eisConnector)
+  override val repository: CacheRepository = inject[CacheRepository]
+  val connector: PeriodsConnector          = inject[PeriodsConnector]
+  implicit val requestId: RequestId        = genRequestId(BS_Periods_GET, connector.eisConnector)
 
   "get" should {
     "return a PeriodsResponse instance when it receives a 200(OK) response" in {
-      val nino = genNino
-      val url = PeriodsConnector.path(nino)
+      val nino            = genNino
+      val url             = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Get, url, OK, responsePayload)
 
@@ -81,8 +81,8 @@ class PeriodsConnectorISpec
 
   "post" should {
     "return a PeriodsResponse instance when it receives a 201(CREATED) response" in {
-      val nino = genNino
-      val url = PeriodsConnector.path(nino)
+      val nino            = genNino
+      val url             = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Post, url, CREATED, responsePayload)
 
@@ -92,9 +92,9 @@ class PeriodsConnectorISpec
     }
 
     "clear cache for nino when called" in {
-      val nino = genNino
+      val nino            = genNino
       repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(true))
-      val url = PeriodsConnector.path(nino)
+      val url             = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Post, url, CREATED, responsePayload)
 
@@ -109,8 +109,8 @@ class PeriodsConnectorISpec
 
   "put" should {
     "return a PeriodsResponse instance when it receives a 200(OK) response" in {
-      val nino = genNino
-      val url = PeriodsConnector.path(nino)
+      val nino            = genNino
+      val url             = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Put, url, OK, responsePayload)
 
@@ -120,9 +120,9 @@ class PeriodsConnectorISpec
     }
 
     "clear cache for nino when called" in {
-      val nino = genNino
+      val nino            = genNino
       repository.put(HashedNino(nino))(DataKey("memorandum"), MemorandumInResponse(true))
-      val url = PeriodsConnector.path(nino)
+      val url             = PeriodsConnector.path(nino)
       val responsePayload = Json.toJson(validPeriodsResponse).toString
       stubCall(HttpMethod.Put, url, OK, responsePayload)
 
@@ -137,7 +137,7 @@ class PeriodsConnectorISpec
 
   private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
     val nino = genNino
-    val url = PeriodsConnector.path(nino)
+    val url  = PeriodsConnector.path(nino)
     stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
     val response = await(connector.get(nino))

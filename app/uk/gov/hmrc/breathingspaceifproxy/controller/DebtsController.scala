@@ -30,7 +30,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
-class DebtsController @Inject()(
+class DebtsController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,

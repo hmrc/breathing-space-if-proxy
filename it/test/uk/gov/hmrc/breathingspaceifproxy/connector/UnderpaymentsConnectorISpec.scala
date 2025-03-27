@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,16 +31,16 @@ import java.util.UUID
 
 class UnderpaymentsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
-  private val connector = inject[UnderpaymentsConnector]
+  private val connector             = inject[UnderpaymentsConnector]
   implicit val requestId: RequestId = genRequestId(BS_Underpayments_GET, connector.eisConnector)
 
   "get" should {
     "return a UnderpaymentsResponse instance when it receives a 200(OK) response" in {
-      val nino = genNino
-      val periodId = UUID.randomUUID()
-      val url = UnderpaymentsConnector.path(nino, periodId)
+      val nino                       = genNino
+      val periodId                   = UUID.randomUUID()
+      val url                        = UnderpaymentsConnector.path(nino, periodId)
       val validUnderpaymentsResponse = Underpayments(List(Underpayment("2022", 100.01, "PAYE UP")))
-      val responsePayload = Json.toJson(validUnderpaymentsResponse).toString
+      val responsePayload            = Json.toJson(validUnderpaymentsResponse).toString
       stubCall(HttpMethod.Get, url, OK, responsePayload)
 
       val response = await(connector.get(nino, periodId))
@@ -50,9 +50,9 @@ class UnderpaymentsConnectorISpec extends BaseISpec with ConnectorTestSupport {
     }
 
     "return an empty UnderpaymentsResponse instance when it receives a 204(NO CONTENT) response" in {
-      val nino = genNino
+      val nino     = genNino
       val periodId = UUID.randomUUID()
-      val url = UnderpaymentsConnector.path(nino, periodId)
+      val url      = UnderpaymentsConnector.path(nino, periodId)
       stubCall(HttpMethod.Get, url, NO_CONTENT, "")
 
       val response = await(connector.get(nino, periodId))
@@ -79,9 +79,9 @@ class UnderpaymentsConnectorISpec extends BaseISpec with ConnectorTestSupport {
   }
 
   private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {
-    val nino = genNino
+    val nino     = genNino
     val periodId = UUID.randomUUID()
-    val url = UnderpaymentsConnector.path(nino, periodId)
+    val url      = UnderpaymentsConnector.path(nino, periodId)
     stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
     val response = await(connector.get(nino, periodId))

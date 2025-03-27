@@ -25,9 +25,9 @@ object Binders {
   implicit val ninoBinder: PathBindable[Nino] = new PathBindable[Nino] {
 
     override def bind(key: String, value: String): Either[String, Nino] =
-      (Nino.fromString(value)) match {
+      Nino.fromString(value) match {
         case Some(nino) => Right(nino)
-        case None =>
+        case None       =>
           Left(
             Json.stringify(
               Json.obj("errors" -> List(Json.toJson(ErrorItem(INVALID_NINO))))

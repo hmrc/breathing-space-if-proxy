@@ -29,15 +29,15 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
 
   "onClientError" should {
     "return an error message as response's body according to the expected format (a list of errors)" in {
-      val statusCode = BAD_REQUEST
+      val statusCode      = BAD_REQUEST
       val expectedMessage = "Invalid Json."
-      val request = attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId)
+      val request         = attendedRequestFilteredOutOneHeader(DownstreamHeader.CorrelationId)
 
       val response = errorHandler.onClientError(request, statusCode, expectedMessage)
 
       val expectedBody = s"""{"errors":[{"code":"BAD_REQUEST","message":"$expectedMessage"}]}"""
 
-      status(response) shouldBe statusCode
+      status(response)          shouldBe statusCode
       contentAsString(response) shouldBe expectedBody
     }
 
@@ -46,13 +46,13 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
 
       val expectedMessage = "Invalid Json."
       val codeDetailIfAny = "At Source[ akka.stream..."
-      val message = s"${expectedMessage}\n${codeDetailIfAny}"
+      val message         = s"$expectedMessage\n$codeDetailIfAny"
 
       val response = inject[ErrorHandler].onClientError(fakeGetRequest, statusCode, message)
 
       val expectedBody = s"""{"errors":[{"code":"BAD_REQUEST","message":"$expectedMessage"}]}"""
 
-      status(response) shouldBe statusCode
+      status(response)          shouldBe statusCode
       contentAsString(response) shouldBe expectedBody
     }
 
@@ -71,7 +71,7 @@ class ErrorHandlerSpec extends AnyWordSpec with BaseSpec {
     "return an error message as response's body according to the expected format (a list of errors)" in {
       val response = inject[ErrorHandler].onServerError(fakeGetRequest, new NoSuchElementException())
 
-      status(response) shouldBe INTERNAL_SERVER_ERROR
+      status(response)                                               shouldBe INTERNAL_SERVER_ERROR
       (contentAsJson(response) \ "errors" \\ "code").head.as[String] shouldBe BaseError.INTERNAL_SERVER_ERROR.entryName
     }
   }

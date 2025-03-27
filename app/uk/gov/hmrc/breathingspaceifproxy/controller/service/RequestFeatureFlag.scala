@@ -39,6 +39,6 @@ trait RequestFeatureFlag extends Logging {
         }
 
       override protected def executionContext: ExecutionContext = controllerComponents.executionContext
-      override def parser: BodyParser[AnyContent] = controllerComponents.parsers.defaultBodyParser
+      override def parser: BodyParser[AnyContent]               = controllerComponents.parsers.defaultBodyParser
     }
 }

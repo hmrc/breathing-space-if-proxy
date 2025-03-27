@@ -25,25 +25,25 @@ import play.api.test.Helpers.{call, headers}
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class HttpFilterSpec extends AnyWordSpec with BaseSpec {
-  val httpFilter: HttpFilter = inject[HttpFilter]
+  val httpFilter: HttpFilter                            = inject[HttpFilter]
   override implicit lazy val materializer: Materializer = app.materializer
-  implicit lazy val Action: DefaultActionBuilder = app.injector.instanceOf(classOf[DefaultActionBuilder])
+  implicit lazy val Action: DefaultActionBuilder        = app.injector.instanceOf(classOf[DefaultActionBuilder])
 
   "HttpFilter" should {
     "return a request with a cache-control header" in {
       val action: EssentialAction = Action(_ => Ok(""))
-      val request = FakeRequest().withBody("")
-      val result = call(action, request)
-      val response = httpFilter.apply(_ => result)(request)
+      val request                 = FakeRequest().withBody("")
+      val result                  = call(action, request)
+      val response                = httpFilter.apply(_ => result)(request)
 
       headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
 
     "replace the Cache-Control header" in {
       val action: EssentialAction = Action(_ => Ok("").withHeaders(Seq(("Cache-Control", "something")): _*))
-      val request = FakeRequest().withBody("")
-      val result = call(action, request)
-      val response = httpFilter.apply(_ => result)(request)
+      val request                 = FakeRequest().withBody("")
+      val result                  = call(action, request)
+      val response                = httpFilter.apply(_ => result)(request)
 
       headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }

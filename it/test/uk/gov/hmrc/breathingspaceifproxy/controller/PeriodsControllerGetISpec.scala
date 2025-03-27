@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class PeriodsControllerGetISpec extends BaseISpec {
 
-  val nino: Nino = genNino
+  val nino: Nino                   = genNino
   val getPathWithValidNino: String = get(nino.value).url
-  val periodsConnectorUrl: String = PeriodsConnector.path(nino)
+  val periodsConnectorUrl: String  = PeriodsConnector.path(nino)
 
   "GET BS Periods for Nino" should {
 
@@ -43,8 +43,8 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
       val ninoWithoutSuffix = genNino
-      val controllerUrl = get(s"${ninoWithoutSuffix.value} ").url
-      val connectorUrl =
+      val controllerUrl     = get(s"${ninoWithoutSuffix.value} ").url
+      val connectorUrl      =
         PeriodsConnector
           .path(ninoWithoutSuffix)
           .replace(ninoWithoutSuffix.value, s"${ninoWithoutSuffix.value}%20")
@@ -54,7 +54,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
       val response = route(app, fakeAttendedRequest(Helpers.GET, controllerUrl)).get
 
-      status(response) shouldBe Status.OK
+      status(response)          shouldBe Status.OK
       contentAsString(response) shouldBe expectedBody
 
       verifyHeaders(HttpMethod.Get, connectorUrl)
@@ -67,7 +67,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
       stubCall(HttpMethod.Get, periodsConnectorUrl, Status.OK, expectedBody)
 
       val response = route(app, fakeAttendedRequest(Helpers.GET, getPathWithValidNino)).get
-      status(response) shouldBe Status.OK
+      status(response)          shouldBe Status.OK
       contentAsString(response) shouldBe expectedBody
 
       verifyHeaders(HttpMethod.Get, periodsConnectorUrl)
@@ -84,7 +84,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
-      val body = Json.obj("aName" -> "aValue")
+      val body    = Json.obj("aName" -> "aValue")
       val request = fakeAttendedRequest(Helpers.GET, getPathWithValidNino).withBody(body)
 
       val response = await(route(app, request).get)
@@ -102,10 +102,10 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
-      val url = PeriodsConnector.path(unknownNino)
-      val errorBody = """"code":"RESOURCE_NOT_FOUND""""
+      val url         = PeriodsConnector.path(unknownNino)
+      val errorBody   = """"code":"RESOURCE_NOT_FOUND""""
       stubCall(HttpMethod.Get, url, Status.NOT_FOUND, errorResponseFromIF(errorBody))
-      val response = route(app, fakeAttendedRequest(Helpers.GET, get(unknownNino.value).url)).get
+      val response    = route(app, fakeAttendedRequest(Helpers.GET, get(unknownNino.value).url)).get
       status(response) shouldBe Status.NOT_FOUND
 
       verifyHeaders(HttpMethod.Get, url)
@@ -123,7 +123,7 @@ class PeriodsControllerGetISpec extends BaseISpec {
       else fakeUnattendedRequest(Helpers.GET, getPathWithValidNino)
 
     val response = route(app, request).get
-    status(response) shouldBe Status.OK
+    status(response)          shouldBe Status.OK
     contentAsString(response) shouldBe expectedResponseBody
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, periodsConnectorUrl)

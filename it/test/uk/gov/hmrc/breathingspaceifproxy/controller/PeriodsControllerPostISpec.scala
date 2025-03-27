@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when body is not valid Json" in {
-      val body = s"""{nino":"$genNinoString","periods":[${Json.toJson(validPostPeriod).toString}]}"""
+      val body    = s"""{nino":"$genNinoString","periods":[${Json.toJson(validPostPeriod).toString}]}"""
       val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
       val response = await(route(app, request).get)
@@ -69,18 +69,18 @@ class PeriodsControllerPostISpec extends BaseISpec {
     }
 
     "return 401(UNAUTHORIZED) when the request was not authorised" in {
-      val body = postPeriodsRequestAsJson(genNino.value, postPeriodsRequest())
+      val body    = postPeriodsRequestAsJson(genNino.value, postPeriodsRequest())
       val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
       verifyUnauthorized(request)
     }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino
-      val url = PeriodsConnector.path(unknownNino)
-      val errorBody = """"code":"RESOURCE_NOT_FOUND""""
+      val url         = PeriodsConnector.path(unknownNino)
+      val errorBody   = """"code":"RESOURCE_NOT_FOUND""""
       stubCall(HttpMethod.Post, url, Status.NOT_FOUND, errorResponseFromIF(errorBody))
 
-      val body = postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest())
+      val body    = postPeriodsRequestAsJson(unknownNino.value, postPeriodsRequest())
       val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
       val response = route(app, request).get
@@ -93,16 +93,16 @@ class PeriodsControllerPostISpec extends BaseISpec {
   }
 
   private def verifyCreated(postPeriods: PostPeriodsInRequest = postPeriodsRequest()): Assertion = {
-    val nino = genNino
-    val url = PeriodsConnector.path(nino)
+    val nino                 = genNino
+    val url                  = PeriodsConnector.path(nino)
     val expectedResponseBody = Json.toJson(validPeriodsResponse).toString
     stubCall(HttpMethod.Post, url, Status.CREATED, expectedResponseBody)
 
-    val body = postPeriodsRequestAsJson(nino.value, postPeriods)
+    val body    = postPeriodsRequestAsJson(nino.value, postPeriods)
     val request = fakeUnattendedRequest(Helpers.POST, postPath).withBody(body)
 
     val response = route(app, request).get
-    status(response) shouldBe Status.CREATED
+    status(response)          shouldBe Status.CREATED
     contentAsString(response) shouldBe expectedResponseBody
 
     verifyHeadersForUnattended(HttpMethod.Post, url)

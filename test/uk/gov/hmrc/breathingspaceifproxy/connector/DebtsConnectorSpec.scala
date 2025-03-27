@@ -24,7 +24,7 @@ class DebtsConnectorSpec extends AnyWordSpec with BaseSpec {
   "DebtsConnector.url" should {
     "correctly compose a url to the IF" in {
       Given("a valid Nino")
-      val nino = genNino
+      val nino        = genNino
       val expectedUrl =
         s"http://localhost:9503/${appConfig.integrationFrameworkContext}/breathing-space/NINO/${nino.value}/$periodIdAsString/debts"
 

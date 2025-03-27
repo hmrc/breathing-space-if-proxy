@@ -28,20 +28,19 @@ trait AverageResponseTimer extends Logging {
 
   def timer[T](serviceName: String)(function: => Future[T])(implicit ec: ExecutionContext): Future[T] = {
     val start = System.nanoTime()
-    function.andThen {
-      case _ =>
-        val duration = Duration(System.nanoTime() - start, NANOSECONDS)
-        val timerName = s"Timer-$serviceName"
-        metricRegistry.getTimers
-          .getOrDefault(
-            timerName,
-            metricRegistry.timer(timerName)
-          )
-          .update(duration.length, duration.unit)
-
-        logger.debug(
-          s"metric-event::timer::${timerName}::duration:{'length':${duration.length}, 'unit':${duration.unit}}"
+    function.andThen { case _ =>
+      val duration  = Duration(System.nanoTime() - start, NANOSECONDS)
+      val timerName = s"Timer-$serviceName"
+      metricRegistry.getTimers
+        .getOrDefault(
+          timerName,
+          metricRegistry.timer(timerName)
         )
+        .update(duration.length, duration.unit)
+
+      logger.debug(
+        s"metric-event::timer::$timerName::duration:{'length':${duration.length}, 'unit':${duration.unit}}"
+      )
     }
   }
 }

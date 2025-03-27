@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import cats.syntax.option._
 import cats.syntax.validated._
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
+import org.mockito.Mockito.when
+import org.mockito.ArgumentMatchers.any
 import play.api.libs.json.Json
 import play.api.mvc.{Request, Result}
 import play.api.test.Helpers
@@ -93,13 +95,13 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
   }
 
   private def verifyResponse(request: Request[_]): Assertion = {
-    val nino = genNino
+    val nino      = genNino
     val bsDetails = details(nino)
     when(mockConnector.getDetails(any[Nino])(any[RequestId]))
       .thenReturn(Future.successful(bsDetails.validNec[ErrorItem]))
 
     val response = controller.getDetails(nino.value)(request)
-    status(response) shouldBe OK
+    status(response)          shouldBe OK
     contentAsString(response) shouldBe Json.toJson(bsDetails).toString
   }
 

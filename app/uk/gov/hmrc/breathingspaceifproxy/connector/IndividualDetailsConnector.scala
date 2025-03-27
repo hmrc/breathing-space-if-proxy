@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,23 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import cats.syntax.validated._
+import cats.syntax.validated.*
 import com.codahale.metrics.MetricRegistry
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.*
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.http.StringContextOps
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class IndividualDetailsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
-  implicit appConfig: AppConfig,
+class IndividualDetailsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam: MetricRegistry)(implicit
+  appConfig: AppConfig,
   val eisConnector: EisConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
@@ -39,13 +40,18 @@ class IndividualDetailsConnector @Inject()(http: HttpClient, metricRegistryParam
 
   import IndividualDetailsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
+  override val metricRegistry: MetricRegistry = metricRegistryParam
 
   // Breathing Space Population
   def getDetails(nino: Nino)(implicit requestId: RequestId): ResponseValidation[IndividualDetails] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[IndividualDetails](Url(url(nino, IndividualDetails.fields)).value, headers = headers).map(_.validNec)
+        val updatedHc = hc.withExtraHeaders(headers: _*)
+        val fullUrl   = url(nino, IndividualDetails.fields)
+        httpClientV2
+          .get(url"$fullUrl")(updatedHc)
+          .execute[IndividualDetails]
+          .map(_.validNec)
       }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@ package uk.gov.hmrc.breathingspaceifproxy.controller.service
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.http.Status._
-import play.api.mvc.{AnyContent, Results}
-import play.api.test.{Helpers => PlayHelpers}
+import play.api.http.Status.*
+import play.api.mvc.{AnyContent, ControllerComponents, Results}
+import play.api.test.Helpers as PlayHelpers
 import play.api.test.Helpers.status
 import uk.gov.hmrc.auth.core.UnsupportedAuthProvider
 import uk.gov.hmrc.auth.core.authorise.Predicate
@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Results {
 
-  val controllerComponents = PlayHelpers.stubControllerComponents()
+  val controllerComponents: ControllerComponents = PlayHelpers.stubControllerComponents()
 
   "authAction" should {
 
@@ -57,7 +57,7 @@ class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Re
     }
 
     "return 200(OK) when the nino in the request match the trusted helper principal nino" in {
-      val authResult: AuthRetrieval = Some("BB000000B") ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ Some(
+      val authResult: AuthRetrieval = Some("BB000000B") ~ Some(TrustedHelper("", "", "", Some("AA000000A"))) ~ Some(
         "client-id"
       )
       when(
@@ -95,7 +95,7 @@ class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Re
     }
 
     "return 401(UNAUTHORIZED) when the nino in the request does not match the trusted helper principal nino" in {
-      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ None
+      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", Some("AA000000A"))) ~ None
       when(
         authConnector
           .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])
@@ -119,7 +119,7 @@ class RequestAuthSpec extends AnyWordSpec with BaseSpec with RequestAuth with Re
     }
 
     "return 401(UNAUTHORIZED) when a client Id is specified the nino in the request does not match the trusted helper principal nino" in {
-      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", "AA000000A")) ~ Some("client-id")
+      val authResult: AuthRetrieval = None ~ Some(TrustedHelper("", "", "", Some("AA000000A"))) ~ Some("client-id")
       when(
         authConnector
           .authorise(any[Predicate], any[Retrieval[AuthRetrieval]])(any[HeaderCarrier], any[ExecutionContext])

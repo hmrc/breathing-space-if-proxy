@@ -29,7 +29,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GE
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
-class MemorandumController @Inject()(
+class MemorandumController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
@@ -44,17 +44,16 @@ class MemorandumController @Inject()(
     enabled(_.memorandumFeatureEnabled)
       .andThen(action(n.value.some))
       .async(withoutBody) { implicit request =>
-        (
-          validateHeadersForNPS(
-            BS_Memorandum_GET,
-            connector.memorandumConnector
-          )
-        ).map(requestId => requestId)
+        validateHeadersForNPS(
+          BS_Memorandum_GET,
+          connector.memorandumConnector
+        )
+          .map(requestId => requestId)
           .fold(
             HttpError(retrieveCorrelationId, BAD_REQUEST, _).send,
             reqId => {
               implicit val requestId: RequestId = reqId
-              implicit val nino: Nino = n
+              implicit val nino: Nino           = n
               logHeadersAndRequestId(nino, requestId)
               connector.get(nino).flatMap {
                 _.fold(auditEventAndSendErrorResponse[AnyContent], auditEventAndSendResponse(OK, _))
