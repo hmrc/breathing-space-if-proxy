@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class MemorandumControllerISpec extends BaseISpec {
 
-  val nino: Nino = genNino
-  val getPathWithValidNino: String = get(nino).url
+  val nino: Nino                     = genNino
+  val getPathWithValidNino: String   = get(nino).url
   val memorandumConnectorUrl: String = MemorandumConnector.path(nino)
 
   "GET BS Memorandum for Nino" should {
@@ -40,7 +40,7 @@ class MemorandumControllerISpec extends BaseISpec {
 
       val response = route(app, fakeMemorandumRequest(Helpers.GET, getPathWithValidNino)).get
 
-      status(response) shouldBe Status.OK
+      status(response)          shouldBe Status.OK
       contentAsString(response) shouldBe expectedResponseBody
       verifyHeadersForMemorandum(HttpMethod.Get, memorandumConnectorUrl)
       verifyAuditEventCall(BS_Memorandum_GET)

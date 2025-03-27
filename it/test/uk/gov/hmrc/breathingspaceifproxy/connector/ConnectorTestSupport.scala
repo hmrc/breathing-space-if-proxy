@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,11 +29,11 @@ trait ConnectorTestSupport { this: BaseISpec =>
   implicit lazy val headerCarrierForIF: HeaderCarrier = HeaderCarrier(
     authorization = Authorization(appConfig.integrationFrameworkAuthToken).some,
     extraHeaders = List(
-      CONTENT_TYPE -> MimeTypes.JSON,
-      UpstreamHeader.Environment -> appConfig.integrationFrameworkEnvironment,
+      CONTENT_TYPE                 -> MimeTypes.JSON,
+      UpstreamHeader.Environment   -> appConfig.integrationFrameworkEnvironment,
       UpstreamHeader.CorrelationId -> correlationIdAsString,
-      UpstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.entryName,
-      UpstreamHeader.StaffPid -> attendedStaffPid
+      UpstreamHeader.RequestType   -> Attended.DA2_BS_ATTENDED.entryName,
+      UpstreamHeader.StaffPid      -> attendedStaffPid
     )
   )
 
