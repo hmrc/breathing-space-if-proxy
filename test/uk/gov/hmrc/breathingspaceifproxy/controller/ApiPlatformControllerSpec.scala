@@ -20,6 +20,8 @@ import controllers.{Assets, Execution}
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Results.Status
 import play.api.mvc.{ActionBuilder, AnyContent, Request}
 import play.api.test.Helpers
@@ -34,6 +36,7 @@ class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSu
     "api.access.version-1.0.allowlistedApplicationIds.0" -> "123456789",
     "api.access.version-1.0.allowlistedApplicationIds.1" -> "987654321"
   )
+  override def fakeApplication(): Application = GuiceApplicationBuilder().configure(configProperties).build()
 
   private val expectedStatus                             = 200
   private val Action: ActionBuilder[Request, AnyContent] = new ActionBuilder.IgnoringBody()(Execution.trampoline)
