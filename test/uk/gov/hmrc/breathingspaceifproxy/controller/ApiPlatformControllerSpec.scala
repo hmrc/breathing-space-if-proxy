@@ -32,7 +32,7 @@ import scala.concurrent.Future
 
 class ApiPlatformControllerSpec extends AnyWordSpec with BaseSpec with MockitoSugar {
 
-  def configProperties: Map[String, Any] = Map(
+  def configProperties: Map[String, Any]      = Map(
     "api.access.version-1.0.allowlistedApplicationIds.0" -> "123456789",
     "api.access.version-1.0.allowlistedApplicationIds.1" -> "987654321"
   )
