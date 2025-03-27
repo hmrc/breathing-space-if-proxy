@@ -40,7 +40,7 @@ class MemorandumConnectorISpec
     with ConnectorTestSupport
     with DefaultPlayMongoRepositorySupport[CacheItem] {
 
-  override val fakeApplication: Application =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(configProperties)
       .overrides(bind[MongoComponent].to(mongoComponent))

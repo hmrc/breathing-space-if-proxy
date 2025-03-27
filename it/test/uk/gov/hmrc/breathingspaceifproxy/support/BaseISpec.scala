@@ -70,7 +70,7 @@ abstract class BaseISpec
     "microservice.services.integration-framework.port"                  -> wireMockPort
   )
 
-  override val fakeApplication: Application =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(configProperties)
       .build()
