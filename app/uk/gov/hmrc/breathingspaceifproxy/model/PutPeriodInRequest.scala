@@ -16,7 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.model
 
-import play.api.libs.json._
+import play.api.libs.json.*
+import play.api.libs.ws.BodyWritable
 
 import java.time.{LocalDate, ZonedDateTime}
 import java.util.UUID
@@ -47,4 +48,9 @@ final case class PutPeriodsInRequest(periods: List[PutPeriodInRequest])
 
 object PutPeriodsInRequest {
   implicit val format: OFormat[PutPeriodsInRequest] = Json.format[PutPeriodsInRequest]
+
+  implicit def jsonBodyWritable[T](implicit
+    writes: Writes[T],
+    jsValueBodyWritable: BodyWritable[JsValue]
+  ): BodyWritable[T] = jsValueBodyWritable.map(writes.writes)
 }

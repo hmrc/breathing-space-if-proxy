@@ -22,10 +22,9 @@ import uk.gov.hmrc.breathingspaceifproxy.ResponseValidation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{HeaderHandler, MemConnector}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, MemorandumInResponse, Nino, RequestId}
+import uk.gov.hmrc.breathingspaceifproxy.model.{MemorandumInResponse, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.repository.{CacheRepository, Cacheable}
-import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 
@@ -53,16 +52,12 @@ class MemorandumConnector @Inject() (
     memorandumConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
         cache("memorandum")(nino) {
-          val updatedHc   = hc.withExtraHeaders(headers: _*)
-          val fullUrl     = url(nino)
-          val apiResponse = httpClientV2
+          val updatedHc = hc.withExtraHeaders(headers: _*)
+          val fullUrl   = url(nino)
+          httpClientV2
             .get(url"$fullUrl")(updatedHc)
-            .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw), implicitly)
-
-          apiResponse.map {
-            case Right(response) => response.json.as[MemorandumInResponse].validNec
-            case Left(error)     => ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(error.message)).invalidNec
-          }
+            .execute[MemorandumInResponse]
+            .map(_.validNec)
         }
       }
     }

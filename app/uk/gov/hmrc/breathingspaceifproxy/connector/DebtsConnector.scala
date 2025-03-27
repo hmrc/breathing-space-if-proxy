@@ -23,9 +23,8 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EtmpConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.*
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.http.HttpReads.Implicits.*
-import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.util.UUID
@@ -47,16 +46,12 @@ class DebtsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam:
   def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId): ResponseValidation[Debts] =
     etmpConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        val updatedHc   = hc.withExtraHeaders(headers: _*)
-        val fullUrl     = url(nino, periodId)
-        val apiResponse = httpClientV2
+        val updatedHc = hc.withExtraHeaders(headers: _*)
+        val fullUrl   = url(nino, periodId)
+        httpClientV2
           .get(url"$fullUrl")(updatedHc)
-          .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw), implicitly)
-
-        apiResponse.map {
-          case Right(response) => response.json.as[Debts].validNec
-          case Left(error)     => ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(error.message)).invalidNec
-        }
+          .execute[List[Debt]]
+          .map(Debts(_).validNec)
       }
     }
 }

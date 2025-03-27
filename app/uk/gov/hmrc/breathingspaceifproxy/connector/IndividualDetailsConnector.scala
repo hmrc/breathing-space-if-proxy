@@ -23,8 +23,7 @@ import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.*
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.StringContextOps
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 
@@ -47,16 +46,12 @@ class IndividualDetailsConnector @Inject() (httpClientV2: HttpClientV2, metricRe
   def getDetails(nino: Nino)(implicit requestId: RequestId): ResponseValidation[IndividualDetails] =
     eisConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        val updatedHc   = hc.withExtraHeaders(headers: _*)
-        val fullUrl     = url(nino, IndividualDetails.fields)
-        val apiResponse = httpClientV2
+        val updatedHc = hc.withExtraHeaders(headers: _*)
+        val fullUrl   = url(nino, IndividualDetails.fields)
+        httpClientV2
           .get(url"$fullUrl")(updatedHc)
-          .execute[Either[UpstreamErrorResponse, HttpResponse]](readEitherOf(readRaw), implicitly)
-
-        apiResponse.map {
-          case Right(response) => response.json.as[IndividualDetails].validNec
-          case Left(error)     => ErrorItem(BaseError.INTERNAL_SERVER_ERROR, Some(error.message)).invalidNec
-        }
+          .execute[IndividualDetails]
+          .map(_.validNec)
       }
     }
 }
