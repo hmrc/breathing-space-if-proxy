@@ -24,7 +24,7 @@ import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EisConnector, Header
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.http.HttpReads.Implicits.*
 import uk.gov.hmrc.http.client.HttpClientV2
 
@@ -35,7 +35,6 @@ import scala.concurrent.ExecutionContext
 class IndividualDetailsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam: MetricRegistry)(implicit
   appConfig: AppConfig,
   val eisConnector: EisConnector,
-  hc: HeaderCarrier,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {

@@ -25,7 +25,7 @@ import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
 import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
 import uk.gov.hmrc.http.HttpReads.Implicits.*
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.util.UUID
@@ -36,7 +36,6 @@ import scala.concurrent.ExecutionContext
 class DebtsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam: MetricRegistry)(implicit
   appConfig: AppConfig,
   val etmpConnector: EtmpConnector,
-  hc: HeaderCarrier,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
     with HeaderHandler {
