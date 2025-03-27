@@ -59,6 +59,7 @@ class HttpErrorSpec extends AnyFunSuite with BaseSpec {
         if (nrErrors == 1) {
           // Testing the 'apply' taking a single 'Error'
           testHttpError(HttpError(correlationIdAsString.some, errorItems.head).value, httpErrorCode, errorItems)
+          ()
         }
         HttpError(correlationId, errorItems).value
       }

@@ -20,13 +20,13 @@ import org.apache.pekko.stream.Materializer
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar.mock
-import org.scalatest._
+import org.scalatest.*
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.{HeaderNames, MimeTypes}
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -35,7 +35,6 @@ import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 
 object BaseSpec {
@@ -44,7 +43,6 @@ object BaseSpec {
   }
 }
 
-@nowarn("msg=dead code following this construct")
 trait BaseSpec
     extends BreathingSpaceTestSupport
     with DefaultAwaitTimeout
