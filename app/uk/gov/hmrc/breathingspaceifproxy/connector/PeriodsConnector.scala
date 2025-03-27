@@ -87,7 +87,7 @@ class PeriodsConnector @Inject() (
           val updatedHc = hc.withExtraHeaders(headers: _*)
           val fullUrl   = url(nino)
           httpClientV2
-            .post(url"$fullUrl")(updatedHc)
+            .put(url"$fullUrl")(updatedHc)
             .withBody(PutPeriodsInRequest(putPeriods))
             .execute[PeriodsInResponse]
             .map(_.validNec)
