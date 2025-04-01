@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
-      val body = Json.obj("aName" -> "aValue")
+      val body    = Json.obj("aName" -> "aValue")
       val request = fakeAttendedRequest(Helpers.GET, getDetails(genNino.value).url).withBody(body)
 
       val response = await(route(app, request).get)
@@ -76,7 +76,7 @@ class IndividualDetailsControllerISpec extends BaseISpec {
     val nino = genNino
     val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
 
-    val expectedStatus = error.fold(Status.OK)(_.httpCode)
+    val expectedStatus       = error.fold(Status.OK)(_.httpCode)
     val expectedResponseBody =
       if (expectedStatus == Status.OK) Json.toJson(details(nino)).toString
       else Json.obj("errors" -> List(TestingErrorItem(error.get.entryName, error.get.message))).toString
@@ -90,8 +90,8 @@ class IndividualDetailsControllerISpec extends BaseISpec {
       else fakeUnattendedRequest(Helpers.GET, getDetails(nino.value).url)
 
     val response = route(app, request).get
-    status(response) shouldBe expectedStatus
-    contentAsString(response) shouldBe expectedResponseBody
+    status(response)                       shouldBe expectedStatus
+    contentAsString(response)              shouldBe expectedResponseBody
     headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
 
     if (attended) verifyHeadersForAttended(HttpMethod.Get, path, queryParams)

@@ -28,12 +28,12 @@ import uk.gov.hmrc.mongo.{MongoComponent, TimestampSupport}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class HashedNinoCacheId @Inject()(implicit appConfig: AppConfig) extends CacheIdType[HashedNino] {
+class HashedNinoCacheId @Inject() (implicit appConfig: AppConfig) extends CacheIdType[HashedNino] {
   override def run: HashedNino => String = _.generateHash()
 }
 
 @Singleton
-class CacheRepository @Inject()(
+class CacheRepository @Inject() (
   mongoComponent: MongoComponent,
   timestampSupport: TimestampSupport,
   appConfig: AppConfig,
@@ -52,13 +52,13 @@ class CacheRepository @Inject()(
   ): Future[Validation[A]] =
     get[A](nino)(DataKey(endpoint)).flatMap {
       case Some(value) => Future.successful(value.validNec)
-      case None =>
+      case None        =>
         for {
           value <- block
-          _ <- value.fold(
-            _ => Future.successful(()),
-            put(nino)(DataKey(endpoint), _).map(_ => ())
-          )
+          _     <- value.fold(
+                     _ => Future.successful(()),
+                     put(nino)(DataKey(endpoint), _).map(_ => ())
+                   )
         } yield value
     }
 

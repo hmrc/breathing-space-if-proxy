@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
   val connector: IndividualDetailsConnector = inject[IndividualDetailsConnector]
-  implicit val requestId: RequestId = genRequestId(BS_Details_GET, connector.eisConnector)
+  implicit val requestId: RequestId         = genRequestId(BS_Details_GET, connector.eisConnector)
 
   "get" should {
     "return an IndividualDetails instance when it receives the relative \"fields\" query parameter" in {
-      val nino = genNino
-      val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
+      val nino        = genNino
+      val path        = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
       val queryParams = detailQueryParams(IndividualDetails.fields)
 
       stubCall(HttpMethod.Get, path, OK, Json.toJson(details(nino)).toString, queryParams)
@@ -59,7 +59,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
 
       val unexpectedPayload = Json.parse("""{"dateOfRegistration":"2020-01-01","sex":"M"}""").toString
-      val queryParams = detailQueryParams(IndividualDetails.fields)
+      val queryParams       = detailQueryParams(IndividualDetails.fields)
 
       stubCall(HttpMethod.Get, path, OK, unexpectedPayload, queryParams)
 
@@ -96,7 +96,7 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
     baseError: BaseError,
     code: Option[String] = None
   ): Assertion = {
-    val path = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
+    val path        = IndividualDetailsConnector.path(nino, "") // queryParams here must be an empty string
     val queryParams = detailQueryParams(IndividualDetails.fields)
     stubCall(HttpMethod.Get, path, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)), queryParams)
 

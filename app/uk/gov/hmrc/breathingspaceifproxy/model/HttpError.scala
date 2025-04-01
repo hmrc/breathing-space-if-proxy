@@ -40,7 +40,7 @@ object HttpError {
 
   def apply(correlationId: UUID, errors: Errors): HttpError = {
     val errorList = errors.toChain.toList
-    val payload = Json.obj("errors" -> errorList)
+    val payload   = Json.obj("errors" -> errorList)
     // The HTTP error code is provided by the 1st error item
     apply(correlationId.toString.some, errorList.head.baseError.httpCode, payload)
   }

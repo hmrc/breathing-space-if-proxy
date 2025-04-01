@@ -25,7 +25,7 @@ class MemorandumConnectorSpec extends AnyWordSpec with BaseSpec {
     "correctly compose urls to the IF" in {
 
       Given("a valid nino")
-      val nino = Nino("AS000001")
+      val nino        = Nino("AS000001")
       val expectedUrl =
         s"http://localhost:9503/${appConfig.integrationFrameworkContext}/breathing-space/${nino.value}/memorandum"
 

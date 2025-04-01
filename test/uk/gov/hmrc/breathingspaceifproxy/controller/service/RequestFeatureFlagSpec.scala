@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller.service
 
-import org.mockito.MockitoSugar
+import org.mockito.Mockito.when
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
-import play.api.http.Status._
+import play.api.http.Status.*
 import play.api.mvc.{AnyContent, ControllerComponents, Results}
 import play.api.test.Helpers.status
-import play.api.test.{Helpers => PlayHelpers}
+import play.api.test.Helpers as PlayHelpers
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
@@ -30,7 +31,7 @@ import scala.concurrent.Future
 class RequestFeatureFlagSpec extends AnyWordSpec with BaseSpec with RequestFeatureFlag with Results with MockitoSugar {
 
   val controllerComponents: ControllerComponents = PlayHelpers.stubControllerComponents()
-  override implicit val appConfig: AppConfig = mock[AppConfig]
+  override implicit val appConfig: AppConfig     = mock[AppConfig]
 
   "authAction" should {
 

@@ -33,7 +33,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 @Singleton()
-class UnderpaymentsController @Inject()(
+class UnderpaymentsController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
@@ -64,8 +64,8 @@ class UnderpaymentsController @Inject()(
         )
     }
 
-  private def getFromUpstream(
-    implicit nino: Nino,
+  private def getFromUpstream(implicit
+    nino: Nino,
     periodId: UUID,
     request: Request[Validation[AnyContent]],
     requestId: RequestId,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,20 +57,20 @@ abstract class BaseISpec
     with WireMockSupport {
 
   val configProperties: Map[String, Any] = Map(
-    "api.access.version-1.0.allowlistedApplicationIds.0" -> "123456789",
-    "api.access.version-1.0.allowlistedApplicationIds.1" -> "987654321",
-    "auditing.enabled" -> true,
-    "auditing.consumer.baseUri.host" -> wireMockHost,
-    "auditing.consumer.baseUri.port" -> wireMockPort,
-    "circuit.breaker.if.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
+    "api.access.version-1.0.allowlistedApplicationIds.0"                -> "123456789",
+    "api.access.version-1.0.allowlistedApplicationIds.1"                -> "987654321",
+    "auditing.enabled"                                                  -> true,
+    "auditing.consumer.baseUri.host"                                    -> wireMockHost,
+    "auditing.consumer.baseUri.port"                                    -> wireMockPort,
+    "circuit.breaker.if.failedCallsInUnstableBeforeUnavailable"         -> Int.MaxValue,
     "circuit.breaker.memorandum.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
-    "microservice.services.auth.host" -> wireMockHost,
-    "microservice.services.auth.port" -> wireMockPort,
-    "microservice.services.integration-framework.host" -> wireMockHost,
-    "microservice.services.integration-framework.port" -> wireMockPort
+    "microservice.services.auth.host"                                   -> wireMockHost,
+    "microservice.services.auth.port"                                   -> wireMockPort,
+    "microservice.services.integration-framework.host"                  -> wireMockHost,
+    "microservice.services.integration-framework.port"                  -> wireMockPort
   )
 
-  override val fakeApplication: Application =
+  override def fakeApplication(): Application =
     GuiceApplicationBuilder()
       .configure(configProperties)
       .build()
@@ -89,7 +89,7 @@ abstract class BaseISpec
     FakeRequest(method, path).withHeaders(requestHeadersForMemorandum: _*)
 
   def verifyAuditEventCall(endpointId: EndpointId): Assertion = {
-    val body = s"""{"auditSource":"breathing-space-if-proxy", "auditType":"${endpointId.auditType}"}"""
+    val body         = s"""{"auditSource":"breathing-space-if-proxy", "auditType":"${endpointId.auditType}"}"""
     val requestedFor =
       postRequestedFor(urlEqualTo("/write/audit"))
         .withRequestBody(equalToJson(body, true, true))
@@ -191,8 +191,8 @@ abstract class BaseISpec
     }
 
     And("the body should be in Json format")
-    headers.get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
-    headers(CONTENT_TYPE).toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    headers.get("Cache-Control")            shouldBe Some(appConfig.httpHeaderCacheControl)
+    headers(CONTENT_TYPE).toLowerCase       shouldBe MimeTypes.JSON.toLowerCase
     result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 
@@ -209,7 +209,7 @@ abstract class BaseISpec
     val errorList = verifyErrorResult(response, Status.UNAUTHORIZED, correlationIdAsString.some, 1)
 
     And(s"the error code should be $NOT_AUTHORISED")
-    errorList.head.code shouldBe NOT_AUTHORISED.entryName
+    errorList.head.code                          shouldBe NOT_AUTHORISED.entryName
     assert(errorList.head.message.startsWith(NOT_AUTHORISED.message))
     response.header.headers.get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
   }

@@ -34,9 +34,12 @@ object AuditRequest {
     AuditRequest(
       method = request.method,
       path = request.path,
-      payload = request.body.fold(_ => none, {
-        case b: JsValue => b.some
-        case _ => none
-      })
+      payload = request.body.fold(
+        _ => none,
+        {
+          case b: JsValue => b.some
+          case _          => none
+        }
+      )
     )
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
 
   val controllerComponents: ControllerComponents
 
-  val authProviders = AuthProviders(PrivilegedApplication)
+  private val authProviders = AuthProviders(PrivilegedApplication)
 
   def authAction(scope: String, requestNino: Option[String] = None): ActionBuilder[Request, AnyContent] =
     new ActionBuilder[Request, AnyContent] {
 
-      override def parser: BodyParser[AnyContent] = controllerComponents.parsers.defaultBodyParser
+      override def parser: BodyParser[AnyContent]               = controllerComponents.parsers.defaultBodyParser
       override protected def executionContext: ExecutionContext = controllerComponents.executionContext
 
       override def invokeBlock[A](request: Request[A], f: Request[A] => Future[Result]): Future[Result] = {
@@ -45,16 +45,16 @@ trait RequestAuth extends AuthorisedFunctions with Helpers with Logging {
 
         def checkNino(nino: String): Boolean = requestNino match {
           case Some(someNino) => someNino == nino
-          case _ => false
+          case _              => false
         }
 
         val headerCarrier = HeaderCarrierConverter.fromRequest(request)
         authorised(ConfidenceLevel.L200.or(authProviders.and(Enrolment(scope))))
           .retrieve(nino.and(trustedHelper).and(clientId)) {
             case Some(authNino) ~ None ~ _ => if (checkNino(authNino)) f(request) else notAuthorised
-            case _ ~ Some(trusted) ~ _ => if (checkNino(trusted.principalNino)) f(request) else notAuthorised
-            case _ ~ _ ~ Some(_) => f(request)
-            case _ => notAuthorised
+            case _ ~ Some(trusted) ~ _     => if (trusted.principalNino.exists(checkNino)) f(request) else notAuthorised
+            case _ ~ _ ~ Some(_)           => f(request)
+            case _                         => notAuthorised
           }(headerCarrier, executionContext)
           .recoverWith {
             case exc: AuthorisationException =>

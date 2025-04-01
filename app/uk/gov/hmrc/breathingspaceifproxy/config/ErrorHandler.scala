@@ -32,7 +32,7 @@ import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 
 import scala.util.Try
 
-class ErrorHandler @Inject()(
+class ErrorHandler @Inject() (
   routerProvider: Provider[Router],
   auditConnector: AuditConnector,
   httpAuditEvent: HttpAuditEvent,
@@ -43,7 +43,7 @@ class ErrorHandler @Inject()(
 
   override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
     val correlationId = request.headers.get(DownstreamHeader.CorrelationId)
-    val endpoint = s"${request.method} ${request.path} has status code"
+    val endpoint      = s"${request.method} ${request.path} has status code"
     if (statusCode == NOT_FOUND) sendInvalidEndpoint(correlationId, endpoint)
     else {
       logger.error(s"""${logCorrelationId(correlationId)} $endpoint($statusCode). Client error was: "$message"""")
@@ -56,7 +56,7 @@ class ErrorHandler @Inject()(
 
   override def onServerError(request: RequestHeader, throwable: Throwable): Future[Result] = {
     val correlationId = request.headers.get(DownstreamHeader.CorrelationId)
-    val endpoint = s"${request.method} ${request.path}"
+    val endpoint      = s"${request.method} ${request.path}"
     logger.error(s"${logCorrelationId(correlationId)} $endpoint", throwable)
     HttpError(correlationId, ErrorItem(INTERNAL_SERVER_ERROR)).send
   }
@@ -72,7 +72,7 @@ class ErrorHandler @Inject()(
   private def sendInvalidEndpoint(correlationId: Option[String], endpoint: String): Future[Result] = {
     val endpoints = routerProvider.get.documentation.map { route =>
       val method = route._1
-      val path = route._2.replace("/$", "/:")
+      val path   = route._2.replace("/$", "/:")
       s"\t$method\t$path\n"
     }.mkString
 
@@ -84,7 +84,7 @@ class ErrorHandler @Inject()(
   private def listWithOneError(statusCode: Int, message: String): JsArray =
     Json.arr(
       Json.obj(
-        "code" -> httpErrorCodes.getOrElse[String](statusCode, "SERVER_ERROR"),
+        "code"    -> httpErrorCodes.getOrElse[String](statusCode, "SERVER_ERROR"),
         "message" -> message
       )
     )

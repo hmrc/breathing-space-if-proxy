@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector.service
 
-import org.mockito.scalatest.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import uk.gov.hmrc.breathingspaceifproxy.UpstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.model.RequestId
@@ -25,7 +25,7 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 
 class HeaderHandlerSpec extends AnyWordSpec with HeaderHandler with BaseSpec with MockitoSugar {
 
-  val endpointId: EndpointId = mock[EndpointId]
+  val endpointId: EndpointId               = mock[EndpointId]
   val upstreamConnector: UpstreamConnector = mock[UpstreamConnector]
 
   "headers function" should {
@@ -35,10 +35,10 @@ class HeaderHandlerSpec extends AnyWordSpec with HeaderHandler with BaseSpec wit
 
       val expectedHeaders = Seq(
         "Authorization" -> "Bearer localhost-only-token",
-        "Environment" -> "ist0",
+        "Environment"   -> "ist0",
         "CorrelationId" -> requestId.correlationId.toString,
-        "OriginatorId" -> requestId.requestType.entryName,
-        "UserId" -> requestId.staffId
+        "OriginatorId"  -> requestId.requestType.entryName,
+        "UserId"        -> requestId.staffId
       )
 
       headers(appConfig, requestId) shouldBe expectedHeaders
@@ -49,10 +49,10 @@ class HeaderHandlerSpec extends AnyWordSpec with HeaderHandler with BaseSpec wit
       val requestId: RequestId = genUnattendedRequestId(endpointId, upstreamConnector)
 
       val expectedHeaders = Seq(
-        "Authorization" -> "Bearer localhost-only-token",
-        "Environment" -> "ist0",
+        "Authorization"              -> "Bearer localhost-only-token",
+        "Environment"                -> "ist0",
         UpstreamHeader.CorrelationId -> requestId.correlationId.toString,
-        UpstreamHeader.RequestType -> requestId.requestType.entryName
+        UpstreamHeader.RequestType   -> requestId.requestType.entryName
       )
 
       headers(appConfig, requestId) shouldBe expectedHeaders

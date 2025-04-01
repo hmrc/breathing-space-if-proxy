@@ -31,25 +31,20 @@ import uk.gov.hmrc.breathingspaceifproxy.model._
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended.DA2_PTA
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.{Attended, EndpointId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{
-  BS_Memorandum_GET,
-  BS_Periods_POST,
-  BS_Periods_PUT,
-  BS_Underpayments_GET
-}
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.{BS_Memorandum_GET, BS_Periods_POST, BS_Periods_PUT, BS_Underpayments_GET}
 
 trait RequestValidation {
 
-  def validateHeadersForNPS(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
-    implicit request: Request[_]
+  def validateHeadersForNPS(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(implicit
+    request: Request[_]
   ): Validation[RequestId] =
     endpointId match {
       case BS_Memorandum_GET => validateMemorandumHeaders(endpointId, upstreamConnector)
-      case _ => validateAllHeaders(endpointId, upstreamConnector)
+      case _                 => validateAllHeaders(endpointId, upstreamConnector)
     }
 
-  private def validateAllHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
-    implicit request: Request[_]
+  private def validateAllHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(implicit
+    request: Request[_]
   ): Validation[RequestId] = {
     val headers = request.headers
     (
@@ -61,8 +56,8 @@ trait RequestValidation {
       .andThen(validateStaffPidForRequestType(endpointId, upstreamConnector))
   }
 
-  private def validateMemorandumHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(
-    implicit request: Request[_]
+  private def validateMemorandumHeaders(endpointId: EndpointId, upstreamConnector: UpstreamConnector)(implicit
+    request: Request[_]
   ): Validation[RequestId] = {
     val headers = request.headers
     (
@@ -83,23 +78,23 @@ trait RequestValidation {
   def parseJsValue[T](json: JsValue, name: String)(implicit rds: Reads[T]): Option[T] =
     (json \ name).validate[T] match {
       case JsSuccess(value, _) => value.some
-      case JsError(_) => none
+      case JsError(_)          => none
     }
 
   def parseJsValueOpt[T](json: JsValue, name: String)(implicit rds: Reads[T]): Validation[Option[T]] =
     (json \ name).validateOpt[T] match {
       case JsSuccess(value, _) => value.validNec
-      case JsError(_) => ErrorItem(INVALID_JSON, s" ($name)".some).invalidNec
+      case JsError(_)          => ErrorItem(INVALID_JSON, s" ($name)".some).invalidNec
     }
 
   def parseJsObject[T](json: JsValue)(implicit rds: Reads[T]): Option[T] =
     json.validate[T] match {
       case JsSuccess(value, _) => value.some
-      case JsError(_) => none
+      case JsError(_)          => none
     }
 
-  def validateJsArray[T](json: JsArray, name: String)(
-    implicit rds: Reads[T]
+  def validateJsArray[T](json: JsArray, name: String)(implicit
+    rds: Reads[T]
   ): Validation[List[T]] =
     // MISSING_PERIODS, as error code, is a bit misleading here, since the function is
     // generic and accordingly not thought for checking an array of Periods specifically.
@@ -131,12 +126,12 @@ trait RequestValidation {
         if (request.method.toUpperCase == HttpVerbs.GET) unit.validNec
         // The "Content-type" header is mandatory for POST, PUT and DELETE,
         // (they are the only HTTP methods accepted, with GET of course).
-        else ErrorItem(MISSING_HEADER, s"(${CONTENT_TYPE})".some).invalidNec
+        else ErrorItem(MISSING_HEADER, s"($CONTENT_TYPE)".some).invalidNec
       } { contentType =>
         // In case the "Content-type" header is specified, a body,
         // if any, is always expected to be in Json format.
         if (contentType.toLowerCase == MimeTypes.JSON.toLowerCase) unit.validNec
-        else ErrorItem(INVALID_HEADER, s"(${CONTENT_TYPE}). Invalid value: ${contentType}".some).invalidNec
+        else ErrorItem(INVALID_HEADER, s"($CONTENT_TYPE). Invalid value: $contentType".some).invalidNec
       }
 
   private def validateCorrelationId(headers: Headers): Validation[UUID] =
@@ -193,7 +188,7 @@ trait RequestValidation {
               INVALID_HEADER,
               s"(${DownstreamHeader.StaffPid}). Expected a 7-digit number but was $staffPid".some
             ).invalidNec
-          } { _.validNec }
+          }(_.validNec)
       }
 
   private def validateStaffPidForRequestType(
@@ -201,10 +196,12 @@ trait RequestValidation {
     upstreamConnector: UpstreamConnector
   )(headerValues: (UUID, Attended, String)): Validation[RequestId] = {
     val requestType = headerValues._2
-    val staffPid = headerValues._3
-    if (requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
+    val staffPid    = headerValues._3
+    if (
+      requestType == Attended.DA2_BS_ATTENDED && staffPid != unattendedStaffPid
       || requestType == Attended.DA2_BS_UNATTENDED && staffPid == unattendedStaffPid
-      || requestType == Attended.DA2_PTA && staffPid == unattendedStaffPid) {
+      || requestType == Attended.DA2_PTA && staffPid == unattendedStaffPid
+    ) {
       RequestId(endpointId, correlationId = headerValues._1, requestType, staffPid, upstreamConnector)
         .validNec[ErrorItem]
     } else {

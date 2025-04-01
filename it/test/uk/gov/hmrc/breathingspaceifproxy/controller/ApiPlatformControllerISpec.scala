@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ class ApiPlatformControllerISpec extends BaseISpec {
 
   "GET /api/definition" should {
     "return 200(OK) and the definitions.json content" in {
-      val url = getDefinition.url
+      val url      = getDefinition.url
       val response = route(app, fakeAttendedRequest(Helpers.GET, url)).get
 
       status(response) shouldBe Status.OK
@@ -37,11 +37,11 @@ class ApiPlatformControllerISpec extends BaseISpec {
 
   "GET /api/conf/1.0/application.yaml" should {
     "return 200(OK) and the application.yaml content" in {
-      val url = conf("1.0", "application.yaml").url
+      val url      = conf("1.0", "application.yaml").url
       val response = route(app, fakeAttendedRequest(Helpers.GET, url)).get
 
-      status(response) shouldBe Status.OK
-      contentAsString(response) should include("title: Breathing Space")
+      status(response)                       shouldBe Status.OK
+      contentAsString(response)                should include("title: Breathing Space")
       headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
   }

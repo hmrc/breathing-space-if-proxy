@@ -26,8 +26,8 @@ package object model {
 
   lazy val timestampFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
 
-  val periodIdKey = "periodID"
+  val periodIdKey  = "periodID"
   val startDateKey = "startDate"
-  val endDateKey = "endDate"
+  val endDateKey   = "endDate"
   val timestampKey = "pegaRequestTimestamp"
 }

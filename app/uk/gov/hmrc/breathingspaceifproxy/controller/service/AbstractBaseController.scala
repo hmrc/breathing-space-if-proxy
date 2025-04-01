@@ -64,7 +64,7 @@ abstract class AbstractBaseController(
     errors: Errors
   )(implicit nino: Nino, request: Request[Validation[R]], requestId: RequestId): Future[Result] = {
     val errorList = errors.toChain.toList
-    val payload = Json.obj("errors" -> errorList)
+    val payload   = Json.obj("errors" -> errorList)
     auditEvent(errorList.head.baseError.httpCode, payload)
     Future.successful {
       HttpError(requestId.correlationId, errors).value

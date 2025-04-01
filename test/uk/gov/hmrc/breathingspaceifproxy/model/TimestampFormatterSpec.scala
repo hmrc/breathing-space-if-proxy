@@ -25,7 +25,7 @@ class TimestampFormatterSpec extends AnyFunSuite with BaseSpec {
 
   test("timestampFormatter outputs the timestamp according to the expected ISO format") {
     val expectedFormattedDateTime = "2020-12-31T23:59:59.999Z"
-    val dateTime = ZonedDateTime.parse(expectedFormattedDateTime)
+    val dateTime                  = ZonedDateTime.parse(expectedFormattedDateTime)
     dateTime.format(timestampFormatter) shouldBe expectedFormattedDateTime
   }
 }

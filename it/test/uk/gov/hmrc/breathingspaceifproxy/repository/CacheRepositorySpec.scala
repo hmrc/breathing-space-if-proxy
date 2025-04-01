@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import scala.concurrent.Future
 
 class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySupport[CacheItem] {
 
-  override lazy val repository =
+  override val repository: CacheRepository =
     new CacheRepository(
       mongoComponent,
       inject[TimestampSupport],
@@ -39,12 +39,12 @@ class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySuppo
     )
 
   private val cacheId = HashedNino(Nino("AA000001A"))
-  private val dataId = "memorandum"
+  private val dataId  = "memorandum"
   private val dataKey = DataKey[String](dataId)
 
   "fetch" should {
     "store value in mongo when it doesn't exist" in {
-      repository.fetch(cacheId, dataId) { Future.successful("success value".validNec) }.futureValue
+      repository.fetch(cacheId, dataId)(Future.successful("success value".validNec)).futureValue
 
       val result = repository.get[String](cacheId)(dataKey).futureValue
       result shouldBe Some("success value")
@@ -53,13 +53,13 @@ class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySuppo
     "get value from mongo when it does exist" in {
       repository.put(cacheId)(dataKey, "success value").futureValue
 
-      val result = repository.fetch(cacheId, dataId) { Future.successful("failure value".validNec) }.futureValue
+      val result = repository.fetch(cacheId, dataId)(Future.successful("failure value".validNec)).futureValue
       result shouldBe "success value".validNec
     }
 
     "don't store value in mongo when invalid response returned" in {
-      val expected = ErrorItem(BaseError.INTERNAL_SERVER_ERROR).invalidNec[String]
-      val fetchResult = repository.fetch(cacheId, dataId) { Future.successful(expected) }.futureValue
+      val expected    = ErrorItem(BaseError.INTERNAL_SERVER_ERROR).invalidNec[String]
+      val fetchResult = repository.fetch(cacheId, dataId)(Future.successful(expected)).futureValue
       val mongoResult = repository.get[String](cacheId)(dataKey).futureValue
 
       fetchResult shouldBe expected
@@ -67,8 +67,8 @@ class CacheRepositorySpec extends BaseISpec with DefaultPlayMongoRepositorySuppo
     }
 
     "don't store value when future fails" in {
-      val expected = new Exception("thrown exception")
-      val fetchResult = repository.fetch[String](cacheId, dataId) { Future.failed(expected) }.failed.futureValue
+      val expected    = new Exception("thrown exception")
+      val fetchResult = repository.fetch[String](cacheId, dataId)(Future.failed(expected)).failed.futureValue
       val mongoResult = repository.get[String](cacheId)(dataKey).futureValue
 
       fetchResult shouldBe expected

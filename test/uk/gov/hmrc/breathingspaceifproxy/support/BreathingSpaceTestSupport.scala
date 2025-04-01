@@ -51,35 +51,35 @@ trait BreathingSpaceTestSupport {
 
   val invalidNino = "MG34567"
 
-  val randomUUID: UUID = UUID.randomUUID
-  val randomUUIDAsString: String = randomUUID.toString
-  val correlationId: UUID = randomUUID
+  val randomUUID: UUID              = UUID.randomUUID
+  val randomUUIDAsString: String    = randomUUID.toString
+  val correlationId: UUID           = randomUUID
   val correlationIdAsString: String = randomUUIDAsString
-  val periodId: UUID = randomUUID
-  val periodIdAsString: String = randomUUIDAsString
+  val periodId: UUID                = randomUUID
+  val periodIdAsString: String      = randomUUIDAsString
 
   val attendedStaffPid = "1234567"
 
   lazy val requestHeaders: List[(String, String)] = List(
-    CONTENT_TYPE -> MimeTypes.JSON,
+    CONTENT_TYPE                   -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
-    DownstreamHeader.RequestType -> Attended.DA2_BS_ATTENDED.toString,
-    DownstreamHeader.StaffPid -> attendedStaffPid,
-    AUTHORIZATION -> "Bearer 12345"
+    DownstreamHeader.RequestType   -> Attended.DA2_BS_ATTENDED.toString,
+    DownstreamHeader.StaffPid      -> attendedStaffPid,
+    AUTHORIZATION                  -> "Bearer 12345"
   )
 
   lazy val requestHeadersForUnattended: List[(String, String)] = List(
-    CONTENT_TYPE -> MimeTypes.JSON,
+    CONTENT_TYPE                   -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
-    DownstreamHeader.RequestType -> Attended.DA2_BS_UNATTENDED.toString,
-    DownstreamHeader.StaffPid -> unattendedStaffPid,
-    AUTHORIZATION -> "Bearer 12345"
+    DownstreamHeader.RequestType   -> Attended.DA2_BS_UNATTENDED.toString,
+    DownstreamHeader.StaffPid      -> unattendedStaffPid,
+    AUTHORIZATION                  -> "Bearer 12345"
   )
 
   lazy val requestHeadersForMemorandum: List[(String, String)] = List(
-    CONTENT_TYPE -> MimeTypes.JSON,
+    CONTENT_TYPE                   -> MimeTypes.JSON,
     DownstreamHeader.CorrelationId -> correlationIdAsString,
-    AUTHORIZATION -> "Bearer 12345"
+    AUTHORIZATION                  -> "Bearer 12345"
   )
 
   lazy val validPostPeriod: PostPeriodInRequest = PostPeriodInRequest(
@@ -136,11 +136,11 @@ trait BreathingSpaceTestSupport {
     utrAssociatedWithCharge = "1234567890".some
   )
 
-  lazy val listOfDebts: List[Debt] = List(debt1, debt2)
+  lazy val listOfDebts: List[Debt]    = List(debt1, debt2)
   lazy val debtsAsSentFromEis: String = Json.toJson(listOfDebts).toString
-  lazy val debts: String = Json.toJson(Debts(listOfDebts)).toString
+  lazy val debts: String              = Json.toJson(Debts(listOfDebts)).toString
 
-  lazy val fakeGetRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withHeaders(requestHeaders: _*)
+  lazy val fakeGetRequest: FakeRequest[AnyContentAsEmpty.type]           = FakeRequest().withHeaders(requestHeaders: _*)
   lazy val fakeUnAttendedGetRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().withHeaders(requestHeadersForUnattended: _*)
   lazy val fakeMemorandumGetRequest: FakeRequest[AnyContentAsEmpty.type] =

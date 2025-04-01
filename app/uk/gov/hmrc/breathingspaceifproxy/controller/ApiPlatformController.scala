@@ -24,7 +24,7 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import javax.inject.{Inject, Singleton}
 
 @Singleton
-class ApiPlatformController @Inject()(cc: ControllerComponents, assets: Assets)
+class ApiPlatformController @Inject() (cc: ControllerComponents, assets: Assets)
     extends BackendController(cc)
     with Logging {
 

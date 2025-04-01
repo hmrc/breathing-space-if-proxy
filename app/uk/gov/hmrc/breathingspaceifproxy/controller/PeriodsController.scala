@@ -35,7 +35,7 @@ import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
-class PeriodsController @Inject()(
+class PeriodsController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
@@ -137,6 +137,6 @@ class PeriodsController @Inject()(
   private def validateUtr(utr: String): Validation[Option[String]] =
     utr match {
       case utrRegex() => utr.some.validNec[ErrorItem]
-      case _ => ErrorItem(INVALID_UTR).invalidNec[Option[String]]
+      case _          => ErrorItem(INVALID_UTR).invalidNec[Option[String]]
     }
 }

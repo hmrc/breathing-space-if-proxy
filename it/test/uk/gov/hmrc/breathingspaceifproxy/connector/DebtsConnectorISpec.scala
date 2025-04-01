@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,13 +28,13 @@ import uk.gov.hmrc.breathingspaceifproxy.support.{BaseISpec, HttpMethod}
 
 class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
-  val connector: DebtsConnector = inject[DebtsConnector]
+  val connector: DebtsConnector     = inject[DebtsConnector]
   implicit val requestId: RequestId = genRequestId(BS_Debts_GET, connector.etmpConnector)
 
   "get" should {
     "return a Debts instance when it receives a 200(OK) response" in {
       val nino = genNino
-      val url = DebtsConnector.path(nino, periodId)
+      val url  = DebtsConnector.path(nino, periodId)
       stubCall(HttpMethod.Get, url, OK, debtsAsSentFromEis)
 
       val response = await(connector.get(nino, periodId))
@@ -78,7 +78,7 @@ class DebtsConnectorISpec extends BaseISpec with ConnectorTestSupport {
 
   private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = none): Assertion = {
     val nino = genNino
-    val url = DebtsConnector.path(nino, periodId)
+    val url  = DebtsConnector.path(nino, periodId)
     stubCall(HttpMethod.Get, url, status, errorResponseFromIF(code.fold(baseError.entryName)(identity)))
 
     val response = await(connector.get(nino, periodId))

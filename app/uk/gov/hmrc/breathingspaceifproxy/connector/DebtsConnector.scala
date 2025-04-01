@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,24 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.connector
 
-import cats.syntax.validated._
+import cats.syntax.validated.*
 import com.codahale.metrics.MetricRegistry
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.*
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.{EtmpConnector, HeaderHandler}
 import uk.gov.hmrc.breathingspaceifproxy.metrics.HttpAPIMonitor
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.http.HttpReads.Implicits.*
+import uk.gov.hmrc.http.StringContextOps
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class DebtsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegistry)(
-  implicit appConfig: AppConfig,
+class DebtsConnector @Inject() (httpClientV2: HttpClientV2, metricRegistryParam: MetricRegistry)(implicit
+  appConfig: AppConfig,
   val etmpConnector: EtmpConnector,
   ec: ExecutionContext
 ) extends HttpAPIMonitor
@@ -40,12 +41,17 @@ class DebtsConnector @Inject()(http: HttpClient, metricRegistryParam: MetricRegi
 
   import DebtsConnector._
 
-  override lazy val metricRegistry: MetricRegistry = metricRegistryParam
+  override val metricRegistry: MetricRegistry = metricRegistryParam
 
   def get(nino: Nino, periodId: UUID)(implicit requestId: RequestId): ResponseValidation[Debts] =
     etmpConnector.monitor {
       monitor(s"ConsumedAPI-${requestId.endpointId}") {
-        http.GET[List[Debt]](Url(url(nino, periodId)).value, headers = headers).map(Debts(_).validNec)
+        val updatedHc = hc.withExtraHeaders(headers: _*)
+        val fullUrl   = url(nino, periodId)
+        httpClientV2
+          .get(url"$fullUrl")(updatedHc)
+          .execute[List[Debt]]
+          .map(Debts(_).validNec)
       }
     }
 }

@@ -35,11 +35,11 @@ object Debt {
 
   implicit val writes: Writes[Debt] = (debt: Debt) => {
     val fields = List(
-      "chargeReference" -> JsString(debt.chargeReference),
-      "chargeDescription" -> JsString(debt.chargeDescription),
-      "chargeAmount" -> JsNumber(debt.chargeAmount.setScale(2, RoundingMode.HALF_EVEN)),
+      "chargeReference"    -> JsString(debt.chargeReference),
+      "chargeDescription"  -> JsString(debt.chargeDescription),
+      "chargeAmount"       -> JsNumber(debt.chargeAmount.setScale(2, RoundingMode.HALF_EVEN)),
       "chargeCreationDate" -> Json.toJson(debt.chargeCreationDate),
-      "chargeDueDate" -> Json.toJson(debt.chargeDueDate)
+      "chargeDueDate"      -> Json.toJson(debt.chargeDueDate)
     )
     JsObject(debt.utrAssociatedWithCharge.fold(fields) { utrAwC =>
       fields :+ ("utrAssociatedWithCharge" -> Json.toJson(utrAwC))

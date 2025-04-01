@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,14 @@ package uk.gov.hmrc.breathingspaceifproxy.support
 import org.apache.pekko.stream.Materializer
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
-import org.mockito.MockitoSugar.mock
-import org.scalatest._
+import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalatest.*
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.{HeaderNames, MimeTypes}
-import play.api.libs.json._
+import play.api.libs.json.*
 import play.api.mvc.Result
 import play.api.test.{DefaultAwaitTimeout, Injecting}
 import uk.gov.hmrc.auth.core.AuthConnector
@@ -35,7 +35,6 @@ import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
 
-import scala.annotation.nowarn
 import scala.concurrent.Future
 
 object BaseSpec {
@@ -44,7 +43,6 @@ object BaseSpec {
   }
 }
 
-@nowarn("msg=dead code following this construct")
 trait BaseSpec
     extends BreathingSpaceTestSupport
     with DefaultAwaitTimeout
@@ -81,7 +79,7 @@ trait BaseSpec
     numberOfErrors: Int
   ): List[TestingErrorItem] = {
 
-    val result = future.futureValue
+    val result         = future.futureValue
     Then(s"the resulting response should have as Http Status $expectedStatus")
     val responseHeader = result.header
     responseHeader.status shouldBe expectedStatus
@@ -94,7 +92,7 @@ trait BaseSpec
     }
 
     And("the body should be in Json format")
-    headers(CONTENT_TYPE).toLowerCase shouldBe MimeTypes.JSON.toLowerCase
+    headers(CONTENT_TYPE).toLowerCase       shouldBe MimeTypes.JSON.toLowerCase
     result.body.contentType.get.toLowerCase shouldBe MimeTypes.JSON.toLowerCase
     val bodyAsJson = Json.parse(result.body.consumeData.futureValue.utf8String)
 

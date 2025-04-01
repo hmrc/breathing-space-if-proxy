@@ -25,15 +25,15 @@ import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 class BindersSpec extends AnyFunSuite with BaseSpec {
 
   test("bind method in the Nino Binder should return a Nino object for a valid nino") {
-    val key = "1234"
-    val validNino = "AS000001A"
+    val key          = "1234"
+    val validNino    = "AS000001A"
     val expectedNino = Right(Nino(validNino))
     Binders.ninoBinder.bind(key, validNino) shouldBe expectedNino
   }
 
   test("bind method in the Nino Binder should return an error list with the INVALID NINO error for an invalid nino") {
-    val key = "12345"
-    val invalidNino = "12345"
+    val key           = "12345"
+    val invalidNino   = "12345"
     val expectedError = Left(
       Json.stringify(
         Json.obj("errors" -> List(Json.toJson(ErrorItem(INVALID_NINO))))
@@ -43,9 +43,9 @@ class BindersSpec extends AnyFunSuite with BaseSpec {
   }
 
   test("unbind method in the Nino Binder should return the Nino value") {
-    val key = "12345"
+    val key       = "12345"
     val ninoValue = "AS000001A"
-    val nino = Nino(ninoValue)
+    val nino      = Nino(ninoValue)
     Binders.ninoBinder.unbind(key, nino) shouldBe ninoValue
   }
 }
