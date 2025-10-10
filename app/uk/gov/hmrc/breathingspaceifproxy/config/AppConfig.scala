@@ -48,4 +48,7 @@ class AppConfig @Inject() (config: Configuration, servicesConfig: ServicesConfig
   }
 
   val ninoHashingKey: String = config.get[String]("ninoHashingKey")
+
+  lazy val fandfHost: String = servicesConfig.baseUrl("fandf")
+
 }

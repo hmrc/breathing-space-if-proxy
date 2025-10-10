@@ -17,16 +17,15 @@
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import javax.inject.{Inject, Singleton}
-
-import cats.syntax.apply._
+import cats.syntax.apply.*
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.*
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.DebtsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{DebtsConnector, FandFConnector}
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.*
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
@@ -34,6 +33,7 @@ class DebtsController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
+  override val fandFConnector: FandFConnector,
   cc: ControllerComponents,
   debtsConnector: DebtsConnector
 ) extends AbstractBaseController(cc) {
