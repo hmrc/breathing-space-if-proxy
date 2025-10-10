@@ -25,7 +25,7 @@ import play.api.libs.json.JsSuccess
 import play.api.test.Helpers
 import play.api.test.Helpers.*
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
-import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, UnderpaymentsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
@@ -49,6 +49,7 @@ class UnderpaymentsControllerSpec extends AnyWordSpec with BaseSpec with Mockito
     appConfig,
     inject[AuditConnector],
     authConnector,
+    mock[FandFConnector],
     Helpers.stubControllerComponents(),
     mockUnderpaymentsConnector
   )

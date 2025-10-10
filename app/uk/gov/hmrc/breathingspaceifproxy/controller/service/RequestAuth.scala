@@ -51,18 +51,28 @@ trait RequestAuth()() extends AuthorisedFunctions with Helpers with Logging {
 
         authorised(ConfidenceLevel.L200.or(authProviders.and(Enrolment(scope))))
           .retrieve(nino.and(clientId)) {
-            case Some(authNino) ~ _ if requestNino.contains(authNino) =>
+            case Some(authNino) ~ None =>
               fandFConnector.getTrustedHelper()(headerCarrier).flatMap { maybeTrustedHelper =>
-                maybeTrustedHelper.fold(
-                  f(AuthenticatedRequest(request, Some(authNino), None))
-                ) { trustedHelper =>
-                  trustedHelper.principalNino.fold(
+                val principalNino = maybeTrustedHelper.flatMap(_.principalNino)
+
+                (requestNino, principalNino) match {
+                  case (Some(reqNino), Some(prinNino)) if reqNino == prinNino =>
+                    f(AuthenticatedRequest(request, Some(prinNino), None))
+                  case (Some(reqNino), None) if reqNino == authNino           =>
                     f(AuthenticatedRequest(request, Some(authNino), None))
-                  )(helpee => f(AuthenticatedRequest(request, Some(helpee), None)))
+                  case (Some(_), None)                                        =>
+                    logger.error("The nino in the request does not match the authenticated nino")
+                    notAuthorised
+                  case (Some(_), Some(_))                                     =>
+                    logger.error("The nino in the request does not match the principal nino")
+                    notAuthorised
+                  case _                                                      =>
+                    logger.error("No nino in the request")
+                    notAuthorised
                 }
               }
-            case _ ~ Some(clientId)                                   => f(AuthenticatedRequest(request, None, Some(clientId)))
-            case _                                                    => notAuthorised
+            case None ~ Some(clientId) => f(AuthenticatedRequest(request, None, Some(clientId)))
+            case _                     => notAuthorised
           }(headerCarrier, executionContext)
           .recoverWith {
             case exc: AuthorisationException =>

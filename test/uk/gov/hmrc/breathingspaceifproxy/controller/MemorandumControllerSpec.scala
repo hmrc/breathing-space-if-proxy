@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.implicits._
+import cats.implicits.*
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import org.mockito.Mockito.when
@@ -24,10 +24,10 @@ import org.mockito.ArgumentMatchers.any
 import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.Helpers
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, MemorandumConnector}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.MemConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.{MISSING_HEADER, SERVER_ERROR}
 import uk.gov.hmrc.breathingspaceifproxy.model.{ErrorItem, MemorandumInResponse, Nino, RequestId}
@@ -47,10 +47,13 @@ class MemorandumControllerSpec extends AnyWordSpec with BaseSpec with MockitoSug
   val mockConnector: MemorandumConnector = mock[MemorandumConnector]
   when(mockConnector.memorandumConnector).thenReturn(mockUpstreamConnector)
 
+  val mockFandFConnector = mock[FandFConnector]
+
   val controller = new MemorandumController(
     mockAppConfig,
     inject[AuditConnector],
     authConnector,
+    mockFandFConnector,
     Helpers.stubControllerComponents(),
     mockConnector
   )
