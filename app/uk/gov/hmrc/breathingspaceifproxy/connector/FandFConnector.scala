@@ -37,7 +37,7 @@ class FandFConnector @Inject() (
 
   def getTrustedHelper()(implicit hc: HeaderCarrier): Future[Option[TrustedHelper]] =
     httpClient
-      .get(url"${appConfig.fandfHost}/delegation/get")
+      .get(url"${appConfig.fandfBaseUrl}/delegation/get")
       .execute[HttpResponse]
       .map { httpResponse =>
         httpResponse.status match {
