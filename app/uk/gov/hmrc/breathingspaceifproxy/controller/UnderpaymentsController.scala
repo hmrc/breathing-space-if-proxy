@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.syntax.apply._
+import cats.syntax.apply.*
 import play.api.libs.json.Writes
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Request, Result}
+import play.api.mvc.{Action, ActionBuilder, AnyContent, ControllerComponents, Request, Result}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.UnderpaymentsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, UnderpaymentsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model.{HttpError, Nino, RequestId, Underpayments}
+import uk.gov.hmrc.breathingspaceifproxy.model.{AuthenticatedRequest, HttpError, Nino, RequestId, Underpayments}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Underpayments_GET
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -37,11 +37,12 @@ class UnderpaymentsController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
+  override val fandFConnector: FandFConnector,
   cc: ControllerComponents,
   underpaymentsConnector: UnderpaymentsConnector
 ) extends AbstractBaseController(cc) {
 
-  val action = authAction("read:breathing-space-debts")
+  val action: ActionBuilder[AuthenticatedRequest, AnyContent] = authAction("read:breathing-space-debts")
 
   def get(nino: String, periodId: String): Action[Validation[AnyContent]] =
     action.async(withoutBody) { implicit request =>

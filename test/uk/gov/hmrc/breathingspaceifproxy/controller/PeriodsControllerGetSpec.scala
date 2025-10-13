@@ -16,19 +16,19 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.wordspec.AnyWordSpec
 import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers.any
 import play.api.test.Helpers
-import play.api.test.Helpers._
-import uk.gov.hmrc.breathingspaceifproxy._
-import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import play.api.test.Helpers.*
+import uk.gov.hmrc.breathingspaceifproxy.*
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, PeriodsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -46,6 +46,7 @@ class PeriodsControllerGetSpec extends AnyWordSpec with BaseSpec with MockitoSug
     appConfig,
     inject[AuditConnector],
     authConnector,
+    mock[FandFConnector],
     Helpers.stubControllerComponents(),
     mockConnector
   )

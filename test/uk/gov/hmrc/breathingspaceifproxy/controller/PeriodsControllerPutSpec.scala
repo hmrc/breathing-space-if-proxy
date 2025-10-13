@@ -18,11 +18,9 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.time.{LocalDate, LocalDateTime, ZonedDateTime}
 import java.util.UUID
-
 import scala.concurrent.Future
-
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
@@ -30,13 +28,13 @@ import org.mockito.Mockito.when
 import org.mockito.ArgumentMatchers.any
 import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.breathingspaceifproxy.Validation
-import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, PeriodsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -52,6 +50,7 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
     appConfig,
     inject[AuditConnector],
     authConnector,
+    mock[FandFConnector],
     Helpers.stubControllerComponents(),
     mockConnector
   )

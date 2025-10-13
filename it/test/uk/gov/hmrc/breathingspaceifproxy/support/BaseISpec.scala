@@ -66,6 +66,8 @@ abstract class BaseISpec
     "circuit.breaker.memorandum.failedCallsInUnstableBeforeUnavailable" -> Int.MaxValue,
     "microservice.services.auth.host"                                   -> wireMockHost,
     "microservice.services.auth.port"                                   -> wireMockPort,
+    "microservice.services.fandf.host"                                  -> wireMockHost,
+    "microservice.services.fandf.port"                                  -> wireMockPort,
     "microservice.services.integration-framework.host"                  -> wireMockHost,
     "microservice.services.integration-framework.port"                  -> wireMockPort
   )

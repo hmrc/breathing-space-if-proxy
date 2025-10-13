@@ -16,16 +16,17 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.syntax.option._
+import cats.syntax.option.*
 import org.scalatest.Assertion
 import org.scalatest.funsuite.AnyFunSuite
+import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.mvc.Result
-import play.api.test.Helpers._
-import play.api.test._
-import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader._
-import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import play.api.test.Helpers.*
+import play.api.test.*
+import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader.*
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, PeriodsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.Attended
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -38,6 +39,7 @@ class HeadersValidationSpec extends AnyFunSuite with BaseSpec {
       appConfig,
       inject[AuditConnector],
       authConnector,
+      mock[FandFConnector],
       Helpers.stubControllerComponents(),
       inject[PeriodsConnector]
     )

@@ -18,20 +18,20 @@ package uk.gov.hmrc.breathingspaceifproxy.controller
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
-import cats.syntax.apply._
-import cats.syntax.either._
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.apply.*
+import cats.syntax.either.*
+import cats.syntax.option.*
+import cats.syntax.validated.*
 import play.api.libs.json.{JsArray, JsValue}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthConnector
-import uk.gov.hmrc.breathingspaceifproxy._
+import uk.gov.hmrc.breathingspaceifproxy.*
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, PeriodsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.*
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 @Singleton()
@@ -39,6 +39,7 @@ class PeriodsController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
+  override val fandFConnector: FandFConnector,
   cc: ControllerComponents,
   periodsConnector: PeriodsConnector
 ) extends AbstractBaseController(cc) {

@@ -30,7 +30,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.test.Helpers
 import play.api.test.Helpers.*
 import uk.gov.hmrc.breathingspaceifproxy.Validation
-import uk.gov.hmrc.breathingspaceifproxy.connector.PeriodsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, PeriodsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
 import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
@@ -50,6 +50,7 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
     appConfig,
     inject[AuditConnector],
     authConnector,
+    mock[FandFConnector],
     Helpers.stubControllerComponents(),
     mockConnector
   )

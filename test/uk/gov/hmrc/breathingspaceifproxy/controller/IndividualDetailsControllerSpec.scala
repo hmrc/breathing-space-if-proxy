@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.syntax.option._
-import cats.syntax.validated._
+import cats.syntax.option.*
+import cats.syntax.validated.*
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.Assertion
 import org.scalatest.wordspec.AnyWordSpec
@@ -26,13 +26,13 @@ import org.mockito.ArgumentMatchers.any
 import play.api.libs.json.Json
 import play.api.mvc.{Request, Result}
 import play.api.test.Helpers
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.breathingspaceifproxy.DownstreamHeader.StaffPid
-import uk.gov.hmrc.breathingspaceifproxy.connector.IndividualDetailsConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, IndividualDetailsConnector}
 import uk.gov.hmrc.breathingspaceifproxy.connector.service.EisConnector
-import uk.gov.hmrc.breathingspaceifproxy.model._
+import uk.gov.hmrc.breathingspaceifproxy.model.*
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError
-import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError._
+import uk.gov.hmrc.breathingspaceifproxy.model.enums.BaseError.*
 import uk.gov.hmrc.breathingspaceifproxy.support.BaseSpec
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -50,6 +50,7 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
     appConfig,
     inject[AuditConnector],
     authConnector,
+    mock[FandFConnector],
     Helpers.stubControllerComponents(),
     mockConnector
   )

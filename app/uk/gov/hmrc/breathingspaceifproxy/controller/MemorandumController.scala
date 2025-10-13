@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.breathingspaceifproxy.controller
 
-import cats.implicits._
+import cats.implicits.catsSyntaxOptionId
 import com.google.inject.{Inject, Singleton}
-import play.api.mvc._
+import play.api.mvc.*
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.breathingspaceifproxy.Validation
 import uk.gov.hmrc.breathingspaceifproxy.config.AppConfig
-import uk.gov.hmrc.breathingspaceifproxy.connector.MemorandumConnector
+import uk.gov.hmrc.breathingspaceifproxy.connector.{FandFConnector, MemorandumConnector}
 import uk.gov.hmrc.breathingspaceifproxy.controller.service.AbstractBaseController
-import uk.gov.hmrc.breathingspaceifproxy.model.{HttpError, Nino, RequestId}
+import uk.gov.hmrc.breathingspaceifproxy.model.{AuthenticatedRequest, HttpError, Nino, RequestId}
 import uk.gov.hmrc.breathingspaceifproxy.model.enums.EndpointId.BS_Memorandum_GET
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
@@ -33,11 +33,12 @@ class MemorandumController @Inject() (
   override val appConfig: AppConfig,
   override val auditConnector: AuditConnector,
   override val authConnector: AuthConnector,
+  override val fandFConnector: FandFConnector,
   cc: ControllerComponents,
   connector: MemorandumConnector
 ) extends AbstractBaseController(cc) {
 
-  val action: Option[String] => ActionBuilder[Request, AnyContent] =
+  val action: Option[String] => ActionBuilder[AuthenticatedRequest, AnyContent] =
     authAction("read:breathing-space-memorandum", _)
 
   def get(n: Nino): Action[Validation[AnyContent]] =
