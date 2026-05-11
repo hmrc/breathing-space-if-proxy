@@ -34,9 +34,8 @@ class PeriodsControllerPutISpec extends BaseISpec {
 
   "PUT BS Periods for Nino" should {
 
-    "return 200(OK) and all periods for the valid Nino provided" in {
+    "return 200(OK) and all periods for the valid Nino provided" in
       verifyOk
-    }
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
       val ninoWithoutSuffix = genNino

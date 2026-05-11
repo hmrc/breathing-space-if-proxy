@@ -46,13 +46,11 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       assert(response.fold(_ => false, _ => true))
     }
 
-    "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
+    "return RESOURCE_NOT_FOUND when the provided resource is unknown" in
       verifyErrorResponse(genNino, NOT_FOUND, RESOURCE_NOT_FOUND, "RESOURCE_NOT_FOUND".some)
-    }
 
-    "return CONFLICTING_REQUEST in case of duplicated requests" in {
+    "return CONFLICTING_REQUEST in case of duplicated requests" in
       verifyErrorResponse(genNino, CONFLICT, CONFLICTING_REQUEST)
-    }
 
     "return SERVER_ERROR if the returned payload is unexpected" in {
       val nino = genNino
@@ -69,25 +67,20 @@ class IndividualDetailsConnectorISpec extends BaseISpec with ConnectorTestSuppor
       response.fold(_.head.baseError shouldBe BaseError.INTERNAL_SERVER_ERROR, _ => notAnErrorInstance)
     }
 
-    "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
+    "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in
       verifyErrorResponse(genNino, BAD_REQUEST, BaseError.INTERNAL_SERVER_ERROR)
-    }
 
-    "return UPSTREAM_BAD_GATEWAY for a 502(BAD_GATEWAY) error" in {
+    "return UPSTREAM_BAD_GATEWAY for a 502(BAD_GATEWAY) error" in
       verifyErrorResponse(genNino, BAD_GATEWAY, BaseError.SERVER_ERROR)
-    }
 
-    "return UPSTREAM_SERVICE_UNAVAILABLE for a 503(SERVICE_UNAVAILABLE) error" in {
+    "return UPSTREAM_SERVICE_UNAVAILABLE for a 503(SERVICE_UNAVAILABLE) error" in
       verifyErrorResponse(genNino, SERVICE_UNAVAILABLE, BaseError.SERVER_ERROR)
-    }
 
-    "return UPSTREAM_TIMEOUT for a 504(GATEWAY_TIMEOUT) error" in {
+    "return UPSTREAM_TIMEOUT for a 504(GATEWAY_TIMEOUT) error" in
       verifyErrorResponse(genNino, GATEWAY_TIMEOUT, BaseError.SERVER_ERROR)
-    }
 
-    "return SERVER_ERROR for any 5xx error (excluding 502,503,504)" in {
+    "return SERVER_ERROR for any 5xx error (excluding 502,503,504)" in
       verifyErrorResponse(genNino, NOT_IMPLEMENTED, BaseError.SERVER_ERROR)
-    }
   }
 
   private def verifyErrorResponse(

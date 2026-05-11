@@ -34,17 +34,14 @@ class IndividualDetailsControllerISpec extends BaseISpec {
 
   "GET Individual's details for the provided Nino" should {
 
-    "return 200(OK) and the expected individual details, according to the expected filter" in {
+    "return 200(OK) and the expected individual details, according to the expected filter" in
       verifyResponse(attended = true)
-    }
 
-    "return 200(OK) for an ATTENDED request" in {
+    "return 200(OK) for an ATTENDED request" in
       verifyResponse(attended = true)
-    }
 
-    "return 200(OK) for an UNATTENDED request" in {
+    "return 200(OK) for an UNATTENDED request" in
       verifyResponse(attended = false)
-    }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body    = Json.obj("aName" -> "aValue")
@@ -59,17 +56,14 @@ class IndividualDetailsControllerISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_BODY.message))
     }
 
-    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+    "return 401(UNAUTHORIZED) when the request was not authorised" in
       verifyUnauthorized(fakeAttendedRequest(Helpers.GET, getDetails(genNino.value).url))
-    }
 
-    "return 404(NOT_FOUND) when the provided Nino is unknown" in {
+    "return 404(NOT_FOUND) when the provided Nino is unknown" in
       verifyResponse(attended = true, RESOURCE_NOT_FOUND.some)
-    }
 
-    "return 409(CONFLICT) in case of duplicated requests" in {
+    "return 409(CONFLICT) in case of duplicated requests" in
       verifyResponse(attended = true, CONFLICTING_REQUEST.some)
-    }
   }
 
   private def verifyResponse(attended: Boolean, error: Option[BaseError] = none): Assertion = {

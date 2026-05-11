@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ class PeriodsController @Inject() (
   periodsConnector: PeriodsConnector
 ) extends AbstractBaseController(cc) {
 
-  val readAction = authAction("read:breathing-space-periods")
+  private val readAction = authAction("read:breathing-space-periods")
 
   def get(maybeNino: String): Action[Validation[AnyContent]] = readAction.async(withoutBody) { implicit request =>
     (
@@ -64,7 +64,7 @@ class PeriodsController @Inject() (
       )
   }
 
-  val writeAction = authAction("write:breathing-space-periods")
+  private val writeAction = authAction("write:breathing-space-periods")
 
   val post: Action[Validation[JsValue]] = writeAction.async(withJsonBody) { implicit request =>
     (
@@ -120,7 +120,7 @@ class PeriodsController @Inject() (
         validateJsArray[PutPeriodInRequest](_, "period")
       }
 
-  def validateConsumerRequestId(maybeConsumerRequestId: Option[String]): Validation[UUID] =
+  private def validateConsumerRequestId(maybeConsumerRequestId: Option[String]): Validation[UUID] =
     maybeConsumerRequestId.fold(ErrorItem(MISSING_CONSUMER_REQUEST_ID).invalidNec[UUID]) { crId =>
       Either
         .catchNonFatal(UUID.fromString(crId))

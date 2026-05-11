@@ -37,9 +37,8 @@ class PeriodsControllerGetISpec extends BaseISpec {
 
   "GET BS Periods for Nino" should {
 
-    "return 200(OK) and all periods for the valid Nino provided" in {
+    "return 200(OK) and all periods for the valid Nino provided" in
       verifyOk(attended = true)
-    }
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
       val ninoWithoutSuffix = genNino
@@ -75,13 +74,11 @@ class PeriodsControllerGetISpec extends BaseISpec {
       headers(response).get("Cache-Control") shouldBe Some(appConfig.httpHeaderCacheControl)
     }
 
-    "return 200(OK) for an ATTENDED request" in {
+    "return 200(OK) for an ATTENDED request" in
       verifyOk(attended = true)
-    }
 
-    "return 200(OK) for an UNATTENDED request" in {
+    "return 200(OK) for an UNATTENDED request" in
       verifyOk(attended = false)
-    }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body    = Json.obj("aName" -> "aValue")
@@ -96,9 +93,8 @@ class PeriodsControllerGetISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_BODY.message))
     }
 
-    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+    "return 401(UNAUTHORIZED) when the request was not authorised" in
       verifyUnauthorized(fakeAttendedRequest(Helpers.GET, getPathWithValidNino))
-    }
 
     "return 404(NOT_FOUND) when the provided Nino is unknown" in {
       val unknownNino = genNino

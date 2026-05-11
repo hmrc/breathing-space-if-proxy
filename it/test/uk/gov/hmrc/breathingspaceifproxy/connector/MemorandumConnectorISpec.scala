@@ -90,25 +90,20 @@ class MemorandumConnectorISpec
       )
     }
 
-    "return RESOURCE_NOT_FOUND when the provided resource is unknown" in {
+    "return RESOURCE_NOT_FOUND when the provided resource is unknown" in
       verifyGetResponse(NOT_FOUND, RESOURCE_NOT_FOUND, "RESOURCE_NOT_FOUND".some)
-    }
 
-    "return SERVER_ERROR when IF returns 404 but the code is not RESOURCE_NOT_FOUND" in {
+    "return SERVER_ERROR when IF returns 404 but the code is not RESOURCE_NOT_FOUND" in
       verifyGetResponse(NOT_FOUND, INTERNAL_SERVER_ERROR)
-    }
 
-    "return CONFLICTING_REQUEST in case of duplicated requests" in {
+    "return CONFLICTING_REQUEST in case of duplicated requests" in
       verifyGetResponse(CONFLICT, CONFLICTING_REQUEST)
-    }
 
-    "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in {
+    "return SERVER_ERROR for any 4xx error, 404 and 409 excluded" in
       verifyGetResponse(BAD_REQUEST, INTERNAL_SERVER_ERROR)
-    }
 
-    "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in {
+    "return SERVER_ERROR for any 5xx error, 502, 503 and 504 excluded" in
       verifyGetResponse(NOT_IMPLEMENTED, BaseError.SERVER_ERROR)
-    }
   }
 
   private def verifyGetResponse(status: Int, baseError: BaseError, code: Option[String] = None): Assertion = {

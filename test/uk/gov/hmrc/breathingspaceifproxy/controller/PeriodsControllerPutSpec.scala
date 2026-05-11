@@ -145,21 +145,17 @@ class PeriodsControllerPutSpec extends AnyWordSpec with BaseSpec with MockitoSug
       status(response) shouldBe SERVICE_UNAVAILABLE
     }
 
-    "return 400(BAD_REQUEST) when format of periodID is invalid" in {
+    "return 400(BAD_REQUEST) when format of periodID is invalid" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, "1234567890".some, "2020-04-30")
-    }
 
-    "return 400(BAD_REQUEST) when startDate is not a valid date" in {
+    "return 400(BAD_REQUEST) when startDate is not a valid date" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-31")
-    }
 
-    "return 400(BAD_REQUEST) when endDate is present but it is not a valid date" in {
+    "return 400(BAD_REQUEST) when endDate is present but it is not a valid date" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-01-01", "2020-02-30".some)
-    }
 
-    "return 400(BAD_REQUEST) when pegaRequestTimestamp is not in the expected ISO-8601 format" in {
+    "return 400(BAD_REQUEST) when pegaRequestTimestamp is not in the expected ISO-8601 format" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-01", None, LocalDateTime.now.toString)
-    }
   }
 
   private def verifyJsonItemValidation(

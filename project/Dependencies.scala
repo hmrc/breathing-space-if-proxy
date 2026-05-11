@@ -2,15 +2,15 @@ import sbt.*
 
 object Dependencies {
   private val playVersion = "play-30"
-  private val mongoVersion = "2.10.0"
-  private val bootstrapVersion = "10.4.0"
+  private val mongoVersion = "2.12.0"
+  private val bootstrapVersion = "10.7.0"
 
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"       %% s"bootstrap-backend-$playVersion" % bootstrapVersion,
     "org.typelevel"     %% "cats-core"                       % "2.13.0",
-    "com.beachape"      %% "enumeratum"                      % "1.9.1",
+    "com.beachape"      %% "enumeratum"                      % "1.9.7",
     "uk.gov.hmrc.mongo" %% s"hmrc-mongo-$playVersion"        % mongoVersion,
-    "commons-codec"     % "commons-codec"                    % "1.20.0"
+    "commons-codec"     % "commons-codec"                    % "1.22.0"
   )
 
   val test: Seq[ModuleID] = Seq(

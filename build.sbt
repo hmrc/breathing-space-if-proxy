@@ -20,7 +20,7 @@ import uk.gov.hmrc.DefaultBuildSettings
 val appName = "breathing-space-if-proxy"
 
 ThisBuild / majorVersion := 3
-ThisBuild / scalaVersion := "3.3.5"
+ThisBuild / scalaVersion := "3.3.6"
 ThisBuild / scalafmtOnCompile := true
 
 lazy val plugins: Seq[Plugins] =
@@ -58,7 +58,6 @@ lazy val microservice = Project(appName, file("."))
     scalacOptions ++= Seq(
       "-unchecked",
       "-feature",
-      "-Xfatal-warnings",
       "-language:noAutoTupling",
       "-Wvalue-discard",
       "-Werror",
