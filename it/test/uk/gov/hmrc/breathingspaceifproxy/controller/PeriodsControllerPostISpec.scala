@@ -35,13 +35,11 @@ class PeriodsControllerPostISpec extends BaseISpec {
 
   "POST BS Periods for Nino" should {
 
-    "return 201(CREATED) and all periods for the valid Nino provided" in {
+    "return 201(CREATED) and all periods for the valid Nino provided" in
       verifyCreated()
-    }
 
-    "return 201(CREATED) even when the UTR is not provided" in {
+    "return 201(CREATED) even when the UTR is not provided" in
       verifyCreated(postPeriodsRequest(none))
-    }
 
     "return 400(BAD_REQUEST) when no body is provided" in {
       val request = fakeUnattendedRequest(Helpers.POST, postPath)

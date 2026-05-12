@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ trait RequestValidation {
       .fold(ErrorItem(INVALID_NINO, s"($maybeNino)".some).invalidNec[Nino])(_.validNec[ErrorItem])
 
   def validateNino(maybeNino: Option[String]): Validation[Nino] =
-    maybeNino.fold(ErrorItem(MISSING_NINO).invalidNec[Nino])(validateNino(_))
+    maybeNino.fold(ErrorItem(MISSING_NINO).invalidNec[Nino])(validateNino)
 
   def parseJsValue[T](json: JsValue, name: String)(implicit rds: Reads[T]): Option[T] =
     (json \ name).validate[T] match {
@@ -87,7 +87,7 @@ trait RequestValidation {
       case JsError(_)          => ErrorItem(INVALID_JSON, s" ($name)".some).invalidNec
     }
 
-  def parseJsObject[T](json: JsValue)(implicit rds: Reads[T]): Option[T] =
+  private def parseJsObject[T](json: JsValue)(implicit rds: Reads[T]): Option[T] =
     json.validate[T] match {
       case JsSuccess(value, _) => value.some
       case JsError(_)          => none

@@ -174,9 +174,8 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       status(response) shouldBe SERVICE_UNAVAILABLE
     }
 
-    "return 400(BAD_REQUEST) when the Nino is invalid" in {
+    "return 400(BAD_REQUEST) when the Nino is invalid" in
       verifyJsonItemValidation(INVALID_NINO, invalidNino.some, "2020-04-01")
-    }
 
     "return 400(BAD_REQUEST) when the 'periods' array is empty" in {
       val body = Json
@@ -241,17 +240,14 @@ class PeriodsControllerPostSpec extends AnyWordSpec with BaseSpec with MockitoSu
       errorList.head.message should include("period 0")
     }
 
-    "return 400(BAD_REQUEST) when startDate is not a valid date" in {
+    "return 400(BAD_REQUEST) when startDate is not a valid date" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-31")
-    }
 
-    "return 400(BAD_REQUEST) when endDate is present but it is not a valid date" in {
+    "return 400(BAD_REQUEST) when endDate is present but it is not a valid date" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-01-01", "2020-02-30".some)
-    }
 
-    "return 400(BAD_REQUEST) when pegaRequestTimestamp is not in the expected ISO-8601 format" in {
+    "return 400(BAD_REQUEST) when pegaRequestTimestamp is not in the expected ISO-8601 format" in
       verifyJsonItemValidation(INVALID_JSON_ITEM, None, "2020-04-01", None, LocalDateTime.now.toString)
-    }
   }
 
   def requestPayloadWithError(consumerRequestId: String = "", utr: String = ""): Validation[JsValue] =

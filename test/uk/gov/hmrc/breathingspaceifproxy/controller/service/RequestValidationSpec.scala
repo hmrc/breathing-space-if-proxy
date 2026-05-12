@@ -32,25 +32,20 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
   val upstreamConnector: EisConnector = inject[EisConnector]
 
   "RequestValidation.validateNino" should {
-    "assert that an empty Nino value is invalid" in {
+    "assert that an empty Nino value is invalid" in
       assert(validateNino("").isInvalid)
-    }
 
-    "assert that an invalid Nino value is invalid" in {
+    "assert that an invalid Nino value is invalid" in
       assert(validateNino("werr").isInvalid)
-    }
 
-    "assert that a valid Nino value, without suffix, is valid" in {
+    "assert that a valid Nino value, without suffix, is valid" in
       assert(validateNino(genNinoString).isValid)
-    }
 
-    "assert that a valid Nino value, with suffix, is valid" in {
+    "assert that a valid Nino value, with suffix, is valid" in
       assert(validateNino(genNinoWithSuffix.value).isValid)
-    }
 
-    "assert that a valid Nino value, with a blank in suffix position, is valid" in {
+    "assert that a valid Nino value, with a blank in suffix position, is valid" in
       assert(validateNino(s"${genNino.value} ").isValid)
-    }
   }
 
   "RequestValidation.validateCorrelationId" should {
@@ -78,9 +73,8 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.CorrelationId)
     }
 
-    "assert a valid CorrelationId value is valid" in {
+    "assert a valid CorrelationId value is valid" in
       assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(fakeGetRequest).isValid)
-    }
   }
 
   "RequestValidation.validateRequestType" should {
@@ -108,9 +102,8 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.RequestType)
     }
 
-    "assert a RequestType value of ATTENDED is valid" in {
+    "assert a RequestType value of ATTENDED is valid" in
       assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(fakeGetRequest).isValid)
-    }
 
     "assert a RequestType value of UNATTENDED is valid" in {
       val request = fakeGetRequest.withHeaders(
@@ -217,9 +210,8 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
       assertOnlyExpectedErrorPresent(result, INVALID_HEADER, DownstreamHeader.StaffPid)
     }
 
-    "assert a StaffPid value is valid when RequestType value is ATTENDED" in {
+    "assert a StaffPid value is valid when RequestType value is ATTENDED" in
       assert(validateHeadersForNPS(BS_Details_GET, upstreamConnector)(fakeGetRequest).isValid)
-    }
 
     "assert a StaffPid value is valid when RequestType value is UNATTENDED" in {
       val request = fakeGetRequest.withHeaders(
@@ -238,9 +230,8 @@ class RequestValidationSpec extends AnyWordSpec with BaseSpec with RequestValida
       assert(retrieveCorrelationId(request).isEmpty)
     }
 
-    "return Some value for passed CorrelationId header" in {
+    "return Some value for passed CorrelationId header" in
       assert(retrieveCorrelationId(fakeGetRequest).isDefined)
-    }
   }
 
   private def assertOnlyExpectedErrorPresent[A](

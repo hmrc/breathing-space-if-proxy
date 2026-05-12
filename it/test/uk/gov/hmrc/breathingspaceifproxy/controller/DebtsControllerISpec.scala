@@ -38,9 +38,8 @@ class DebtsControllerISpec extends BaseISpec {
 
   "GET BS Debts for Nino" should {
 
-    "return 200(OK) and all debts for the valid Nino provided" in {
+    "return 200(OK) and all debts for the valid Nino provided" in
       verifyOk(attended = true)
-    }
 
     "return 200(OK) even for a valid Nino with a trailing blank" in {
       val ninoWithoutSuffix = genNino
@@ -62,13 +61,11 @@ class DebtsControllerISpec extends BaseISpec {
       verifyAuditEventCall(BS_Debts_GET)
     }
 
-    "return 200(OK) for an ATTENDED request" in {
+    "return 200(OK) for an ATTENDED request" in
       verifyOk(attended = true)
-    }
 
-    "return 200(OK) for an UNATTENDED request" in {
+    "return 200(OK) for an UNATTENDED request" in
       verifyOk(attended = false)
-    }
 
     "return 400(BAD_REQUEST) when a body is provided" in {
       val body    = Json.obj("aName" -> "aValue")
@@ -83,9 +80,8 @@ class DebtsControllerISpec extends BaseISpec {
       assert(errorList.head.message.startsWith(INVALID_BODY.message))
     }
 
-    "return 401(UNAUTHORIZED) when the request was not authorised" in {
+    "return 401(UNAUTHORIZED) when the request was not authorised" in
       verifyUnauthorized(fakeAttendedRequest(Helpers.GET, getPathWithValidNino))
-    }
 
     "return 403(BREATHING_SPACE_EXPIRED) when Breathing Space has expired for the given Nino" in {
       stubCall(HttpMethod.Get, debtsConnectorUrl, Status.FORBIDDEN, errorResponseFromIF())

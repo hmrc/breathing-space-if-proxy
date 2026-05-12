@@ -57,13 +57,11 @@ class IndividualDetailsControllerSpec extends AnyWordSpec with BaseSpec with Moc
 
   "getMinimalPopulation" should {
 
-    "return 200(OK) when the Nino is valid and all required headers are present" in {
+    "return 200(OK) when the Nino is valid and all required headers are present" in
       verifyResponse(fakeGetRequest)
-    }
 
-    s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in {
+    s"return 200(OK) when the Nino is valid and all required headers are present, except $CONTENT_TYPE" in
       verifyResponse(attendedRequestFilteredOutOneHeader(CONTENT_TYPE))
-    }
 
     "return 400(BAD_REQUEST) when the Nino is invalid" in {
       Given(s"a GET request with an invalid Nino and a valid detailId")

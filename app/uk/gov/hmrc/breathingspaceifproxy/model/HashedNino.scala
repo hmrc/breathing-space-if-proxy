@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,10 @@ import java.security.MessageDigest
 
 case class HashedNino(nino: Nino) {
 
-  private val shaDigest: MessageDigest = MessageDigest.getInstance("SHA-512")
-
-  def generateHash()(implicit appConfig: AppConfig): String =
+  def generateHash()(implicit appConfig: AppConfig): String = {
+    val shaDigest = MessageDigest.getInstance("SHA-512")
     new String(
       Base64.encodeBase64(shaDigest.digest(Base64.decodeBase64(appConfig.ninoHashingKey) ++ nino.value.getBytes()))
     )
+  }
 }
