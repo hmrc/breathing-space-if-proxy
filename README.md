@@ -16,6 +16,7 @@ This service is written in [Scala 3.x](http://www.scala-lang.org/) and [Play 3.x
 | ```/individuals/breathing-space/{nino}/periods```                                              | GET                  | Retrieves all Breathing Space periods for a Nino.                                                                                         | Live   |
 | ```/individuals/breathing-space/{nino}/periods```                                              | PUT                  | Updates all Breathing Space periods for a Nino.                                                                                           | Live   |
 | ```/individuals/breathing-space/periods```                                                     | POST                 | Creates new Breathing Space periods for a given Nino.                                                                                     | Live   |
+| ```/individuals/breathing-space/{nino}/memorandum```                                                     | GET                 | Retrieves Memorandum for a given Nini.                                                                                     | Live   |
 
 ## Configuration
 
@@ -34,13 +35,14 @@ All the microservices used by Breathing Space Proxy require host and port settin
 | `microservice.services.fandf.host`            | The host of the fandf service                    |
 | `microservice.services.fandf.port`            | The port of the fandf service                    |
 | `feature.flag.memorandum.enabled`             | Enables the memorandum feature                   |
+| `ninoHashingKey`             | Nino HashingKey                   |
 
 ## How to test the project
 
 ### Unit Tests
 
 - **Unit test the entire test suite:** `sbt test`
-- **Unit test a single spec file:** `sbt "test:testOnly *fileName"` (for example: `sbt "test:testOnly *IndividualDetailsControllerSpec"`)
+- **Unit test a single spec file:** `sbt "Test/testOnly *fileName"` (for example: `sbt "Test/testOnly *IndividualDetailsControllerSpec"`)
 
 ### Integration tests
 
