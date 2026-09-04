@@ -1,17 +1,52 @@
-
 # Breathing Space Proxy
 
-"***Breathing Space** is a 2017 government's manifesto commitment to help people with problem debt to better control their finances.  
-It will pause enforcement actions; freeze interest, fees, and charges, and pause creditor contact with debtors where it relates to debt repayment for a 60-day period. These protections will be accessible via professional debt advice. During this period, individuals will receive professional debt advice to find a long-term solution to their financial difficulties.*"
+Allows users to create and manage Breathing Space periods and retrieve related individual information.
 
-This &#xb5;service enables interaction between PEGA Cloud, the platform controlling the Breathing Space workflow, and HMRC's Strategic Systems via a REST API fully documented on the [HMRC Developer Hub](https://developer.service.hmrc.gov.uk/api-documentation/docs/api/service/breathing-space-if-proxy/1.0).
+## Requirements
 
-#### &nbsp; &nbsp; PEGA Cloud &#8594; MDTP &#8594; Integration-Framework
+This service is written in [Scala 3.x](http://www.scala-lang.org/) and [Play 3.x](http://playframework.com/), so needs at least a [JRE 21](http://www.oracle.com/technetwork/java/javase/downloads/index.html) to run.
 
-### Prerequisites
-- Scala 2.13.8
-- Java 11
-- sbt 1.7
+## API
+
+| *Task*                                                                                         | *Supported Methods* | *Description*                                                                                                                            | Status |
+|------------------------------------------------------------------------------------------------|----------------------|------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| ```/individuals/breathing-space/{nino}/{periodId}/coding-out-debts```                         | GET                  | Retrieves coded-out debts for a person in Breathing Space.                                                                               | Live   |
+| ```/individuals/breathing-space/{nino}/{periodId}/debts```                                     | GET                  | Retrieves HMRC debts for a person in Breathing Space.                                                                                     | Live   |
+| ```/individuals/breathing-space/{nino}/details```                                              | GET                  | Retrieves personal information for a person in Breathing Space.                                                                           | Live   |
+| ```/individuals/breathing-space/{nino}/periods```                                              | GET                  | Retrieves all Breathing Space periods for a Nino.                                                                                         | Live   |
+| ```/individuals/breathing-space/{nino}/periods```                                              | PUT                  | Updates all Breathing Space periods for a Nino.                                                                                           | Live   |
+| ```/individuals/breathing-space/periods```                                                     | POST                 | Creates new Breathing Space periods for a given Nino.                                                                                     | Live   |
+| ```/individuals/breathing-space/{nino}/memorandum```                                                     | GET                 | Retrieves Memorandum for a given Nini.                                                                                     | Live   |
+
+## Configuration
+
+All the microservices used by Breathing Space Proxy require host and port settings. The integration framework service also requires an environment, auth token, and context.
+
+| *Key*                                         | *Description*                                      |
+|-----------------------------------------------|----------------------------------------------------|
+| `microservice.services.auth.host`             | The host of the auth service                      |
+| `microservice.services.auth.port`             | The port of the auth service                      |
+| `microservice.services.integration-framework.host` | The host of the integration framework service |
+| `microservice.services.integration-framework.port` | The port of the integration framework service |
+| `microservice.services.integration-framework.environment` | The integration framework environment |
+| `microservice.services.integration-framework.auth-token` | The auth token used by the integration framework |
+| `microservice.services.integration-framework.context` | The integration framework context |
+| `microservice.services.fandf.protocol`        | The protocol used by the fandf service            |
+| `microservice.services.fandf.host`            | The host of the fandf service                    |
+| `microservice.services.fandf.port`            | The port of the fandf service                    |
+| `feature.flag.memorandum.enabled`             | Enables the memorandum feature                   |
+| `ninoHashingKey`             | Nino HashingKey                   |
+
+## How to test the project
+
+### Unit Tests
+
+- **Unit test the entire test suite:** `sbt test`
+- **Unit test a single spec file:** `sbt "Test/testOnly *fileName"` (for example: `sbt "Test/testOnly *IndividualDetailsControllerSpec"`)
+
+### Integration tests
+
+- **Run integration tests:** `sbt it/test`
 
 ### Running the service
 
@@ -29,20 +64,13 @@ Before committing, always run from the console: `./precheck.sh`
 ```
 $ sbt -jvm-debug 5005
 ```
-* Then create a remote jvm debug run config targeting this port
 
-### Highlighted SBT Tasks
+- Then create a remote JVM debug run config targeting this port
 
-| Task           | Description                                         | Command                    |
-|:---------------|:----------------------------------------------------|:---------------------------|
-| test           | runs the standard unit tests                        | ```$ sbt test```           |
-| it:test        | runs the integration tests                          | ```$ sbt it:test ```       |
-| dependencyTree | prints the tree of the dependencies for the project | ```$ sbt dependencyTree``` |
+## Reporting Issues
 
-### Reporting Issues
+Report issues at [Breathing Space issues](https://github.com/hmrc/breathing-space-if-proxy/issues).
 
-Report issues at [BS issues](https://github.com/hmrc/breathing-space-if-proxy/issues).
-
-### License
+## License
 
 This code is open source software licensed under the [Apache 2.0 License](http://www.apache.org/licenses/LICENSE-2.0.html).
